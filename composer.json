@@ -1,0 +1,21 @@
+{
+    "name": "mapbender/data-source",
+    "description": "Mapbender data source handler",
+    "keywords": ["mapbender", "data", "data source"],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {"name": "Andriy Oblivantsev"}
+    ],
+    "require": {
+        "php": ">=5.3.3"
+        "phayes/geophp": "1.2"
+    },
+    "config": {
+        "bin-dir": "bin"
+    },
+    "autoload": {
+		"psr-0": {"Mapbender\\DataSourceBundle": "."}
+    },
+    "target-dir": "Mapbender/DataSourceBundle"
+}
