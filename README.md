@@ -22,4 +22,5 @@ $ ../composer.phar update
 
 # Architecture
 
-![Architecture](Documents/schema.png)
+![Architecture](Documents/Schema.png)
+[Diagram](https://www.draw.io/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmapbender%2Fdata-source%2Fmaster%2FDocuments%2FSchema.xml)
