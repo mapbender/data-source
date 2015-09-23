@@ -10,7 +10,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  * @package   Mapbender\CoreBundle\Component
  */
-class DataStores extends ContainerAware
+class DataStoreService extends ContainerAware
 {
     /**
      * Feature type s defined in mapbebder.yml > parameters.featureTypes
