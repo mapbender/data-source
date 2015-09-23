@@ -5,7 +5,7 @@
     "type": "library",
     "license": "MIT",
     "authors": [
-        {"name": "Andriy Oblivantsev"}
+        {"name": "Andriy Oblivantsev",  "email": "andriy.oblivantsev@wheregroup.com"}
     ],
     "require": {
         "php": ">=5.3.3",
