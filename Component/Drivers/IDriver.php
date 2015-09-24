@@ -1,5 +1,7 @@
 <?php
+namespace Mapbender\DataSourceBundle\Component\Driver;
 
+use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
  * Interface IDriver
@@ -8,7 +10,7 @@ interface IDriver
 {
     /**
      * @param $id
-     * @return mixed
+     * @return DataItem
      */
     public function get($id);
 
@@ -18,7 +20,7 @@ interface IDriver
      * @param $data
      * @return mixed
      */
-    public function save(DataIte $data);
+    public function save(DataItem $data);
 
     /**
      * Remove by ID
@@ -39,21 +41,21 @@ interface IDriver
     /**
      * Is the driver connected an ready to interact?
      *
-     * @return Boolean
+     * @return bool
      */
     public function isReady();
 
     /**
      * Has permission to read?
      *
-     * @return Boolean
+     * @return bool
      */
     public function canRead();
 
     /**
      * Has permission to write?
      *
-     * @return Boolean
+         * @return bool
      */
     public function canWrite();
 }
