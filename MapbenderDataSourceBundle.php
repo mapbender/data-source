@@ -8,7 +8,7 @@ use Mapbender\CoreBundle\Component\MapbenderBundle;
  *
  * @author Andriy Oblivantsev
  */
-class DataSourceBundle extends MapbenderBundle
+class MapbenderDataSourceBundle extends MapbenderBundle
 {
     /**
      * @inheritdoc
