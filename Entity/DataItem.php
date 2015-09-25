@@ -19,12 +19,99 @@ class DataItem
     protected $id;
 
     /**
-     * @var
+     * Meta data
+     *
+     * @ORM\Column(type="json_array")
      */
     protected $attributes;
 
-    /** @var string */
-    private $uniqueIdField;
+    /**
+     * Meta data unique field key name
+     *
+     * @var string
+     */
+    protected $uniqueIdField;
+
+    /**
+     * @param mixed  $args string|array|null Optional JSON string or array
+     * @param string $uniqueIdField ID field name
+     * @param bool   $fill array|null Fill array
+     */
+    public function __construct($args = null, $uniqueIdField = 'id', $fill = false)
+    {
+        $this->uniqueIdField = $uniqueIdField;
+
+        // decode JSON
+        if (is_string($args)) {
+            $args = json_decode($args, true);
+        }
+
+        // Is JSON DataSource array?
+        if ($fill && is_array($args) && isset($args['attributes'])) {
+            $attributes = $args["attributes"];
+
+            if (isset($args['id'])) {
+                $attributes[$uniqueIdField] = $args['id'];
+            }
+
+            $args = $attributes;
+        }
+
+        // set ID
+        if (isset($args[$uniqueIdField])) {
+            $this->setId($args[$uniqueIdField]);
+            unset($args[$uniqueIdField]);
+        }
+
+        // set attributes
+        $this->setAttributes($args);
+    }
+
+    /**
+     * Return GeoJSON string
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return json_encode($this);
+    }
+
+    /**
+     * Return array
+     *
+     * @return mixed
+     */
+    public function toArray()
+    {
+        $data = $this->getAttributes();
+
+        if (!$this->hasId()) {
+            unset($data[$this->uniqueIdField]);
+        } else {
+            $data[$this->uniqueIdField] = $this->getId();
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param mixed $id
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+    }
+
+    /**
+     * Is id set
+     *
+     * @return bool
+     */
+    public function hasId()
+    {
+        return !is_null($this->id);
+    }
 
     /**
      * Get id
@@ -74,82 +161,5 @@ class DataItem
     public function setParent(DataItem $dataItem = null)
     {
         return $dataItem;
-    }
-
-    /**
-     * @param mixed  $args          JSON or array(
-     * @param int    $srid
-     * @param string $uniqueIdField ID field name
-     * @param string $geomField     GEOM field name
-     */
-    public function __construct($args = null, $srid = null, $uniqueIdField = 'id', $geomField = "geom")
-    {
-        // Is JSON DataSource array?
-        if (is_array($args) && isset($args['properties'])) {
-            $properties = $args["properties"];
-
-            if (isset($args['id'])) {
-                $properties[$uniqueIdField] = $args['id'];
-            }
-
-            $args = $properties;
-        }
-
-        // set ID
-        if (isset($args[$uniqueIdField])) {
-            $this->setId($args[$uniqueIdField]);
-            unset($args[$uniqueIdField]);
-        }
-
-        // set attributes
-        $this->setAttributes($args);
-
-        $this->uniqueIdField = $uniqueIdField;
-    }
-
-    /**
-     * Return GeoJSON string
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        return json_encode($this);
-    }
-
-    /**
-     * Return array
-     *
-     * @return mixed
-     */
-    public function toArray()
-    {
-        $data = $this->getAttributes();
-
-        if (!$this->hasId()) {
-            unset($data[$this->uniqueIdField]);
-        } else {
-            $data[$this->uniqueIdField] = $this->getId();
-        }
-
-        return $data;
-    }
-
-    /**
-     * @param mixed $id
-     */
-    public function setId($id)
-    {
-        $this->id = $id;
-    }
-
-    /**
-     * Is id set
-     *
-     * @return bool
-     */
-    public function hasId()
-    {
-        return !is_null($this->id);
     }
 }
