@@ -44,4 +44,13 @@ class DataStoreService extends ContainerAware
         }
         return $this->storeList[$name];
     }
+
+    /**
+     * @return array
+     */
+    public function listDrivers(){
+        return array(
+            'SQLite', 'PostgreSQL', 'YAML', 'JSON'
+        );
+    }
 }
