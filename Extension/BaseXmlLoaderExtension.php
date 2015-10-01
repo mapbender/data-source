@@ -1,6 +1,5 @@
 <?php
-
-namespace Mapbender\DigitizerBundle\DependencyInjection;
+namespace Mapbender\DataSourceBundle\Extension;
 
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -8,13 +7,16 @@ use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 /**
- * Class MapbenderDataSourceExtension
+ * Class BaseXmlLoaderExtension
  *
- * @package Mapbender\DigitizerBundle\DependencyInjection
+ * @package Mapbender\DataSourceBundle\Extension
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class MapbenderDataSourceExtension extends Extension
+class BaseXmlLoaderExtension extends Extension
 {
+
+    protected $xmlFileName = 'services.xml';
+    protected $xmlFilePath = '/../Resources/config';
 
     /**
      * Loads a specific configuration.
@@ -27,8 +29,8 @@ class MapbenderDataSourceExtension extends Extension
      */
     public function load(array $configs, ContainerBuilder $container)
     {
-        $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
-        $loader->load('services.xml');
+        $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . $this->xmlFilePath));
+        $loader->load($this->xmlFileName);
     }
 
     /**
@@ -36,6 +38,8 @@ class MapbenderDataSourceExtension extends Extension
      */
     public function getAlias()
     {
-        return  'mapbender_data_source_extension_loader';
+        list($prefix) = explode('Bundle\\', get_class($this));
+        $alias = strtolower(preg_replace("/(.)([A-Z])/e", "'$1_'.strtolower('$2')", str_replace("\\", "", $prefix)));
+        return $alias;
     }
 }
