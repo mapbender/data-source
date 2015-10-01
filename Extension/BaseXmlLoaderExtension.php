@@ -14,9 +14,17 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
  */
 class BaseXmlLoaderExtension extends Extension
 {
-
     protected $xmlFileName = 'services.xml';
     protected $xmlFilePath = '/../Resources/config';
+    protected $reflector;
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->reflector = new \ReflectionClass(get_class($this));
+    }
 
     /**
      * Loads a specific configuration.
@@ -26,10 +34,12 @@ class BaseXmlLoaderExtension extends Extension
      *
      * @internal param array $config An array of configuration values
      * @api
+     * @return string
      */
     public function load(array $configs, ContainerBuilder $container)
     {
-        $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . $this->xmlFilePath));
+        $fileSrc = dirname($this->reflector->getFileName()) . $this->xmlFilePath;
+        $loader  = new XmlFileLoader($container, new FileLocator($fileSrc));
         $loader->load($this->xmlFileName);
     }
 
@@ -38,8 +48,11 @@ class BaseXmlLoaderExtension extends Extension
      */
     public function getAlias()
     {
-        list($prefix) = explode('Bundle\\', get_class($this));
-        $alias = strtolower(preg_replace("/(.)([A-Z])/e", "'$1_'.strtolower('$2')", str_replace("\\", "", $prefix)));
+        static $alias = null;
+        if (!$alias) {
+            list($prefix) = explode('Bundle\\', $this->reflector->getName());
+            $alias = strtolower(preg_replace("/(.)([A-Z])/e", "'$1_'.strtolower('$2')", str_replace("\\", "", $prefix)));
+        }
         return $alias;
     }
 }
