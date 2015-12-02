@@ -1,8 +1,6 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
-
-use Mapbender\DataSourceBundle\Component\Driver\IDriver;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
@@ -11,7 +9,8 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class YAML implements IDriver{
+class YAML extends BaseDriver implements IDriver
+{
 
     /**
      * @param $id

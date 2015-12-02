@@ -68,7 +68,7 @@ class DataItem
     }
 
     /**
-     * Return GeoJSON string
+     * Return string
      *
      * @return string
      */

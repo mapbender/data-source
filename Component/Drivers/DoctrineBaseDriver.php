@@ -1,17 +1,37 @@
 <?php
+/**
+ *
+ * @author Andriy Oblivantsev <eslider@gmail.com>
+ */
+
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
-
-use Mapbender\DataSourceBundle\Component\Driver\IDriver;
+use Doctrine\DBAL\Connection;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
- * Class PostgreSQL
+ * Class DoctrineBaseDriver
  *
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class PostgreSQL implements IDriver{
+class DoctrineBaseDriver extends BaseDriver implements IDriver
+{
+    /** @var Connection */
+    public $connection;
+
+
+    /**
+     * Open connection by name$settings
+     *
+     * @param $name
+     * @return $this
+     */
+    public function openConnection($name = "default")
+    {
+        $this->connection = $this->container->get("doctrine.dbal.{$name}_connection");
+        return $this;
+    }
 
     /**
      * @param $id
@@ -83,5 +103,28 @@ class PostgreSQL implements IDriver{
     public function canWrite()
     {
         // TODO: Implement canWrite() method.
+    }
+
+    /**
+     * Prepares and executes an SQL query and returns the value of a single column
+     * of the first row of the result.
+     *
+     * @param string  $statement The SQL query to be executed.
+     * @param array   $params    The prepared statement params.
+     * @param integer $colnum    The 0-indexed column number to retrieve.
+     *
+     * @return mixed
+     */
+    public function fetchColumn($statement, array $params = array(), $colnum = 0)
+    {
+        $this->connection->fetchColumn($statement, $params, $colnum);
+    }
+
+    /**
+     * Get version
+     */
+    public function getVersion()
+    {
+        $this->fetchColumn("SELECT version()");
     }
 }

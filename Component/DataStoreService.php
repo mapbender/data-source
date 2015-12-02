@@ -48,9 +48,13 @@ class DataStoreService extends ContainerAware
     /**
      * @return array
      */
-    public function listDrivers(){
+    public function listDrivers()
+    {
         return array(
-            'SQLite', 'PostgreSQL', 'YAML', 'JSON'
+            'SQLite',
+            'PostgreSQL',
+            'YAML',
+            'JSON'
         );
     }
 }
