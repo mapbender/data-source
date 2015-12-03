@@ -2,6 +2,8 @@
 namespace Mapbender\DataSourceBundle\Tests;
 
 use Mapbender\DataSourceBundle\Component\DataStoreService;
+use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
+use Mapbender\DataSourceBundle\Component\Drivers\IDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 
 /**
@@ -12,24 +14,18 @@ use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
  */
 class DataStoreServiceTest extends SymfonyTest
 {
-    public function testConnect()
+    public function testDriver()
     {
         /** @var DataStoreService $service */
         $service       = $this->get("data.source");
         $dataStoreList = $this->getParameter("dataStores");
-
-        foreach($dataStoreList as $name => $settings){
+        foreach ($dataStoreList as $name => $settings) {
             $dataStore = $service->get($name);
             $driver    = $dataStore->getDriver();
-            $types = $dataStore->getTypes();
-            $connection = $driver->connect()->connection;
+            $this->assertTrue($driver instanceof BaseDriver);
+            $this->assertTrue($driver instanceof IDriver);
+            $dataStore->search();
         }
 
-    }
-
-
-    public function testSomeShit()
-    {
-        $this->assertEmpty("");
     }
 }

@@ -7,7 +7,10 @@
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\DBAL\Statement;
 use Mapbender\DataSourceBundle\Entity\DataItem;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class DoctrineBaseDriver
@@ -17,6 +20,8 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
  */
 class DoctrineBaseDriver extends BaseDriver implements IDriver
 {
+    const MAX_RESULTS = 100;
+
     /** @var Connection */
     public $connection;
 
@@ -128,7 +133,7 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
     }
 
     /**
-     * Get DBAL Connection
+     * Get DBAL Connections
      *
      * @return Connection
      */
@@ -172,5 +177,105 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
             $name = $this->connection->getDatabasePlatform()->getName();
         }
         return $name;
+    }
+
+
+    /**
+     * Get query builder prepared to select from the source table
+     *
+     * @return QueryBuilder
+     */
+    public function getSelectQueryBuilder()
+    {
+        $connection   = $this->getConnection();
+        $attributes   = array_merge(array($this->uniqueId), $this->fields);
+        $queryBuilder = $connection->createQueryBuilder()->select($attributes)->from($this->tableName, 't');
+        return $queryBuilder;
+    }
+
+    /**
+     * Search by criteria
+     *
+     * @param array $criteria
+     * @return DataItem[]
+     */
+    public function search(array $criteria = array())
+    {
+
+        /** @var Statement $statement */
+        $maxResults   = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
+        $where        = isset($criteria['where']) ? $criteria['where'] : null;
+        $queryBuilder = $this->getSelectQueryBuilder();
+        //        $returnType   = isset($criteria['returnType']) ? $criteria['returnType'] : null;
+
+        // add filter (https://trac.wheregroup.com/cp/issues/3733)
+        if (!empty($this->sqlFilter)) {
+            $queryBuilder->andWhere($this->sqlFilter);
+        }
+
+        // add second filter (https://trac.wheregroup.com/cp/issues/4643)
+        if ($where) {
+            $queryBuilder->andWhere($where);
+        }
+
+        $queryBuilder->setMaxResults($maxResults);
+        // $queryBuilder->setParameters($params);
+        $statement  = $queryBuilder->execute();
+        $rows       = $statement->fetchAll();
+        $hasResults = count($rows) > 0;
+
+        // Convert to Feature object
+        if ($hasResults) {
+            $this->prepareResults($rows);
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Convert results to DataItem objects
+     *
+     * @param array $rows - Data items to be casted
+     * @return DataItem[]
+     */
+    public function prepareResults(&$rows)
+    {
+        foreach ($rows as $key => &$row) {
+            $row = $this->create($row);
+        }
+        return $rows;
+    }
+
+    /**
+     * Cast DataItem by $args
+     *
+     * @param mixed $args
+     * @return DataItem
+     */
+    public function create($args)
+    {
+        $data = null;
+        if (is_object($args)) {
+            if ($args instanceof DataItem) {
+                $data = $args;
+            } else {
+                $args = get_object_vars($args);
+            }
+        } elseif (is_numeric($args)) {
+            $args = array($this->getUniqueId() => intval($args));
+        }
+        return $data ? $data : new DataItem($args, $this->getUniqueId());
+    }
+
+    /**
+     * Set FeatureType permanent SQL filter used by $this->search()
+     * https://trac.wheregroup.com/cp/issues/3733
+     *
+     * @see $this->search()
+     * @param $sqlFilter
+     */
+    public function setFilter($sqlFilter)
+    {
+        $this->sqlFilter = $sqlFilter;
     }
 }

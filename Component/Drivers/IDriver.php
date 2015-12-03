@@ -8,6 +8,7 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
  */
 interface IDriver
 {
+
     /**
      * @param $id
      * @return DataItem
@@ -15,9 +16,17 @@ interface IDriver
     public function get($id);
 
     /**
+     * Cast DataItem by $args
+     *
+     * @param mixed $args
+     * @return DataItem
+     */
+    public function create($args);
+
+    /**
      * Save the data
      *
-     * @param $data
+     * @param DataItem $data
      * @return mixed
      */
     public function save(DataItem $data);
@@ -65,4 +74,10 @@ interface IDriver
      * @return string
      */
     public function getPlatformName();
+
+    /**
+     * @param array $criteria
+     * @return mixed
+     */
+    public function search(array $criteria);
 }

@@ -2,7 +2,9 @@
 namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\Query\Expr\Base;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
+use Mapbender\DataSourceBundle\Component\Drivers\IDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Component\Drivers\YAML;
@@ -25,18 +27,7 @@ class DataStore extends ContainerAware
     const SQLITE_PLATFORM     = 'sqlite';
 
     /**
-     * Get driver types
-     *
-     * @return array
-     */
-    public function getTypes()
-    {
-        $reflection = new \ReflectionClass($this);
-        return $reflection->getConstants();
-    }
-
-    /**
-     * @var BaseDriver $driver
+     * @var IDriver $driver
      */
     protected $driver;
 
@@ -48,16 +39,27 @@ class DataStore extends ContainerAware
     {
         /** @var Connection $connection */
         $this->setContainer($container);
-        $type       = isset($args["type"]) ? $args["type"] : "doctrine";
-        $connection = isset($args["connection"]) ? $args["connection"] : "default";
-        $driver     = null;
+        $type           = isset($args["type"]) ? $args["type"] : "doctrine";
+        $connectionName = isset($args["connection"]) ? $args["connection"] : "default";
+        $driver         = null;
+
+        // init $methods by $args
+        if (is_array($args)) {
+            $methods = get_class_methods(get_class($this));
+            foreach ($args as $key => $value) {
+                $keyMethod = "set" . ucwords($key);
+                if (in_array($keyMethod, $methods)) {
+                    $this->$keyMethod($value);
+                }
+            }
+        }
+
         switch ($type) {
             case'yaml':
                 $driver = new YAML($this->container, $args);
                 break;
             default: // doctrine
-                $connectionName = $connection;
-                $connection     = $this->container->get("doctrine.dbal.{$connectionName}_connection");
+                $connection = $this->container->get("doctrine.dbal.{$connectionName}_connection");
                 switch ($connection->getDatabasePlatform()->getName()) {
                     case self::SQLITE_PLATFORM;
                         $driver = new SQLite($this->container, $args);
@@ -67,6 +69,7 @@ class DataStore extends ContainerAware
                         break;
 
                 }
+                $driver->connect($connectionName);
         }
         $this->driver = $driver;
     }
@@ -151,7 +154,7 @@ class DataStore extends ContainerAware
      * @param array $criteria
      * @return DataItem[]
      */
-    public function search(array $criteria)
+    public function search(array $criteria = array())
     {
         return $this->getDriver()->search($criteria);
     }
@@ -159,7 +162,7 @@ class DataStore extends ContainerAware
     /**
      * Get current driver instance
      *
-     * @return BaseDriver
+     * @return IDriver|BaseDriver
      */
     public function getDriver()
     {
@@ -209,4 +212,19 @@ class DataStore extends ContainerAware
         return $r;
     }
 
+    /**
+     * Get driver types
+     *
+     * @return array
+     */
+    public function getTypes()
+    {
+        $list = array();
+        foreach ((new \ReflectionClass(__CLASS__))->getConstants() as $k => $v) {
+            if (strrpos($k, "_PLATFORM") > 0) {
+                $list[] = $v;
+            }
+        }
+        return $list;
+    }
 }
