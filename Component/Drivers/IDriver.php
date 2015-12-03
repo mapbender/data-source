@@ -55,7 +55,14 @@ interface IDriver
     /**
      * Has permission to write?
      *
-         * @return bool
+     * @return bool
      */
     public function canWrite();
+
+    /**
+     * Get platform name
+     *
+     * @return string
+     */
+    public function getPlatformName();
 }

@@ -12,8 +12,20 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 abstract class BaseDriver extends ContainerAware
 {
-    /** @var array Driver settings */
-    public $settings;
+    /**
+     * @var array Driver settings
+     */
+    protected $settings;
+
+    /**
+     * @var array Field to select from the table
+     */
+    protected $fields = array();
+
+    /**
+     * @var mixed Unique id field name
+     */
+    protected $uniqueId = 'id';
 
     /**
      * BaseDriver constructor.
@@ -25,5 +37,39 @@ abstract class BaseDriver extends ContainerAware
     {
         $this->setContainer($container);
         $this->settings = $settings;
+    }
+
+    /**
+     * @param int $uniqueId
+     */
+    public function setUniqueId($uniqueId)
+    {
+        $this->uniqueId = $uniqueId;
+    }
+
+    /**
+     * @return array
+     */
+    public function getFields()
+    {
+        return $this->fields;
+    }
+
+    /**
+     * @param array $fields
+     */
+    public function setFields(array $fields)
+    {
+        $this->fields = $fields;
+    }
+
+    /**
+     * Get unique ID
+     *
+     * @return mixed unique ID
+     */
+    public function getUniqueId()
+    {
+        return $this->uniqueId;
     }
 }

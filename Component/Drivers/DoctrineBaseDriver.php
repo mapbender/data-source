@@ -20,6 +20,15 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
     /** @var Connection */
     public $connection;
 
+    /**
+     * @var string Table name
+     */
+    protected $tableName;
+
+    /**
+     * @var string SQL where filter
+     */
+    protected $sqlFilter;
 
     /**
      * Open connection by name$settings
@@ -27,7 +36,7 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
      * @param $name
      * @return $this
      */
-    public function openConnection($name = "default")
+    public function connect($name = "default")
     {
         $this->connection = $this->container->get("doctrine.dbal.{$name}_connection");
         return $this;
@@ -64,16 +73,6 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
         // TODO: Implement remove() method.
     }
 
-    /**
-     * Connect to the source
-     *
-     * @param $url
-     * @return mixed
-     */
-    public function connect($url)
-    {
-        // TODO: Implement connect() method.
-    }
 
     /**
      * Is the driver connected an ready to interact?
@@ -126,5 +125,52 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
     public function getVersion()
     {
         $this->fetchColumn("SELECT version()");
+    }
+
+    /**
+     * Get DBAL Connection
+     *
+     * @return Connection
+     */
+    public function getConnection()
+    {
+        return $this->connection;
+    }
+
+    /**
+     * Set table name
+     *
+     * @param $name
+     * @return $this
+     */
+    public function setTable($name)
+    {
+        $this->tableName = $name;
+        return $this;
+    }
+
+    /**
+     * Get table fields
+     *
+     * @throws \Doctrine\DBAL\DBALException
+     * @return array field names
+     */
+    public function getTableFields()
+    {
+        return array();
+    }
+
+    /**
+     * Get platform name
+     *
+     * @return string
+     */
+    public function getPlatformName()
+    {
+        static $name = null;
+        if (!$name) {
+            $name = $this->connection->getDatabasePlatform()->getName();
+        }
+        return $name;
     }
 }

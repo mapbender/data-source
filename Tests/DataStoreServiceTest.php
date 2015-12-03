@@ -21,11 +21,10 @@ class DataStoreServiceTest extends SymfonyTest
         foreach($dataStoreList as $name => $settings){
             $dataStore = $service->get($name);
             $driver    = $dataStore->getDriver();
+            $types = $dataStore->getTypes();
+            $connection = $driver->connect()->connection;
         }
 
-        $connection   = $driver->openConnection()->connection;
-        $platformName = $connection->getDriver()->getDatabasePlatform()->getName();
-        var_dump($platformName);
     }
 
 

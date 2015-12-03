@@ -71,7 +71,7 @@ class YAML extends BaseDriver implements IDriver
      */
     public function canRead()
     {
-        // TODO: Implement canRead() method.
+        return true;
     }
 
     /**
@@ -81,6 +81,6 @@ class YAML extends BaseDriver implements IDriver
      */
     public function canWrite()
     {
-        // TODO: Implement canWrite() method.
+        return false;
     }
 }

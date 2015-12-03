@@ -1,9 +1,6 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
-use Mapbender\DataSourceBundle\Component\Driver\IDriver;
-use Mapbender\DataSourceBundle\Entity\DataItem;
-
 /**
  * Class SQLite
  *
@@ -15,7 +12,8 @@ class SQLite extends DoctrineBaseDriver
     /**
      * @inheritdoc
      */
-    public function getVersion(){
+    public function getVersion()
+    {
         $this->fetchColumn("select sqlite_version()");
     }
 }
