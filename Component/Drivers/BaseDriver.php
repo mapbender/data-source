@@ -31,12 +31,23 @@ abstract class BaseDriver extends ContainerAware
      * BaseDriver constructor.
      *
      * @param ContainerInterface $container
-     * @param array              $settings
+     * @param array              $args
      */
-    public function __construct(ContainerInterface $container, array $settings = array())
+    public function __construct(ContainerInterface $container, array $args = array())
     {
         $this->setContainer($container);
-        $this->settings = $settings;
+
+        // init $methods by $args
+        if (is_array($args)) {
+            $methods = get_class_methods(get_class($this));
+            foreach ($args as $key => $value) {
+                $keyMethod = "set" . ucwords($key);
+                if (in_array($keyMethod, $methods)) {
+                    $this->$keyMethod($value);
+                }
+            }
+        }
+        $this->settings = $args;
     }
 
     /**
