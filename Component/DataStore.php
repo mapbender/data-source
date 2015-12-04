@@ -2,8 +2,8 @@
 namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\ORM\Query\Expr\Base;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
+use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\IDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
@@ -122,7 +122,7 @@ class DataStore extends ContainerAware
      */
     public function create($data)
     {
-        return new DataItem($data);
+        return $this->driver->create($data);
     }
 
     /**
@@ -162,7 +162,7 @@ class DataStore extends ContainerAware
     /**
      * Get current driver instance
      *
-     * @return IDriver|BaseDriver
+     * @return IDriver|BaseDriver|DoctrineBaseDriver
      */
     public function getDriver()
     {
