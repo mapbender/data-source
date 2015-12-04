@@ -5,6 +5,7 @@ use Mapbender\DataSourceBundle\Component\DataStoreService;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\IDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
+use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
  * Class DataStoreServiceTest
@@ -24,8 +25,22 @@ class DataStoreServiceTest extends SymfonyTest
             $driver    = $dataStore->getDriver();
             $this->assertTrue($driver instanceof BaseDriver);
             $this->assertTrue($driver instanceof IDriver);
-            $dataStore->search();
-        }
 
+            // Test search method
+            foreach ($dataStore->search() as $dataItem) {
+                $this->assertTrue($dataItem instanceof DataItem);
+            }
+
+            // Test create method
+            $testTitle = "test#10";
+            $dataItem  = $dataStore->create(array("title" => $testTitle));
+            $this->assertTrue($dataItem instanceof DataItem);
+            $this->assertTrue($dataItem->getAttribute("title") == $testTitle);
+
+
+            // Test save method
+            $dataStore->save($dataItem);
+
+        }
     }
 }

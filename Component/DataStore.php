@@ -42,6 +42,7 @@ class DataStore extends ContainerAware
         $type           = isset($args["type"]) ? $args["type"] : "doctrine";
         $connectionName = isset($args["connection"]) ? $args["connection"] : "default";
         $driver         = null;
+        $hasFields      = isset($args["fields"]) && is_array($args["fields"]);
 
         // init $methods by $args
         if (is_array($args)) {
@@ -70,6 +71,10 @@ class DataStore extends ContainerAware
 
                 }
                 $driver->connect($connectionName);
+                if(!$hasFields){
+                    $driver->setFields($driver->getTableFields());
+                }
+
         }
         $this->driver = $driver;
     }
@@ -128,13 +133,12 @@ class DataStore extends ContainerAware
     /**
      * Save data item
      *
-     * @param DataItem $dataItem
+     * @param DataItem $item
      * @return DataItem
-     * @internal param DataItem $data
      */
-    public function save(DataItem $dataItem)
+    public function save(DataItem $item)
     {
-        return $this->getDriver()->save($dataItem);
+        return $this->getDriver()->save($item);
     }
 
     /**
