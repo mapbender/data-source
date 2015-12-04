@@ -10,7 +10,6 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Statement;
 use Mapbender\DataSourceBundle\Entity\DataItem;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class DoctrineBaseDriver
@@ -86,7 +85,7 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
      */
     public function isReady()
     {
-        // TODO: Implement isReady() method.
+        return $this->connection && $this->connection->isConnected();
     }
 
     /**
@@ -96,7 +95,7 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
      */
     public function canRead()
     {
-        // TODO: Implement canRead() method.
+        return $this->isReady(); // TODO: implement user access check
     }
 
     /**
@@ -106,7 +105,7 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
      */
     public function canWrite()
     {
-        // TODO: Implement canWrite() method.
+        return $this->isReady(); // TODO: implement user access check
     }
 
     /**
@@ -157,12 +156,20 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
     /**
      * Get table fields
      *
+     * Info: $schemaManager->listTableColumns($this->tableName) doesn't work if fields are geometries!
+     *
      * @throws \Doctrine\DBAL\DBALException
      * @return array field names
      */
     public function getTableFields()
     {
-        return array();
+        $schemaManager = $this->connection->getDriver()->getSchemaManager($this->connection);
+        $columns       = array();
+        $sql           = $schemaManager->getDatabasePlatform()->getListTableColumnsSQL($this->tableName, $this->connection->getDatabase());
+        foreach ($this->connection->fetchAll($sql) as $fieldInfo) {
+            $columns[] = $fieldInfo["field"];
+        }
+        return $columns;
     }
 
     /**
