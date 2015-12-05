@@ -1,6 +1,7 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
+use Mapbender\DataSourceBundle\Entity\DataItem;
 use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -82,5 +83,26 @@ abstract class BaseDriver extends ContainerAware
     public function getUniqueId()
     {
         return $this->uniqueId;
+    }
+
+    /**
+     * Cast DataItem by $args
+     *
+     * @param mixed $args
+     * @return DataItem
+     */
+    public function create($args)
+    {
+        $data = null;
+        if (is_object($args)) {
+            if ($args instanceof DataItem) {
+                $data = $args;
+            } else {
+                $args = get_object_vars($args);
+            }
+        } elseif (is_numeric($args)) {
+            $args = array($this->getUniqueId() => intval($args));
+        }
+        return $data ? $data : new DataItem($args, $this->getUniqueId());
     }
 }

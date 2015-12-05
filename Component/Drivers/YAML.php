@@ -24,10 +24,10 @@ class YAML extends BaseDriver implements IDriver
     /**
      * Save the data
      *
-     * @param $data
+     * @param array|DataItem $data
      * @return mixed
      */
-    public function save(DataItem $data)
+    public function save($data)
     {
         // TODO: Implement save() method.
     }
@@ -82,5 +82,35 @@ class YAML extends BaseDriver implements IDriver
     public function canWrite()
     {
         return false;
+    }
+
+    /**
+     * Cast DataItem by $args
+     *
+     * @param mixed $args
+     * @return DataItem
+     */
+    public function create($args)
+    {
+        // TODO: Implement create() method.
+    }
+
+    /**
+     * Get platform name
+     *
+     * @return string
+     */
+    public function getPlatformName()
+    {
+        return "yaml";
+    }
+
+    /**
+     * @param array $criteria
+     * @return mixed
+     */
+    public function search(array $criteria)
+    {
+        // TODO: Implement search() method.
     }
 }

@@ -29,7 +29,7 @@ interface IDriver
      * @param DataItem $data
      * @return mixed
      */
-    public function save(DataItem $data);
+    public function save($data);
 
     /**
      * Remove by ID

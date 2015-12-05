@@ -23,7 +23,7 @@ class DataItem
      *
      * @ORM\Column(type="json_array")
      */
-    protected $attributes;
+    protected $attributes = array();
 
     /**
      * Meta data unique field key name
@@ -101,6 +101,7 @@ class DataItem
     public function setId($id)
     {
         $this->id = $id;
+        $this->attributes[$this->uniqueIdField] = $id;
     }
 
     /**
@@ -135,11 +136,21 @@ class DataItem
     }
 
     /**
+     * @param $name
+     */
+    public function getAttribute($name){
+        $attributes = $this->getAttributes();
+        return $attributes[$name];
+    }
+
+    /**
+     * Merge attributes
+     *
      * @param mixed $attributes
      */
     public function setAttributes($attributes)
     {
-        $this->attributes = $attributes;
+        $this->attributes = array_merge($this->attributes, $attributes);
     }
 
     /**

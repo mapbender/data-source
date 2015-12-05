@@ -1,9 +1,4 @@
 <?php
-/**
- *
- * @author Andriy Oblivantsev <eslider@gmail.com>
- */
-
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Doctrine\DBAL\Connection;
@@ -47,36 +42,58 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
     }
 
     /**
-     * @param $id
+     * Get by ID, array or object
+     *
+     * @param $args
      * @return DataItem
      */
-    public function get($id)
+    public function get($args)
     {
-        // TODO: Implement get() method.
+        $dataItem = $this->create($args);
+        if ($dataItem->hasId()) {
+            $dataItem = $this->getById($dataItem->getId());
+        }
+        return $dataItem;
     }
 
     /**
      * Save the data
      *
-     * @param $data
+     * @param mixed $data
+     * @param bool  $autoUpdate update instead of insert if ID given
      * @return mixed
+     * @throws \Exception
      */
-    public function save(DataItem $data)
+    public function save($data, $autoUpdate = true)
     {
-        // TODO: Implement save() method.
-    }
+        if (!is_array($data) && !is_object($data)) {
+            throw new \Exception("Data item given isn't compatible to save into the table: " . $this->getTableName());
+        }
 
-    /**
-     * Remove by ID
-     *
-     * @param $id
-     * @return mixed
-     */
-    public function remove($id)
-    {
-        // TODO: Implement remove() method.
-    }
+        $dataItem = $this->create($data);
 
+        try {
+            // Insert if no ID given
+            if (!$autoUpdate || !$dataItem->hasId()) {
+                $dataItem = $this->insert($dataItem);
+            } // Replace if has ID
+            else {
+                $dataItem = $this->update($dataItem);
+            }
+
+            // Get complete dataItem data
+            $result = $this->getById($dataItem->getId());
+
+        } catch (\Exception $e) {
+            $result = array(
+                "exception" => $e,
+                "dataItem"  => $dataItem,
+                "data"      => $data
+            );
+        }
+
+        return $result;
+    }
 
     /**
      * Is the driver connected an ready to interact?
@@ -231,7 +248,7 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
         $rows       = $statement->fetchAll();
         $hasResults = count($rows) > 0;
 
-        // Convert to Feature object
+        // Cast array to DataItem array list
         if ($hasResults) {
             $this->prepareResults($rows);
         }
@@ -253,29 +270,9 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
         return $rows;
     }
 
-    /**
-     * Cast DataItem by $args
-     *
-     * @param mixed $args
-     * @return DataItem
-     */
-    public function create($args)
-    {
-        $data = null;
-        if (is_object($args)) {
-            if ($args instanceof DataItem) {
-                $data = $args;
-            } else {
-                $args = get_object_vars($args);
-            }
-        } elseif (is_numeric($args)) {
-            $args = array($this->getUniqueId() => intval($args));
-        }
-        return $data ? $data : new DataItem($args, $this->getUniqueId());
-    }
 
     /**
-     * Set FeatureType permanent SQL filter used by $this->search()
+     * Set permanent SQL filter used by $this->search()
      * https://trac.wheregroup.com/cp/issues/3733
      *
      * @see $this->search()
@@ -284,5 +281,103 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
     public function setFilter($sqlFilter)
     {
         $this->sqlFilter = $sqlFilter;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTableName()
+    {
+        return $this->tableName;
+    }
+
+    /**
+     * Get data item by id
+     *
+     * @param $id
+     * @return mixed
+     */
+    public function getById($id)
+    {
+        /** @var Statement $statement */
+        $queryBuilder = $this->getSelectQueryBuilder();
+        $queryBuilder->where($this->getUniqueId() . " = :id");
+        $queryBuilder->setParameter('id', $id);
+        $statement = $queryBuilder->execute();
+        $rows      = $statement->fetchAll();
+        $this->prepareResults($rows);
+        return reset($rows);
+    }
+
+    /**
+     * Insert data item
+     *
+     * @param array|DataItem $item
+     * @return DataItem
+     */
+    public function insert($item)
+    {
+        $item       = $this->create($item);
+        $data       = $this->cleanData($item->toArray());
+        $connection = $this->getConnection();
+        $connection->insert($this->tableName, $data);
+        $item->setId($connection->lastInsertId());
+        return $item;
+    }
+
+    /**
+     * Clean data this can't be saved into db table from data array
+     *
+     * @param array $data
+     * @return array
+     */
+    private function cleanData($data)
+    {
+        $fields = array_merge(
+            $this->getFields(),
+            array($this->getUniqueId()));
+
+        // clean data from data item
+        foreach ($data as $fieldName => $value) {
+            if (isset($fields[$fieldName])) {
+                unset($data[$fieldName]);
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * Update data
+     *
+     * @param array|DataItem $dataItem
+     * @return DataItem
+     * @throws \Exception
+     */
+    public function update($dataItem)
+    {
+        /** @var DataItem $dataItem */
+        $dataItem   = $this->create($dataItem);
+        $data       = $this->cleanData($dataItem->toArray());
+        $connection = $this->getConnection();
+        unset($data[$this->getUniqueId()]);
+
+        if (empty($data)) {
+            throw new \Exception("DataItem can't be updated without criteria");
+        }
+
+        $connection->update($this->tableName, $data, array($this->uniqueId => $dataItem->getId()));
+        return $dataItem;
+    }
+
+    /**
+     * Remove data item
+     *
+     * @param  DataItem|array|int $arg
+     * @return bool
+     */
+    public function remove($arg)
+    {
+        return $this->getConnection()
+            ->delete($this->tableName, array($this->uniqueId => $this->create($arg)->getId())) > 0;
     }
 }

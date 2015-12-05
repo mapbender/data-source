@@ -4,7 +4,6 @@ namespace Mapbender\DataSourceBundle\Tests;
 use Mapbender\DataSourceBundle\Component\DataStoreService;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\IDriver;
-use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
@@ -32,15 +31,21 @@ class DataStoreServiceTest extends SymfonyTest
             }
 
             // Test create method
-            $testTitle = "test#10";
+            $testTitle = "test#".rand(0,1000000);
             $dataItem  = $dataStore->create(array("title" => $testTitle));
             $this->assertTrue($dataItem instanceof DataItem);
             $this->assertTrue($dataItem->getAttribute("title") == $testTitle);
 
-
             // Test save method
             $dataStore->save($dataItem);
+            $this->assertTrue($dataItem->getId() > 0);
 
+            // Test get method
+            $dataItem = $dataStore->get($dataItem->getId());
+
+            // Test remove method
+            $this->assertTrue($dataItem->getId() > 0);
+            $this->assertTrue($dataStore->remove($dataItem));
         }
     }
 }

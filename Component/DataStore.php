@@ -223,12 +223,21 @@ class DataStore extends ContainerAware
      */
     public function getTypes()
     {
-        $list = array();
-        foreach ((new \ReflectionClass(__CLASS__))->getConstants() as $k => $v) {
+        $list            = array();
+        $reflectionClass = new \ReflectionClass(__CLASS__);
+        foreach ($reflectionClass->getConstants() as $k => $v) {
             if (strrpos($k, "_PLATFORM") > 0) {
                 $list[] = $v;
             }
         }
         return $list;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function get($args)
+    {
+        return $this->driver->get($args);
     }
 }
