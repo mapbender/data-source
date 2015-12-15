@@ -29,6 +29,11 @@ abstract class BaseDriver extends ContainerAware
     protected $uniqueId = 'id';
 
     /**
+     * @var mixed
+     */
+    protected $connection;
+
+    /**
      * BaseDriver constructor.
      *
      * @param ContainerInterface $container
@@ -69,10 +74,21 @@ abstract class BaseDriver extends ContainerAware
 
     /**
      * @param array $fields
+     * @return array
      */
     public function setFields(array $fields)
     {
-        $this->fields = $fields;
+        return $this->fields = $fields;
+    }
+
+    /**
+     * Get fields defined by store
+     *
+     * @return array
+     */
+    public function getStoreFields()
+    {
+        return $this->getFields();
     }
 
     /**
@@ -105,4 +121,15 @@ abstract class BaseDriver extends ContainerAware
         }
         return $data ? $data : new DataItem($args, $this->getUniqueId());
     }
+
+    /**
+     * Get connection link
+     *
+     * @return mixed
+     */
+    public function getConnection()
+    {
+        return $this->connection;
+    }
+
 }

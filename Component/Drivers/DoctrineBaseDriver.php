@@ -149,16 +149,6 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
     }
 
     /**
-     * Get DBAL Connections
-     *
-     * @return Connection
-     */
-    public function getConnection()
-    {
-        return $this->connection;
-    }
-
-    /**
      * Set table name
      *
      * @param $name
@@ -178,7 +168,7 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
      * @throws \Doctrine\DBAL\DBALException
      * @return array field names
      */
-    public function getTableFields()
+    public function getStoreFields()
     {
         $schemaManager = $this->connection->getDriver()->getSchemaManager($this->connection);
         $columns       = array();
@@ -212,8 +202,8 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
     public function getSelectQueryBuilder()
     {
         $connection   = $this->getConnection();
-        $attributes   = array_merge(array($this->uniqueId), $this->fields);
-        $queryBuilder = $connection->createQueryBuilder()->select($attributes)->from($this->tableName, 't');
+        $attributes   = array_merge(array($this->getUniqueId()), $this->getFields());
+        $queryBuilder = $connection->createQueryBuilder()->select($attributes)->from($this->getTableName(), 't');
         return $queryBuilder;
     }
 

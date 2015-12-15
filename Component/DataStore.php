@@ -71,8 +71,8 @@ class DataStore extends ContainerAware
 
                 }
                 $driver->connect($connectionName);
-                if(!$hasFields){
-                    $driver->setFields($driver->getTableFields());
+                if (!$hasFields) {
+                    $driver->setFields($driver->getStoreFields());
                 }
 
         }
@@ -134,22 +134,22 @@ class DataStore extends ContainerAware
      * Save data item
      *
      * @param DataItem $item
+     * @param bool     $autoUpdate Create item if doesn't exists
      * @return DataItem
      */
-    public function save(DataItem $item)
+    public function save($item, $autoUpdate = true)
     {
-        return $this->getDriver()->save($item);
+        return $this->getDriver()->save($item, $autoUpdate);
     }
 
     /**
      * Remove data item
      *
-     * @param $id
-     * @return bool
+     * @inheritdoc
      */
-    public function remove($id)
+    public function remove($args)
     {
-        return $this->getDriver()->remove($id);
+        return $this->getDriver()->remove($args);
     }
 
     /**
@@ -234,10 +234,33 @@ class DataStore extends ContainerAware
     }
 
     /**
+     * Get by argument
+     *
      * @inheritdoc
      */
     public function get($args)
     {
         return $this->driver->get($args);
+    }
+
+    /**
+     * Get platform name
+     *
+     * @return string
+     */
+    public function getPlatformName()
+    {
+        return $this->getDriver()->getPlatformName();
+    }
+
+
+    /**
+     * Get DBAL Connection
+     *
+     * @return Connection
+     */
+    public function getConnection()
+    {
+        return $this->getDriver()->getConnection();
     }
 }

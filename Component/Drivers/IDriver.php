@@ -27,17 +27,18 @@ interface IDriver
      * Save the data
      *
      * @param DataItem $data
+     * @param boolean $autoUpdate Create if item doesn't exits
      * @return mixed
      */
-    public function save($data);
+    public function save($data, $autoUpdate = true);
 
     /**
-     * Remove by ID
+     * Remove by args
      *
-     * @param $id
+     * @param $args
      * @return mixed
      */
-    public function remove($id);
+    public function remove($args);
 
     /**
      * Connect to the source
