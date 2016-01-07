@@ -5,7 +5,7 @@ use Mapbender\CoreBundle\Component\MapbenderBundle;
 
 /**
  * DataSource Bundle.
- *
+ * y
  * @author Andriy Oblivantsev
  */
 class MapbenderDataSourceBundle extends MapbenderBundle
@@ -15,6 +15,6 @@ class MapbenderDataSourceBundle extends MapbenderBundle
      */
     public function getElements()
     {
-        return array();
+        return array('Mapbender\DataSourceBundle\Element\DataStoreElement');
     }
 }

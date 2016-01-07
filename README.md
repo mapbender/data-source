@@ -14,7 +14,7 @@ $ ../composer.phar require "mapbender/data-source"
 ## Update 
 
 
- ```sh
+```sh
 $ cd application/
 $ ../composer.phar self-update
 $ ../composer.phar update
