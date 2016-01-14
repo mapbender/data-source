@@ -1,2 +1,6 @@
 <div class="elementForm defaultForm elementFormDataStore">
+    {% for keyName, val in form.configuration %}
+        {{ form_label(val) }}{{ form_widget(val) }}
+        <div class="clearContainer"></div>
+    {% endfor %}
 </div>

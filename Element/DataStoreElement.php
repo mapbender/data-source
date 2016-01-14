@@ -18,8 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 class DataStoreElement extends HTMLElement
 {
     /**
-     * The constructor. Every element needs an application to live within and
-     * the container to do useful things.
+     * The constructor.
      *
      * @param Application        $application The application object
      * @param ContainerInterface $container   The container object
@@ -33,6 +32,22 @@ class DataStoreElement extends HTMLElement
     /**
      * @inheritdoc
      */
+    static public function getClassTitle()
+    {
+        return "Query builder";
+    }
+
+    /**
+     * @inheritdoc
+     */
+    static public function getClassDescription()
+    {
+        return "Build, list SQL queries and display result, which can be edited to.";
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getWidgetName()
     {
         return 'mapbender.mbDataStoreElement';
@@ -41,9 +56,27 @@ class DataStoreElement extends HTMLElement
     /**
      * @inheritdoc
      */
+    static public function getTags()
+    {
+        return array();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function getDefaultConfiguration()
+    {
+        return array(
+            "target" => null
+        );
+    }
+
+    /**
+     * @inheritdoc
+     */
     public static function getType()
     {
-        return 'Mapbender\DataStoreBundle\Element\Type\DataStoreAdminType';
+        return 'Mapbender\DataSourceBundle\Element\Type\DataStoreAdminType';
     }
 
     /**
