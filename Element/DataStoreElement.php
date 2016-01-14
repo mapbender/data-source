@@ -1,15 +1,13 @@
 <?php
-/**
- *
- * @author Andriy Oblivantsev <eslider@gmail.com>
- */
-
 namespace Mapbender\DataSourceBundle\Element;
 
 use Mapbender\CoreBundle\Component\Application;
 use Mapbender\CoreBundle\Element\HTMLElement;
 use Mapbender\CoreBundle\Entity\Element;
+use Mapbender\DataSourceBundle\Entity\DataItem;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class DataStoreElement
@@ -31,4 +29,93 @@ class DataStoreElement extends HTMLElement
     {
         parent::__construct($application, $container, $entity);
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function getWidgetName()
+    {
+        return 'mapbender.mbDataStoreElement';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function getType()
+    {
+        return 'Mapbender\DataStoreBundle\Element\Type\DataStoreAdminType';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function getFormTemplate()
+    {
+        return 'MapbenderDataSourceBundle:ElementAdmin:datastore.html.twig';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function render()
+    {
+        return /** @lang XHTML */
+            '<div
+                id="' . $this->getId() . '"
+                class="mb-element mb-element-data-store modal-body"
+                title="' . _($this->getTitle()) . '"></div>';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    static public function listAssets()
+    {
+        return array(
+            'js' => array(
+                'datastore.element.js'
+            ),
+        );
+    }
+
+
+    /**
+     * @inheritdoc
+     */
+    public function httpAction($action)
+    {
+        /** @var DataItem $dataItem */
+        /** @var $requestService Request */
+
+        $configuration   = $this->getConfiguration();
+        $requestService  = $this->container->get('request');
+        $defaultCriteria = array();
+        $request         = $requestService->getContent() ? array_merge($defaultCriteria, json_decode($requestService->getContent(), true)) : array();
+
+        if (isset($configuration['source']) /*&& is_array($configuration['source']) */) {
+            $dataStore = $this->container->get("data.source")->get($configuration['source']);
+            //$dataStore = new DataStore($this->container, $configuration['source']);
+        } else {
+            throw new \Exception("DataStore source settings isn't correct");
+        }
+
+        switch ($action) {
+            case 'select':
+                $results = array();
+                foreach ($dataStore->search($request) as &$dataItem) {
+                    $results[] = $dataItem->toArray();
+                }
+                break;
+
+            default:
+                $results = array(
+                    array('errors' => array(
+                        array('message' => $action . " not defined!")
+                    ))
+                );
+        }
+
+        return new JsonResponse($results);
+    }
+
 }
