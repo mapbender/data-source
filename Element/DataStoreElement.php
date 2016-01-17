@@ -108,6 +108,9 @@ class DataStoreElement extends HTMLElement
     static public function listAssets()
     {
         return array(
+            'css' => array(
+                '/bundles/mapbenderdatasource/sass/element/data.store.element.scss'
+            ),
             'js' => array(
                 'datastore.element.js'
             ),
@@ -122,7 +125,7 @@ class DataStoreElement extends HTMLElement
     {
         /** @var DataItem $dataItem */
         /** @var $requestService Request */
-        /** @var Registry $registry */
+        /** @var Registry $doctrine */
         /** @var Connection $connection */
         $configuration   = $this->getConfiguration();
         $requestService  = $this->container->get('request');
@@ -149,14 +152,29 @@ class DataStoreElement extends HTMLElement
             case 'execute':
                 $query      = $dataStore->getById(intval($request['id']));
                 $sql        = $query->getAttribute($configuration["sqlFieldName"]);
-                $registry   = $this->container->get("doctrine");
-                $connection = $registry->getConnection($query->getAttribute($configuration["connectionFieldName"]));
+                $doctrine   = $this->container->get("doctrine");
+                $connection = $doctrine->getConnection($query->getAttribute($configuration["connectionFieldName"]));
                 $results    = $connection->fetchAll($sql);
 
                 if ($action == "export") {
                     return new ExportResponse($results, 'export-list', ExportResponse::TYPE_XLS);
                 }
 
+                break;
+
+            case 'save':
+                $results["item"] = $dataStore->save($request["item"])->toArray();
+                break;
+
+            case 'remove':
+                $results[] = $dataStore->remove($request["id"]);
+                break;
+
+            case 'connections':
+                $doctrine        = $this->container->get("doctrine");
+                $connectionNames = $doctrine->getConnectionNames();
+                $names           = array_keys($connectionNames);
+                $results         = array_combine($names, $names);
                 break;
 
             default:

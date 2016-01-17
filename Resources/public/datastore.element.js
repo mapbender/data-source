@@ -3,41 +3,88 @@
     var widget;
     var element;
     var exportButton = {
-        text:  'Export',
+        text:  "Export",
         click: function() {
-            var data = $(this);
-            debugger;
-            widget.exportData(item);
+            widget.exportData($(this).data("item"));
         }
     };
     var closeButton = {
-        text:    "Close",
-        'class': 'critical',
-        click:   function() {
+        text:  "Cancel",
+        click: function() {
             $(this).popupDialog('close');
         }
     };
 
-    var executeButton = {
-        text:    "Execute",
-        'class': 'critical',
-        click:   function() {
-            debugger;
-            widget.displayResults(item);
+    var editButton = {
+        text:      "Edit",
+        className: 'fa-edit',
+        click:     function(e) {
+            widget.openEditDialog($(this).data("item"));
+        }
+    };
+    var saveButton = {
+        text:      "Save",
+        className: 'fa-floppy-o',
+        click:     function(e) {
+            var dialog = $(this);
+            var originData = dialog.data("item");
+            $.extend(originData, dialog.formData())
+
+            dialog.disableForm();
+            widget.saveData(originData).done(function() {
+                dialog.enableForm();
+                $.notify("SQL saved.","notice");
+            });
+        }
+    };
+    var removeButton = {
+        text:      "Remove",
+        className: 'fa-remove',
+        'class':   'critical',
+        click:     function(e) {
+            var target = $(this);
+            var item = target.data("item");
+            var isDialog = target.hasClass("popup-dialog");
+
+            if(isDialog) {
+                target.disableForm();
+            }
+
+            widget.removeData(item).done(function(result) {
+                widget.redrawListTable();
+                if(isDialog) {
+                    target.popupDialog('close');
+                }
+                $.notify("SQL removed.", "notice");
+            }).error(function() {
+                target.enableForm();
+            });
         }
     };
 
-    var editButton = {
-        title:     "Edit",
-        className: 'edit',
-        onClick:   function(data, ui) {
-            widget.openEditDialog(data);
+    var executeButton = {
+        text:      "Execute",
+        className: 'fa-play',
+        'class':   'critical',
+        click: function() {
+            var dialog = $(this);
+            var originData = dialog.data("item");
+            var tempItem = dialog.formData();
+
+            $.extend(tempItem, originData);
+
+            widget.displayResults(tempItem, {
+                title:           "Results: " + tempItem.name,
+                pageResultCount: tempItem.pageResultCount
+            });
         }
     };
 
     $.widget("mapbender.mbDataStoreElement", {
 
-        options: {
+        sqlList:     [],
+        connections: [],
+        options:     {
             maxResults: 100
         },
 
@@ -62,6 +109,51 @@
         },
 
         /**
+         * Save item data
+         * @param item
+         * @returns {*}
+         */
+        saveData: function(item) {
+            return widget.query("save", {item: item});
+        },
+
+        /**
+         * Redraw list table
+         */
+        redrawListTable: function(){
+            var tableApi = widget.getListTableApi();
+            tableApi.clear();
+            tableApi.rows.add(widget.sqlList);
+            tableApi.draw();
+        },
+
+        /**
+         * Get list table API
+         *
+         * @returns {*}
+         */
+        getListTableApi: function() {
+            return $(" > div > .mapbender-element-result-table", element).resultTable("getApi");
+        },
+
+        /**
+         * Remove  item data
+         *
+         * @param item
+         * @returns {*}
+         */
+        removeData: function(item) {
+            return widget.query("remove", {id: item.id}).done(function() {
+                $.each(widget.sqlList, function(i, _item) {
+                    if(_item === item) {
+                        widget.sqlList.splice(i, 1);
+                        return false;
+                    }
+                });
+            });
+        },
+
+        /**
          * Get column names
          *
          * @param items
@@ -83,24 +175,29 @@
         /**
          * Executes SQL by ID and display results as popups
          *
-         * @param item
-         * @param title
+         * @param item Item
+         * @param config Configuration
          * @return XHR Object this has "dialog" property to get the popup dialog.
          */
-        displayResults: function(item, title) {
+        displayResults: function(item, config) {
+
             return widget.query("execute", {id: item.id}).done(function(results) {
-                this.dialog = $("<div>")
+                this.dialog = $("<div class='data-store-results'>")
                     .data("item", item)
                     .generateElements({
                         children: [{
-                            type:    "resultTable",
-                            name:    "results",
-                            data:    results,
-                            columns: widget.getColumnNames(results)
+                            type:       "resultTable",
+                            searching:  true,
+                            pageLength: config.pageResultCount*10,
+                            paginate:   false,
+                            name:       "results",
+                            data:       results,
+                            columns:    widget.getColumnNames(results)
                         }]
                     })
                     .popupDialog({
-                        title:   title ? title : "Results",
+                        title:   config.title ? config.title : "Results",
+                        width:   $(document).width - 100,
                         buttons: [closeButton, exportButton]
                     });
             });
@@ -112,34 +209,63 @@
          * @param item
          */
         openEditDialog: function(item) {
-            return $("<div>")
+            return $("<form class='data-store-edit'>")
                 .data("item", item)
                 .generateElements({
                     children: [{
+                        type:     "fieldSet",
+                        children: [{
+                            title:       "Name",
+                            type:        "input",
+                            css:         {"width": "60%"},
+                            name:        "name",
+                            placeholder: "Query name",
+                            options:     widget.connections
+                        }, {
+                            title:   "Connection name",
+                            type:    "select",
+                            name:    "connection_name",
+                            css:     {"width": "25%"},
+                            value:   item.connection_name,
+                            options: widget.connections
+                        }, {
+                            title: "Anzeigen",
+                            type:  "checkbox",
+                            css:   {"width": "15%"},
+                            value: 1,
+                            name:  "anzeigen"
+                        }]
+                    }, {
                         type:  "textArea",
-                        name:  "SQL",
-                        value: item.sql_definition,
-                        rows:  8
+                        title: "SQL",
+                        name:  "sql_definition",
+                        rows:  16
                     }]
                 })
                 .popupDialog({
                     title:   item.name,
-                    buttons: [closeButton, exportButton, executeButton]
-                });
+                    width:   $(document).width() - 100,
+                    buttons: [saveButton, executeButton, exportButton, removeButton, closeButton]
+                })
+                .formData(item);
         },
 
         _initialize: function() {
-            widget.query("select").done(function(results) {
-                var dialog = $("<div/>");
-                if(!widget.options.hasOwnProperty("formItems")) {
-                    return;
-                }
-                var formItems = widget.options.formItems;
-                var table = formItems[0];
-                table.data = results;
-                table.buttons = [executeButton, editButton];
-                dialog.generateElements({children: formItems});
-                element.append(dialog)
+            widget.query("connections").done(function(connections) {
+                widget.connections = connections;
+                widget.query("select").done(function(results) {
+                    var dialog = $("<div/>");
+                    widget.sqlList = results;
+                    if(!widget.options.hasOwnProperty("formItems")) {
+                        return;
+                    }
+                    var formItems = widget.options.formItems;
+                    var table = formItems[0];
+                    table.data = results;
+                    table.buttons = [executeButton, editButton, removeButton];
+                    dialog.generateElements({children: formItems});
+                    element.append(dialog)
+                });
             });
         },
 

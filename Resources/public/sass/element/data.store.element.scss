@@ -1,0 +1,28 @@
+.mb-element-data-store.modal-body {
+  > div {
+    > .mapbender-element-result-table {
+      tr[role='row'] > td > div.button-navigation {
+        > button {
+          &.fa-remove{
+          }
+          &:before {
+            font-family: FontAwesome;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Pop-up dialogs
+.ui-dialog {
+
+  > .data-store-edit {
+    padding: 10px 10px 0px;
+  }
+
+  > .data-store-results {
+
+  }
+}
+
