@@ -38,6 +38,7 @@ package Mapbender <<Frame>> {
 
       class StyleMap <extends Entity>{
         # id:int
+        # test:int
         __ Doctrine ORM __
         + selectStyle: Style
         + defaultStyle: Style
@@ -64,9 +65,17 @@ package Mapbender <<Frame>> {
       class Configuration<extends Entity> {
         # id:int
         # connection: name
-        # allowedSchemas: string[] | "all"
+        __ Permissions __
+        # allowedSchemas: string
         # allowRowSql: bool
-        # allowEdit: bool
+        # allowSave: bool
+        # allowRemove: bool
+        # allowExport: bool
+        # userOwnQueries: bool
+        # allowUserPublishing: bool
+        __ Defaults __
+        # defaultConnection = "default" :String
+        # defaultConnection = "default" :String
       }
 
     }

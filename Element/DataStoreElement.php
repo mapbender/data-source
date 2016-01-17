@@ -1,6 +1,9 @@
 <?php
 namespace Mapbender\DataSourceBundle\Element;
 
+use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\DBAL\Connection;
+use FOM\CoreBundle\Component\ExportResponse;
 use Mapbender\CoreBundle\Component\Application;
 use Mapbender\CoreBundle\Element\HTMLElement;
 use Mapbender\CoreBundle\Entity\Element;
@@ -119,11 +122,13 @@ class DataStoreElement extends HTMLElement
     {
         /** @var DataItem $dataItem */
         /** @var $requestService Request */
-
+        /** @var Registry $registry */
+        /** @var Connection $connection */
         $configuration   = $this->getConfiguration();
         $requestService  = $this->container->get('request');
         $defaultCriteria = array();
-        $request         = $requestService->getContent() ? array_merge($defaultCriteria, json_decode($requestService->getContent(), true)) : array();
+        $payload         = json_decode($requestService->getContent(), true);
+        $request         = $requestService->getContent() ? array_merge($defaultCriteria, $payload?$payload:$_REQUEST) : array();
 
         if (isset($configuration['source']) /*&& is_array($configuration['source']) */) {
             $dataStore = $this->container->get("data.source")->get($configuration['source']);
@@ -138,6 +143,20 @@ class DataStoreElement extends HTMLElement
                 foreach ($dataStore->search($request) as &$dataItem) {
                     $results[] = $dataItem->toArray();
                 }
+                break;
+
+            case 'export':
+            case 'execute':
+                $query      = $dataStore->getById(intval($request['id']));
+                $sql        = $query->getAttribute($configuration["sqlFieldName"]);
+                $registry   = $this->container->get("doctrine");
+                $connection = $registry->getConnection($query->getAttribute($configuration["connectionFieldName"]));
+                $results    = $connection->fetchAll($sql);
+
+                if ($action == "export") {
+                    return new ExportResponse($results, 'export-list', ExportResponse::TYPE_XLS);
+                }
+
                 break;
 
             default:

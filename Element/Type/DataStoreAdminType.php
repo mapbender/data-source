@@ -4,11 +4,9 @@ namespace Mapbender\DataSourceBundle\Element\Type;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Mapbender\CoreBundle\Entity\Application;
-use Mapbender\ManagerBundle\Form\Type\YAMLConfigurationType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilder;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 /**
@@ -35,7 +33,7 @@ class DataStoreAdminType extends AbstractType
     {
         $resolver->setDefaults(array(
             'application' => null,
-            'element'     => null
+            'element'     => null,
         ));
     }
 
@@ -59,13 +57,18 @@ class DataStoreAdminType extends AbstractType
         $dataStores      = $container->hasParameter("dataStores") ? array_keys($container->getParameter("dataStores")) : array();
 
         $builder
-            ->add('title', 'text', array('required' => true))
             ->add('source', 'choice', array(
                     'choices'  => $dataStores,
                     'required' => true,
+                    'empty_value' => null
                 )
-            )
-            ->add('allowEdit', 'checkbox', array('required' => false))
-            ->add('allowSql', 'checkbox', array('required' => false));
+            );
+            //->add('sqlField', 'choice', array(
+            //        'choices'  => array(),
+            //        'required' => true,
+            //    )
+            //)
+            //->add('allowEdit', 'checkbox', array('required' => false))
+            //->add('allowSql', 'checkbox', array('required' => false));
     }
 }
