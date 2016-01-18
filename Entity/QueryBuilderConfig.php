@@ -72,6 +72,27 @@ class QueryBuilderConfig extends BaseConfiguration
     /** @var array Display table columns */
     public $tableColumns = array(
         array("data"  => 'name',
-              "title" => 'Title')
+              "title" => 'Title'),
+        array("data"    => 'anzeigen_reihenfolge',
+              'visible' => false,
+              "title"   => 'Sort'),
     );
+
+    /**
+     * Export
+     */
+    public function toArray()
+    {
+        $data = parent::toArray();
+        foreach ($this->tableColumns as &$tableColumn) {
+            if ($tableColumn["title"] == "Title") {
+                $tableColumn["data"] = $this->titleFieldName;
+            }
+            if ($tableColumn["title"] == "Sort") {
+                $tableColumn["data"] = $this->orderByFieldName;
+            }
+        }
+        return $data;
+    }
+
 }

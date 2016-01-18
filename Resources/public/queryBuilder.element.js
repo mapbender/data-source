@@ -349,6 +349,7 @@
                             paging:       true,
                             selectable:   false,
                             autoWidth:    false,
+                            order:        [[1, "asc"]],
                             buttons:      buttons,
                             data:         results,
                             columns:      config.tableColumns
