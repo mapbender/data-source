@@ -8,6 +8,7 @@ use Mapbender\CoreBundle\Component\Application;
 use Mapbender\CoreBundle\Element\HTMLElement;
 use Mapbender\CoreBundle\Entity\Element;
 use Mapbender\DataSourceBundle\Entity\DataItem;
+use Mapbender\DataSourceBundle\Entity\QueryBuilderConfig;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
  * @package Mapbender\DataSourceBundle\Element
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class DataStoreElement extends HTMLElement
+class QueryBuilderElement extends HTMLElement
 {
     /**
      * The constructor.
@@ -37,7 +38,7 @@ class DataStoreElement extends HTMLElement
      */
     static public function getClassTitle()
     {
-        return "Data store";
+        return "Query builder";
     }
 
     /**
@@ -53,7 +54,7 @@ class DataStoreElement extends HTMLElement
      */
     public function getWidgetName()
     {
-        return 'mapbender.mbDataStoreElement';
+        return 'mapbender.mbQueryBuilderElement';
     }
 
     /**
@@ -69,9 +70,8 @@ class DataStoreElement extends HTMLElement
      */
     public static function getDefaultConfiguration()
     {
-        return array(
-            "target" => null
-        );
+        $queryBuilderConfig = new QueryBuilderConfig();
+        return $queryBuilderConfig->toArray();
     }
 
     /**
@@ -79,7 +79,7 @@ class DataStoreElement extends HTMLElement
      */
     public static function getType()
     {
-        return 'Mapbender\DataSourceBundle\Element\Type\DataStoreAdminType';
+        return 'Mapbender\DataSourceBundle\Element\Type\QueryBuilderAdminType';
     }
 
     /**
@@ -87,7 +87,7 @@ class DataStoreElement extends HTMLElement
      */
     public static function getFormTemplate()
     {
-        return 'MapbenderDataSourceBundle:ElementAdmin:datastore.html.twig';
+        return 'MapbenderDataSourceBundle:ElementAdmin:queryBuilder.html.twig';
     }
 
     /**
@@ -98,7 +98,7 @@ class DataStoreElement extends HTMLElement
         return /** @lang XHTML */
             '<div
                 id="' . $this->getId() . '"
-                class="mb-element mb-element-data-store modal-body"
+                class="mb-element mb-element-queryBuilder modal-body"
                 title="' . _($this->getTitle()) . '"></div>';
     }
 
@@ -109,14 +109,21 @@ class DataStoreElement extends HTMLElement
     {
         return array(
             'css' => array(
-                '/bundles/mapbenderdatasource/sass/element/data.store.element.scss'
+                '/bundles/mapbenderdatasource/sass/element/queryBuilder.element.scss'
             ),
-            'js' => array(
-                'datastore.element.js'
+            'js'  => array(
+                'queryBuilder.element.js'
             ),
         );
     }
 
+    /**
+     * @return QueryBuilderConfig
+     */
+    public function getConfig()
+    {
+        return new QueryBuilderConfig($this->getConfiguration());
+    }
 
     /**
      * @inheritdoc
@@ -127,18 +134,14 @@ class DataStoreElement extends HTMLElement
         /** @var $requestService Request */
         /** @var Registry $doctrine */
         /** @var Connection $connection */
-        $configuration   = $this->getConfiguration();
+        $configuration   = $this->getConfig();
         $requestService  = $this->container->get('request');
         $defaultCriteria = array();
         $payload         = json_decode($requestService->getContent(), true);
-        $request         = $requestService->getContent() ? array_merge($defaultCriteria, $payload?$payload:$_REQUEST) : array();
+        $request         = $requestService->getContent() ? array_merge($defaultCriteria, $payload ? $payload : $_REQUEST) : array();
+        $dataStore       = $this->container->get("data.source")->get($configuration->source);
 
-        if (isset($configuration['source']) /*&& is_array($configuration['source']) */) {
-            $dataStore = $this->container->get("data.source")->get($configuration['source']);
-            //$dataStore = new DataStore($this->container, $configuration['source']);
-        } else {
-            throw new \Exception("DataStore source settings isn't correct");
-        }
+
 
         switch ($action) {
             case 'select':
@@ -150,23 +153,37 @@ class DataStoreElement extends HTMLElement
 
             case 'export':
             case 'execute':
+
+                if ($action == "execute" && !$configuration->allowExecute){
+                    throw new \Error("Permission denied!");
+                }
+                if ($action == "export" && !$configuration->allowExport){
+                    throw new \Error("Permission denied!");
+                }
+
                 $query      = $dataStore->getById(intval($request['id']));
-                $sql        = $query->getAttribute($configuration["sqlFieldName"]);
+                $sql        = $query->getAttribute($configuration->sqlFieldName);
                 $doctrine   = $this->container->get("doctrine");
-                $connection = $doctrine->getConnection($query->getAttribute($configuration["connectionFieldName"]));
+                $connection = $doctrine->getConnection($query->getAttribute($configuration->connectionFieldName));
                 $results    = $connection->fetchAll($sql);
 
                 if ($action == "export") {
                     return new ExportResponse($results, 'export-list', ExportResponse::TYPE_XLS);
+                } else {
+                    break;
                 }
 
-                break;
-
             case 'save':
+                if (!$configuration->allowCreate && !$configuration->allowSave) {
+                    throw new \Error("Permission denied!");
+                }
                 $results["item"] = $dataStore->save($request["item"])->toArray();
                 break;
 
             case 'remove':
+                if (!$configuration->allowRemove) {
+                    throw new \Error("Permission denied!");
+                }
                 $results[] = $dataStore->remove($request["id"]);
                 break;
 

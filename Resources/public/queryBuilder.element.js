@@ -1,15 +1,14 @@
 (function($) {
 
-
     /**
      * Example:
-     *     Mapbender.confirmDialog({html: "Feature löschen?", title: "Bitte bestätigen!", onSuccess:function(){
+     *     confirmDialog({html: "Feature löschen?", title: "Bitte bestätigen!", onSuccess:function(){
                   return false;
            }});
      * @param options
      * @returns {*}
      */
-    Mapbender.confirmDialog = function (options) {
+    function confirmDialog(options) {
         var dialog = $("<div class='confirm-dialog'>" + (options.hasOwnProperty('html') ? options.html : "") + "</div>").popupDialog({
             title:       options.hasOwnProperty('title') ? options.title : "",
             maximizable: false,
@@ -38,13 +37,14 @@
             }]
         });
         return dialog;
-    };
+    }
 
     var widget;
     var element;
+    var config;
     var exportButton = {
         text:  "Export",
-        className: 'fa-edit',
+        className: 'fa-cloud-download',
         click: function() {
             widget.exportData($(this).data("item"));
         }
@@ -130,7 +130,7 @@
         }
     };
 
-    $.widget("mapbender.mbDataStoreElement", {
+    $.widget("mapbender.mbQueryBuilderElement", {
 
         sqlList:     [],
         connections: [],
@@ -140,6 +140,7 @@
 
         _create: function() {
             widget = this;
+            config = widget.options;
             element = $(widget.element);
             widget.elementUrl = Mapbender.configuration.application.urls.element + '/' + element.attr('id') + '/';
             widget._initialize();
@@ -193,7 +194,7 @@
          * @returns {*}
          */
         removeData: function(item) {
-            Mapbender.confirmDialog({
+            confirmDialog({
                 title:     "Remove #" + item.id,
                 html:      "Please confirm remove SQL: " + item.name,
                 onSuccess: function() {
@@ -236,9 +237,8 @@
          * @return XHR Object this has "dialog" property to get the popup dialog.
          */
         displayResults: function(item, config) {
-
             return widget.query("execute", {id: item.id}).done(function(results) {
-                this.dialog = $("<div class='data-store-results'>")
+                this.dialog = $("<div class='queryBuilder-results'>")
                     .data("item", item)
                     .generateElements({
                         children: [{
@@ -265,7 +265,16 @@
          * @param item
          */
         openEditDialog: function(item) {
-            return $("<form class='data-store-edit'>")
+            var buttons = [];
+
+            config.allowSave && buttons.push(saveButton);
+            config.allowExecute && buttons.push(executeButton);
+            config.allowExport && buttons.push(exportButton);
+            config.allowRemove && buttons.push(removeButton);
+
+            buttons.push(closeButton);
+
+            var $form = $("<form class='queryBuilder-edit'>")
                 .data("item", item)
                 .generateElements({
                     children: [{
@@ -300,42 +309,51 @@
                 })
                 .popupDialog({
                     title:   item.name,
-                    width:   $(document).width() - 100,
-                    buttons: [saveButton, executeButton, exportButton, removeButton, closeButton]
+                    width: $(document).width() - 100,
+                    buttons: buttons
                 })
                 .formData(item);
+
+
+            if( !config.allowSave){
+                $form.disableForm();
+            }
+            return $form;
         },
 
         _initialize: function() {
             widget.query("connections").done(function(connections) {
                 widget.connections = connections;
                 widget.query("select").done(function(results) {
-                    element.generateElements({children:[{
-                        type: "fieldSet",
-                        children: [
-                            createButton
-                        ]
-                    },{
-                        type:         "resultTable",
-                        name:         "queries",
-                        lengthChange: false,
-                        pageLength:   10,
-                        info:         true,
-                        processing:   false,
-                        ordering:     true,
-                        paging:       true,
-                        selectable:   false,
-                        autoWidth:    false,
-                        buttons:      [exportButton, executeButton, editButton, removeButton],
-                        data:         results,
-                        columns:      [{
-                            data:  'id',
-                            title: 'ID'
+                    var buttons = [];
+                    var toolBar = [];
+
+                    config.allowExport && buttons.push(exportButton);
+                    config.allowExecute && buttons.push(executeButton);
+                    config.allowRemove && buttons.push(removeButton);
+                    config.allowEdit && buttons.push(editButton);
+                    config.allowCreate && toolBar.push(createButton);
+
+                    element.generateElements({
+                        children: [{
+                            type:     "fieldSet",
+                            children: toolBar
                         }, {
-                            data:  'name',
-                            title: 'Title'
+                            type:         "resultTable",
+                            name:         "queries",
+                            lengthChange: false,
+                            pageLength:   10,
+                            info:         true,
+                            processing:   false,
+                            ordering:     true,
+                            paging:       true,
+                            selectable:   false,
+                            autoWidth:    false,
+                            buttons:      buttons,
+                            data:         results,
+                            columns:      config.tableColumns
                         }]
-                    }]});
+                    });
                     widget.sqlList = results;
                 });
             });

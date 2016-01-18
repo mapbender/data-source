@@ -35,14 +35,20 @@ class DataStoreService extends ContainerAware
      */
     public function get($name)
     {
-        static $parameters = null;
-        if (!isset($this->storeList[$name])) {
-            if (!$parameters) {
-                $parameters = $this->container->getParameter('dataStores');
+        static $configs = null;
+        if (!isset($this->storeList[ $name ])) {
+            if (!$configs) {
+                $configs = $this->container->getParameter('dataStores');
             }
-            $this->storeList[$name] = new DataStore($this->container, $parameters[$name]);
+
+            //if (is_int($name)) {
+            //    $keys = array_keys($configs);
+            //    $name = $keys[ $name ];
+            //}
+
+            $this->storeList[ $name ] = new DataStore($this->container, $configs[ $name ]);
         }
-        return $this->storeList[$name];
+        return $this->storeList[ $name ];
     }
 
     /**

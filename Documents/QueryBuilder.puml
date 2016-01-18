@@ -75,7 +75,6 @@ package Mapbender <<Frame>> {
         # allowUserPublishing: bool
         __ Defaults __
         # defaultConnection = "default" :String
-        # defaultConnection = "default" :String
       }
 
     }

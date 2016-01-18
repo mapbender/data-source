@@ -15,6 +15,9 @@ class MapbenderDataSourceBundle extends MapbenderBundle
      */
     public function getElements()
     {
-        return array('Mapbender\DataSourceBundle\Element\DataStoreElement');
+        return array(
+            'Mapbender\DataSourceBundle\Element\DataStoreElement',
+            'Mapbender\DataSourceBundle\Element\QueryBuilderElement'
+        );
     }
 }
