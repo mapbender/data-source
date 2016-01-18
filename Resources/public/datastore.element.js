@@ -62,6 +62,16 @@
             widget.openEditDialog($(this).data("item"));
         }
     };
+
+    var createButton = {
+        type:      "button",
+        title:     "Create",
+        cssClass: 'fa-plus',
+        onclick:     function(e) {
+            widget.openEditDialog();
+        }
+    };
+
     var saveButton = {
         text:      "Save",
         className: 'fa-floppy-o',
@@ -299,17 +309,28 @@
             widget.query("connections").done(function(connections) {
                 widget.connections = connections;
                 widget.query("select").done(function(results) {
-                    var dialog = $("<div/>");
+                    element.generateElements({children:[createButton,{
+                        type:         "resultTable",
+                        name:         "queries",
+                        lengthChange: false,
+                        pageLength:   10,
+                        info:         true,
+                        processing:   false,
+                        ordering:     true,
+                        paging:       true,
+                        selectable:   false,
+                        autoWidth:    false,
+                        buttons:      [executeButton, editButton, removeButton],
+                        data:         results,
+                        columns:      [{
+                            data:  'id',
+                            title: 'ID'
+                        }, {
+                            data:  'name',
+                            title: 'Title'
+                        }]
+                    }]});
                     widget.sqlList = results;
-                    if(!widget.options.hasOwnProperty("formItems")) {
-                        return;
-                    }
-                    var formItems = widget.options.formItems;
-                    var table = formItems[0];
-                    table.data = results;
-                    table.buttons = [executeButton, editButton, removeButton];
-                    dialog.generateElements({children: formItems});
-                    element.append(dialog)
                 });
             });
         },

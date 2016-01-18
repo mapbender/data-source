@@ -1,13 +1,20 @@
 .mb-element-data-store.modal-body {
-  > div {
-    > .mapbender-element-result-table {
-      tr[role='row'] > td > div.button-navigation {
-        > button {
-          &.fa-remove{
-          }
-          &:before {
-            font-family: FontAwesome;
-          }
+  [class^="fa-"]:before, [class*=" fa-"]:before {
+    display: inline-block;
+    font: normal normal normal 14px/1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  > .mapbender-element-result-table {
+    tr[role='row'] > td > div.button-navigation {
+      > button {
+        &.fa-remove {
+        }
+        &:before {
+          font-family: FontAwesome;
         }
       }
     }
@@ -22,7 +29,5 @@
   }
 
   > .data-store-results {
-
   }
 }
-
