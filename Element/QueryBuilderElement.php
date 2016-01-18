@@ -108,12 +108,15 @@ class QueryBuilderElement extends HTMLElement
     static public function listAssets()
     {
         return array(
-            'css' => array(
+            'css'   => array(
                 '@MapbenderDataSourceBundle/Resources/public/sass/element/queryBuilder.element.scss'
             ),
-            'js'  => array(
+            'js'    => array(
                 '@MapbenderDataSourceBundle/Resources/public/queryBuilder.element.js'
             ),
+            'trans' => array(
+                '@MapbenderDataSourceBundle/Resources/views/Element/queryBuilder.json.twig'
+            )
         );
     }
 

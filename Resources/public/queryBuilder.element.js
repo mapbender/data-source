@@ -1,6 +1,18 @@
 (function($) {
 
     /**
+     * Translate digitizer keywords
+     * @param title
+     * @returns {*}
+     */
+    function trans(title) {
+        var key = "mb.query.builder." + title;
+        //console.log('"' + key + '": "{{ "' + key + '"|trans }}"');
+        return Mapbender.trans(key);
+
+    }
+
+    /**
      * Example:
      *     confirmDialog({html: "Feature löschen?", title: "Bitte bestätigen!", onSuccess:function(){
                   return false;
@@ -18,7 +30,7 @@
             collapsable: false,
             modal:       true,
             buttons:     [{
-                text:  "OK",
+                text:  trans('OK'),
                 click: function(e) {
                     if(!options.hasOwnProperty('onSuccess') || options.onSuccess(e) !== false) {
                         dialog.popupDialog('close');
@@ -26,7 +38,7 @@
                     return false;
                 }
             }, {
-                text:    "Cancel",
+                text:    trans('Cancel'),
                 'class': 'critical',
                 click:   function(e) {
                     if(!options.hasOwnProperty('onCancel') || options.onCancel(e) !== false) {
@@ -43,21 +55,21 @@
     var element;
     var config;
     var exportButton = {
-        text:  "Export",
+        text:  trans('Export'),
         className: 'fa-cloud-download',
         click: function() {
             widget.exportData($(this).data("item"));
         }
     };
     var closeButton = {
-        text:  "Cancel",
+        text:  trans('Cancel'),
         click: function() {
             $(this).popupDialog('close');
         }
     };
 
     var editButton = {
-        text:      "Edit",
+        text:      trans('Edit'),
         className: 'fa-edit',
         click:     function(e) {
             widget.openEditDialog($(this).data("item"));
@@ -66,6 +78,7 @@
 
     var createButton = {
         type:      "button",
+        text:      trans('Create'),
         title:     " ",
         cssClass: 'fa-plus create',
         click:     function(e) {
@@ -74,7 +87,7 @@
     };
 
     var saveButton = {
-        text:      "Save",
+        text:      trans('Save'),
         className: 'fa-floppy-o',
         click:     function(e) {
             var dialog = $(this);
@@ -84,12 +97,12 @@
             dialog.disableForm();
             widget.saveData(originData).done(function() {
                 dialog.enableForm();
-                $.notify("SQL saved.","notice");
+                $.notify(trans('sql.saved'),"notice");
             });
         }
     };
     var removeButton = {
-        text:      "Remove",
+        text:      trans('Remove'),
         className: 'fa-remove',
         'class':   'critical',
         click:     function(e) {
@@ -100,20 +113,20 @@
             if(isDialog) {
                 target.disableForm();
             }
-            widget.removeData(item).done(function(result) {
+            widget.removeData(item, function(result) {
                 widget.redrawListTable();
                 if(isDialog) {
                     target.popupDialog('close');
                 }
-                $.notify("SQL removed.", "notice");
-            }).error(function() {
+                $.notify(trans('sql.removed'), "notice");
+            }, function() {
                 target.enableForm();
             });
         }
     };
 
     var executeButton = {
-        text:      "Execute",
+        text:      trans('Execute'),
         className: 'fa-play',
         'class':   'critical',
         click: function() {
@@ -124,7 +137,7 @@
             $.extend(tempItem, originData);
 
             widget.displayResults(tempItem, {
-                title:           "Results: " + tempItem.name,
+                title:           trans('Results') + ": " + tempItem.name,
                 pageResultCount: tempItem.pageResultCount
             });
         }
@@ -193,19 +206,21 @@
          * @param item
          * @returns {*}
          */
-        removeData: function(item) {
+        removeData: function(item, onDone, onError) {
             confirmDialog({
-                title:     "Remove #" + item.id,
-                html:      "Please confirm remove SQL: " + item.name,
+                title:     trans("Remove") + " #" + item.id,
+                html:      trans("confirm.remove") + ": " + item.name, // Please confirm remove SQL
                 onSuccess: function() {
                     widget.query("remove", {id: item.id}).done(function() {
-                        $.each(widget.sqlList, function(i, _item) {
-                            if(_item === item) {
-                                widget.sqlList.splice(i, 1);
-                                return false;
-                            }
-                        });
-                    });
+                            $.each(widget.sqlList, function(i, _item) {
+                                if(_item === item) {
+                                    widget.sqlList.splice(i, 1);
+                                    return false;
+                                }
+                            });
+                        })
+                        .done(onDone)
+                        .error(onError);
                 }
             });
         },
@@ -252,7 +267,7 @@
                         }]
                     })
                     .popupDialog({
-                        title:   config.title ? config.title : "Results",
+                        title:   config.title ? config.title : trans("Results"),
                         width:   $(document).width - 100,
                         buttons: [closeButton, exportButton]
                     });
@@ -280,30 +295,30 @@
                     children: [{
                         type:     "fieldSet",
                         children: [{
-                            title:       "Name",
+                            title:       trans("sql.title"), // "Name"
                             type:        "input",
                             css:         {"width": "60%"},
-                            name:        "name",
+                            name:        config.titleFieldName,
                             placeholder: "Query name",
                             options:     widget.connections
                         }, {
-                            title:   "Connection name",
+                            title:   trans("sql.connection.name"), //  "Connection name"
                             type:    "select",
-                            name:    "connection_name",
+                            name:    config.connectionFieldName,
                             css:     {"width": "25%"},
                             value:   item.connection_name,
                             options: widget.connections
                         }, {
-                            title: "Anzeigen",
+                            title: trans("sql.publish"), //  "Anzeigen"
                             type:  "checkbox",
                             css:   {"width": "15%"},
                             value: 1,
-                            name:  "anzeigen"
+                            name:  config.publicFieldName
                         }]
                     }, {
                         type:  "textArea",
                         title: "SQL",
-                        name:  "sql_definition",
+                        name:  config.sqlFieldName,
                         rows:  16
                     }]
                 })
@@ -376,7 +391,7 @@
                 dataType:    "json",
                 data:        JSON.stringify(request)
             }).error(function(xhr) {
-                var errorMessage = "Api-Error: ";// translate('api.query.error-message');
+                var errorMessage = trans("api.error") + ": ";// trans('api.query.error-message');
                 $.notify(errorMessage + JSON.stringify(xhr.responseText));
                 console.log(errorMessage, xhr);
             });

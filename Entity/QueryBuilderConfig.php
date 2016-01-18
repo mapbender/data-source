@@ -67,7 +67,11 @@ class QueryBuilderConfig extends BaseConfiguration
     public $connectionFieldName = "connection_name";
 
     /** @var string Title field name */
+
     public $titleFieldName = "name";
+
+    /** @var string Publish field name */
+    public $publicFieldName = "anzeigen";
 
     /** @var array Display table columns */
     public $tableColumns = array(
