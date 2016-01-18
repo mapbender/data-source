@@ -109,10 +109,10 @@ class QueryBuilderElement extends HTMLElement
     {
         return array(
             'css' => array(
-                '/bundles/mapbenderdatasource/sass/element/queryBuilder.element.scss'
+                '@MapbenderDataSourceBundle/Resources/public/sass/element/queryBuilder.element.scss'
             ),
             'js'  => array(
-                'queryBuilder.element.js'
+                '@MapbenderDataSourceBundle/Resources/public/queryBuilder.element.js'
             ),
         );
     }
