@@ -177,7 +177,10 @@ class QueryBuilderElement extends HTMLElement
                 if (!$configuration->allowCreate && !$configuration->allowSave) {
                     throw new \Error("Permission denied!");
                 }
-                $results["item"] = $dataStore->save($request["item"])->toArray();
+                $dataItem1       = $dataStore->save($request["item"]);
+                if(!$dataItem1){
+                    throw new \Error("Can't get object by new ID. Wrong sequence setup?");
+                }
                 break;
 
             case 'remove':
