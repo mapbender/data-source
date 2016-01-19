@@ -7,7 +7,6 @@
      */
     function trans(title) {
         var key = "mb.query.builder." + title;
-        //console.log('"' + key + '": "{{ "' + key + '"|trans }}"');
         return Mapbender.trans(key);
 
     }
@@ -58,9 +57,18 @@
         text:  trans('Export'),
         className: 'fa-cloud-download',
         click: function() {
-            widget.exportData($(this).data("item"));
+            widget.exportData ($(this).data("item"));
         }
     };
+
+    var exportHtmlButton = {
+        text:  trans('HTML-Export'),
+        className: 'fa-table',
+        click: function() {
+            widget.exportHtml($(this).data("item"));
+        }
+    };
+
     var closeButton = {
         text:  trans('Cancel'),
         click: function() {
@@ -97,6 +105,7 @@
             dialog.disableForm();
             widget.saveData(originData).done(function() {
                 dialog.enableForm();
+                widget.redrawListTable();
                 $.notify(trans('sql.saved'),"notice");
             });
         }
@@ -173,6 +182,15 @@
         },
 
         /**
+         * Export as HTML.
+         *
+         * @param item
+         */
+        exportHtml: function(item) {
+            window.open(widget.elementUrl + 'exportHtml?id='+item.id);
+        },
+
+        /**
          * Save item data
          * @param item
          * @returns {*}
@@ -186,6 +204,8 @@
          */
         redrawListTable: function(){
             var tableApi = widget.getListTableApi();
+            return;
+            // TODO: get this work!
             tableApi.clear();
             tableApi.rows.add(widget.sqlList);
             tableApi.draw();
@@ -256,20 +276,20 @@
                 this.dialog = $("<div class='queryBuilder-results'>")
                     .data("item", item)
                     .generateElements({
-                        children: [{
-                            type:       "resultTable",
-                            searching:  true,
-                            pageLength: config.pageResultCount*10,
-                            paginate:   false,
-                            name:       "results",
-                            data:       results,
-                            columns:    widget.getColumnNames(results)
-                        }]
+                        type:       "resultTable", //searching:  true,
+                        selectable: true, //paginate:   false,
+                        paging:     false,
+                        //searching:  true,
+                        name:       "results",
+                        data:       results,
+                        info:       false,
+                        columns:    widget.getColumnNames(results)
                     })
                     .popupDialog({
-                        title:   config.title ? config.title : trans("Results"),
-                        width:   $(document).width - 100,
-                        buttons: [closeButton, exportButton]
+                        title:   config.title ? config.title : trans("Results") + " : " + results.length,
+                        width:   1000,
+                        height:  400,
+                        buttons: [exportButton, exportHtmlButton, closeButton]
                     });
             });
         },
@@ -285,6 +305,7 @@
             config.allowSave && buttons.push(saveButton);
             config.allowExecute && buttons.push(executeButton);
             config.allowExport && buttons.push(exportButton);
+            config.allowExport && buttons.push(exportHtmlButton);
             config.allowRemove && buttons.push(removeButton);
 
             buttons.push(closeButton);
@@ -324,7 +345,7 @@
                 })
                 .popupDialog({
                     title:   item.name,
-                    width: $(document).width() - 100,
+                    width: 500,
                     buttons: buttons
                 })
                 .formData(item);
@@ -344,9 +365,10 @@
                     var toolBar = [];
 
                     config.allowExport && buttons.push(exportButton);
+                    config.allowExport && buttons.push(exportHtmlButton);
                     config.allowExecute && buttons.push(executeButton);
-                    config.allowRemove && buttons.push(removeButton);
                     config.allowEdit && buttons.push(editButton);
+                    config.allowRemove && buttons.push(removeButton);
                     config.allowCreate && toolBar.push(createButton);
 
                     element.generateElements({
@@ -357,14 +379,15 @@
                             type:         "resultTable",
                             name:         "queries",
                             lengthChange: false,
-                            pageLength:   10,
+                            pageLength:   17,
                             info:         true,
+                            searching:    config.allowSearch,
                             processing:   false,
                             ordering:     true,
                             paging:       true,
                             selectable:   false,
                             autoWidth:    false,
-                            order:        [[1, "asc"]],
+                            order:        [[1, "desc"]],
                             buttons:      buttons,
                             data:         results,
                             columns:      config.tableColumns

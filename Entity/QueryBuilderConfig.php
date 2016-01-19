@@ -47,6 +47,9 @@ class QueryBuilderConfig extends BaseConfiguration
     /** @var boolean Allow print */
     public $allowPrint = true;
 
+    /** @var boolean Allow print */
+    public $allowSearch = true;
+
     /** @var boolean Allow execute */
     public $allowUserPublishing = true;
 
