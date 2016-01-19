@@ -67,6 +67,7 @@ class QueryBuilderAdminType extends AbstractType
             ->add('allowRemove', 'checkbox', array('required' => false))
             ->add('allowExecute', 'checkbox', array('required' => false))
             ->add('allowPrint', 'checkbox', array('required' => false))
-            ->add('allowExport', 'checkbox', array('required' => false));
+            ->add('allowExport', 'checkbox', array('required' => false))
+            ->add('allowSearch', 'checkbox', array('required' => false));
     }
 }

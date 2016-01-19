@@ -9,12 +9,17 @@ use Mapbender\CoreBundle\Element\HTMLElement;
 use Mapbender\CoreBundle\Entity\Element;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\QueryBuilderConfig;
+use Mapbender\DataSourceBundle\Util\HtmlExportResponse;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class DataStoreElement
+ *
+ * TODO:
+ *  * Syntax check with EXPLAIN
+ *  *
  *
  * @package Mapbender\DataSourceBundle\Element
  * @author  Andriy Oblivantsev <eslider@gmail.com>
@@ -142,46 +147,52 @@ class QueryBuilderElement extends HTMLElement
         $defaultCriteria = array();
         $payload         = json_decode($requestService->getContent(), true);
         $request         = $requestService->getContent() ? array_merge($defaultCriteria, $payload ? $payload : $_REQUEST) : array();
-        $dataStore       = $this->container->get("data.source")->get($configuration->source);
-
-
 
         switch ($action) {
             case 'select':
-                $results = array();
+                $results   = array();
+                $dataStore = $this->getDataStore($configuration);
                 foreach ($dataStore->search($request) as &$dataItem) {
                     $results[] = $dataItem->toArray();
                 }
                 break;
 
             case 'export':
+                if (!$configuration->allowExport) {
+                    throw new \Error("Permission denied!");
+                }
+
+                $results = $this->executeQuery(intval($request["id"]));
+                return new ExportResponse($results, 'export-list', ExportResponse::TYPE_XLS);
+
+                break;
+
+            case 'exportHtml':
+                if (!$configuration->allowExport) {
+                    throw new \Error("Permission denied!");
+                }
+                $id      = intval($_REQUEST["id"]);
+                $results = $this->executeQuery($id);
+                $query   = $this->getQuery($id);
+                $title   = $query->getAttribute($configuration->titleFieldName);
+                return new HtmlExportResponse($results, $title);
+                break;
+
             case 'execute':
 
-                if ($action == "execute" && !$configuration->allowExecute){
+                if (!$configuration->allowExecute) {
                     throw new \Error("Permission denied!");
                 }
-                if ($action == "export" && !$configuration->allowExport){
-                    throw new \Error("Permission denied!");
-                }
-
-                $query      = $dataStore->getById(intval($request['id']));
-                $sql        = $query->getAttribute($configuration->sqlFieldName);
-                $doctrine   = $this->container->get("doctrine");
-                $connection = $doctrine->getConnection($query->getAttribute($configuration->connectionFieldName));
-                $results    = $connection->fetchAll($sql);
-
-                if ($action == "export") {
-                    return new ExportResponse($results, 'export-list', ExportResponse::TYPE_XLS);
-                } else {
-                    break;
-                }
+                $results = $this->executeQuery(intval($request["id"]));
+                break;
 
             case 'save':
                 if (!$configuration->allowCreate && !$configuration->allowSave) {
                     throw new \Error("Permission denied!");
                 }
-                $dataItem1       = $dataStore->save($request["item"]);
-                if(!$dataItem1){
+                $dataStore = $this->getDataStore($configuration);
+                $dataItem1 = $dataStore->save($request["item"]);
+                if (!$dataItem1) {
                     throw new \Error("Can't get object by new ID. Wrong sequence setup?");
                 }
                 break;
@@ -190,6 +201,7 @@ class QueryBuilderElement extends HTMLElement
                 if (!$configuration->allowRemove) {
                     throw new \Error("Permission denied!");
                 }
+                $dataStore = $this->getDataStore($configuration);
                 $results[] = $dataStore->remove($request["id"]);
                 break;
 
@@ -209,6 +221,43 @@ class QueryBuilderElement extends HTMLElement
         }
 
         return new JsonResponse($results);
+    }
+
+    /**
+     * Execute query by ID
+     *
+     * @param $id
+     * @return array
+     */
+    protected function executeQuery($id)
+    {
+        $configuration = $this->getConfig();
+        $query         = $this->getQuery($id);
+        $sql           = $query->getAttribute($configuration->sqlFieldName);
+        $doctrine      = $this->container->get("doctrine");
+        $connection    = $doctrine->getConnection($query->getAttribute($configuration->connectionFieldName));
+        $results       = $connection->fetchAll($sql);
+        return $results;
+    }
+
+    /**
+     * @param $configuration
+     * @return \Mapbender\DataSourceBundle\Component\DataStore
+     */
+    protected function getDataStore($configuration)
+    {
+        return $this->container->get("data.source")->get($configuration->source);
+    }
+
+    /**
+     * Get SQL query by id
+     *
+     * @param int $id
+     * @return DataItem
+     */
+    protected function getQuery($id)
+    {
+        return $this->getDataStore($this->getConfig())->getById($id);
     }
 
 }
