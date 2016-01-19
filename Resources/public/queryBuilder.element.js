@@ -277,7 +277,7 @@
                     .data("item", item)
                     .generateElements({
                         type:       "resultTable", //searching:  true,
-                        selectable: true, //paginate:   false,
+                        selectable: false, //paginate:   false,
                         paging:     false,
                         //searching:  true,
                         name:       "results",
@@ -318,7 +318,7 @@
                         children: [{
                             title:       trans("sql.title"), // "Name"
                             type:        "input",
-                            css:         {"width": "60%"},
+                            css:         {"width": "45%"},
                             name:        config.titleFieldName,
                             placeholder: "Query name",
                             options:     widget.connections
@@ -329,6 +329,12 @@
                             css:     {"width": "25%"},
                             value:   item.connection_name,
                             options: widget.connections
+                        }, {
+                            title:   "Order",
+                            type:    "input",
+                            name:    config.orderByFieldName,
+                            value:   item[config.orderByFieldName],
+                            css:     {"width": "15%"}
                         }, {
                             title: trans("sql.publish"), //  "Anzeigen"
                             type:  "checkbox",
@@ -350,7 +356,6 @@
                 })
                 .formData(item);
 
-
             if( !config.allowSave){
                 $form.disableForm();
             }
@@ -363,6 +368,7 @@
                 widget.query("select").done(function(results) {
                     var buttons = [];
                     var toolBar = [];
+                    var pane = [];
 
                     config.allowExport && buttons.push(exportButton);
                     config.allowExport && buttons.push(exportHtmlButton);
@@ -371,28 +377,31 @@
                     config.allowRemove && buttons.push(removeButton);
                     config.allowCreate && toolBar.push(createButton);
 
-                    element.generateElements({
-                        children: [{
+                    if(toolBar.length){
+                        pane.push({
                             type:     "fieldSet",
                             children: toolBar
-                        }, {
-                            type:         "resultTable",
-                            name:         "queries",
-                            lengthChange: false,
-                            pageLength:   17,
-                            info:         true,
-                            searching:    config.allowSearch,
-                            processing:   false,
-                            ordering:     true,
-                            paging:       true,
-                            selectable:   false,
-                            autoWidth:    false,
-                            order:        [[1, "desc"]],
-                            buttons:      buttons,
-                            data:         results,
-                            columns:      config.tableColumns
-                        }]
+                        });
+                    }
+
+                    pane.push({
+                        type:         "resultTable",
+                        name:         "queries",
+                        lengthChange: false,
+                        info:         false,
+                        searching:    config.allowSearch,
+                        processing:   false,
+                        ordering:     true,
+                        paging:       false,
+                        selectable:   false,
+                        autoWidth:    false,
+                        order:        [[1, "desc"]],
+                        buttons:      buttons,
+                        data:         results,
+                        columns:      config.tableColumns
                     });
+
+                    element.generateElements({children: pane});
                     widget.sqlList = results;
                 });
             });
