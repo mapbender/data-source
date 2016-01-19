@@ -66,6 +66,10 @@
         <source>mb.query.builder.Results</source>
         <target>Results</target>
       </trans-unit>
+      <trans-unit id="4a6a3a3ffb4e97b0f4028dfdbc2c1ebd" resname="mb.query.builder.HTML-Export">
+        <source>mb.query.builder.HTML-Export</source>
+        <target>HTML-Export</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
