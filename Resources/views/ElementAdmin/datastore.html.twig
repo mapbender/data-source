@@ -1,20 +1,5 @@
-{#{% form_theme form 'MapbenderDataSourceBundle::fields.html.twig'  %}#}
-<div class="elementForm defaultForm elementFormDataStore">
-    {#{% for keyName, val in form.configuration %}#}
-        {#{{ form_label(val) }}{{ form_widget(val) }}#}
-        {#<div class="clearContainer"></div>#}
-    {#{% endfor %}#}
+<div class="elementForm defaultForm elementFormDigitizer">
     {{ form_label(form.title) }}{{ form_widget(form.title) }}
     <div class="clearContainer"></div>
-
-    {% for keyName, val in form.configuration %}
-        {{ form_label(val) }}{{ form_widget(val) }}
-        <div class="clearContainer"></div>
-    {% endfor %}
-
-    <script type="text/javascript" language="JavaScript">
-        $(function() {
-            var el = $(".elementFormDataStore").last();
-        })
-    </script>
+    {{ form_label(form.configuration.schemes) }}{{ form_widget(form.configuration.schemes) }}
 </div>
