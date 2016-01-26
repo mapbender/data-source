@@ -104,11 +104,11 @@
       </trans-unit>
       <trans-unit id="ef4d07ea2ca6b38cfa39dfab5a701420" resname="mb.data.store.remove">
         <source>mb.data.store.remove</source>
-        <target>remove</target>
+        <target>Удалить</target>
       </trans-unit>
       <trans-unit id="db12ce3d6070920a32df0ff8d1280911" resname="mb.data.store.create">
         <source>mb.data.store.create</source>
-        <target>Удаление</target>
+        <target>Создать</target>
       </trans-unit>
     </body>
   </file>
