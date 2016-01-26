@@ -1,10 +1,5 @@
 (function($) {
-    var widget, element;
-    var frames = [];
-    var selector;
-    var options;
-    var hasOnlyOneScheme;
-    var activeSchema;
+
     /**
      * Regular Expression to get checked if string should be translated
      *
@@ -141,12 +136,13 @@
          * @private
          */
         _create: function() {
-            widget = this;
-            element = widget.element;
+            var widget = this;
+            var element = widget.element;
+            var frames = widget.frames = [];
+            var selector = widget.selector = $('<select class="selector"/>');
+            var options = widget.options;
+            var hasOnlyOneScheme = widget.hasOnlyOneScheme = _.size(options.schemes) === 1;
             widget.elementUrl = Mapbender.configuration.application.urls.element + '/' + element.attr('id') + '/';
-            selector = widget.selector = $('<select class="selector"/>');
-            options = widget.options;
-            hasOnlyOneScheme = _.size(options.schemes) === 1;
 
             if(hasOnlyOneScheme) {
                 var title = _.propertyOf(_.first(_.toArray(options.schemes)))("title");
@@ -312,7 +308,7 @@
 
             function activateFrame(schema) {
                 var frame = schema.frame;
-                activeSchema = widget.currentSettings = schema;
+                widget.activeSchema = widget.currentSettings = schema;
                 frame.css('display', 'block');
             }
 
@@ -359,9 +355,8 @@
          * @private
          */
         _openEditDialog: function(dataItem) {
+            var widget = this;
             var schema = widget.findSchemaByDataItem(dataItem);
-            var table = schema.table;
-            var tableApi = table.resultTable('getApi');
             var buttons = [];
 
             if(widget.currentPopup) {
@@ -510,11 +505,12 @@
         },
 
         /**
-         * Analyse changed bounding box geometrie and load features as FeatureCollection.
+         * Getdata
          *
          * @private
          */
         _getData: function(schema) {
+            var widget = this;
             var tableApi = schema.table.resultTable('getApi');
             return widget.query('select', {
                 maxResults: schema.maxResults,
@@ -531,6 +527,8 @@
          * @param dataItem
          */
         findSchemaByDataItem: function(dataItem) {
+            var widget = this;
+            var options = widget.options;
             var r;
             _.each(options.schemes, function(schema) {
                 if(_.indexOf(schema.dataItems, dataItem) > -1) {
@@ -549,6 +547,7 @@
          * @returns {*}
          */
         removeData: function(dataItem) {
+            var widget = this;
             var schema = widget.findSchemaByDataItem(dataItem);
             if(schema.isNew(dataItem)) {
                 schema.remove(dataItem);
@@ -585,6 +584,7 @@
          * @version 0.2
          */
         query: function(uri, request) {
+            var widget = this;
             return $.ajax({
                 url:         widget.elementUrl + uri,
                 type:        'POST',
