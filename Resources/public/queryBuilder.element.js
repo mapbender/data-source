@@ -50,107 +50,6 @@
         return dialog;
     }
 
-    var widget;
-    var element;
-    var config;
-    var exportButton = {
-        text:  trans('Export'),
-        className: 'fa-cloud-download',
-        click: function() {
-            widget.exportData ($(this).data("item"));
-        }
-    };
-
-    var exportHtmlButton = {
-        text:  trans('HTML-Export'),
-        className: 'fa-table',
-        click: function() {
-            widget.exportHtml($(this).data("item"));
-        }
-    };
-
-    var closeButton = {
-        text:  trans('Cancel'),
-        click: function() {
-            $(this).popupDialog('close');
-        }
-    };
-
-    var editButton = {
-        text:      trans('Edit'),
-        className: 'fa-edit',
-        click:     function(e) {
-            widget.openEditDialog($(this).data("item"));
-        }
-    };
-
-    var createButton = {
-        type:      "button",
-        text:      trans('Create'),
-        title:     " ",
-        cssClass: 'fa-plus create',
-        click:     function(e) {
-            widget.openEditDialog({connection_name:"default"});
-        }
-    };
-
-    var saveButton = {
-        text:      trans('Save'),
-        className: 'fa-floppy-o',
-        click:     function(e) {
-            var dialog = $(this);
-            var originData = dialog.data("item");
-            $.extend(originData, dialog.formData())
-
-            dialog.disableForm();
-            widget.saveData(originData).done(function() {
-                dialog.enableForm();
-                widget.redrawListTable();
-                $.notify(trans('sql.saved'),"notice");
-            });
-        }
-    };
-    var removeButton = {
-        text:      trans('Remove'),
-        className: 'fa-remove',
-        'class':   'critical',
-        click:     function(e) {
-            var target = $(this);
-            var item = target.data("item");
-            var isDialog = target.hasClass("popup-dialog");
-
-            if(isDialog) {
-                target.disableForm();
-            }
-            widget.removeData(item, function(result) {
-                widget.redrawListTable();
-                if(isDialog) {
-                    target.popupDialog('close');
-                }
-                $.notify(trans('sql.removed'), "notice");
-            }, function() {
-                target.enableForm();
-            });
-        }
-    };
-
-    var executeButton = {
-        text:      trans('Execute'),
-        className: 'fa-play',
-        'class':   'critical',
-        click: function() {
-            var dialog = $(this);
-            var originData = dialog.data("item");
-            var tempItem = dialog.formData();
-
-            $.extend(tempItem, originData);
-
-            widget.displayResults(tempItem, {
-                title:           trans('Results') + ": " + tempItem.name,
-                pageResultCount: tempItem.pageResultCount
-            });
-        }
-    };
 
     $.widget("mapbender.mbQueryBuilderElement", {
 
@@ -161,9 +60,8 @@
         },
 
         _create: function() {
-            widget = this;
-            config = widget.options;
-            element = $(widget.element);
+            var widget = this;
+            var element = $(widget.element);
             widget.elementUrl = Mapbender.configuration.application.urls.element + '/' + element.attr('id') + '/';
             widget._initialize();
         },
@@ -176,6 +74,7 @@
          * @param item
          */
         exportData: function(item) {
+            var widget = this;
             return $('<form action="' + widget.elementUrl + 'export" method="post"/>')
                 .append('<input type="text" name="id"  value="' + item.id + '"/>')
                 .submit();
@@ -187,6 +86,7 @@
          * @param item
          */
         exportHtml: function(item) {
+            var widget = this;
             window.open(widget.elementUrl + 'exportHtml?id='+item.id);
         },
 
@@ -196,6 +96,7 @@
          * @returns {*}
          */
         saveData: function(item) {
+            var widget = this;
             return widget.query("save", {item: item});
         },
 
@@ -203,6 +104,7 @@
          * Redraw list table
          */
         redrawListTable: function(){
+            var widget = this;
             var tableApi = widget.getListTableApi();
             return;
             // TODO: get this work!
@@ -217,6 +119,8 @@
          * @returns {*}
          */
         getListTableApi: function() {
+            var widget = this;
+            var element = widget.element;
             return $(" > div > .mapbender-element-result-table", element).resultTable("getApi");
         },
 
@@ -227,6 +131,7 @@
          * @returns {*}
          */
         removeData: function(item, onDone, onError) {
+            var widget = this;
             confirmDialog({
                 title:     trans("Remove") + " #" + item.id,
                 html:      trans("confirm.remove") + ": " + item.name, // Please confirm remove SQL
@@ -272,6 +177,7 @@
          * @return XHR Object this has "dialog" property to get the popup dialog.
          */
         displayResults: function(item, config) {
+            var widget = this;
             return widget.query("execute", {id: item.id}).done(function(results) {
                 this.dialog = $("<div class='queryBuilder-results'>")
                     .data("item", item)
@@ -289,7 +195,7 @@
                         title:   config.title ? config.title : trans("Results") + " : " + results.length,
                         width:   1000,
                         height:  400,
-                        buttons: [exportButton, exportHtmlButton, closeButton]
+                        buttons: [widget.exportButton, widget.exportHtmlButton, widget.closeButton]
                     });
             });
         },
@@ -300,15 +206,17 @@
          * @param item
          */
         openEditDialog: function(item) {
+            var widget = this;
+            var config = widget.options;
             var buttons = [];
 
-            config.allowSave && buttons.push(saveButton);
-            config.allowExecute && buttons.push(executeButton);
-            config.allowExport && buttons.push(exportButton);
-            config.allowExport && buttons.push(exportHtmlButton);
-            config.allowRemove && buttons.push(removeButton);
+            config.allowSave && buttons.push(widget.saveButton);
+            config.allowExecute && buttons.push(widget.executeButton);
+            config.allowExport && buttons.push(widget.exportButton);
+            config.allowExport && buttons.push(widget.exportHtmlButton);
+            config.allowRemove && buttons.push(widget.removeButton);
 
-            buttons.push(closeButton);
+            buttons.push(widget.closeButton);
 
             var $form = $("<form class='queryBuilder-edit'>")
                 .data("item", item)
@@ -363,6 +271,108 @@
         },
 
         _initialize: function() {
+            var widget = this;
+            var element = widget.element ;
+            var config = widget.options;
+            var exportButton = widget.exportButton = {
+                text:  trans('Export'),
+                className: 'fa-cloud-download',
+                click: function() {
+                    widget.exportData ($(this).data("item"));
+                }
+            };
+
+            var exportHtmlButton = widget.exportHtmlButton = {
+                text:  trans('HTML-Export'),
+                className: 'fa-table',
+                click: function() {
+                    widget.exportHtml($(this).data("item"));
+                }
+            };
+
+            var closeButton =  widget.closeButton = {
+                text:  trans('Cancel'),
+                click: function() {
+                    $(this).popupDialog('close');
+                }
+            };
+
+            var editButton = widget.editButton = {
+                text:      trans('Edit'),
+                className: 'fa-edit',
+                click:     function(e) {
+                    widget.openEditDialog($(this).data("item"));
+                }
+            };
+
+            var createButton = widget.createButton = {
+                type:      "button",
+                text:      trans('Create'),
+                title:     " ",
+                cssClass: 'fa-plus create',
+                click:     function(e) {
+                    widget.openEditDialog({connection_name:"default"});
+                }
+            };
+
+            var saveButton = widget.saveButton = {
+                text:      trans('Save'),
+                className: 'fa-floppy-o',
+                click:     function(e) {
+                    var dialog = $(this);
+                    var originData = dialog.data("item");
+                    $.extend(originData, dialog.formData())
+
+                    dialog.disableForm();
+                    widget.saveData(originData).done(function() {
+                        dialog.enableForm();
+                        widget.redrawListTable();
+                        $.notify(trans('sql.saved'),"notice");
+                    });
+                }
+            };
+            var removeButton = widget.removeButton = {
+                text:      trans('Remove'),
+                className: 'fa-remove',
+                'class':   'critical',
+                click:     function(e) {
+                    var target = $(this);
+                    var item = target.data("item");
+                    var isDialog = target.hasClass("popup-dialog");
+
+                    if(isDialog) {
+                        target.disableForm();
+                    }
+                    widget.removeData(item, function(result) {
+                        widget.redrawListTable();
+                        if(isDialog) {
+                            target.popupDialog('close');
+                        }
+                        $.notify(trans('sql.removed'), "notice");
+                    }, function() {
+                        target.enableForm();
+                    });
+                }
+            };
+
+            var executeButton = widget.executeButton = {
+                text:      trans('Execute'),
+                className: 'fa-play',
+                'class':   'critical',
+                click: function() {
+                    var dialog = $(this);
+                    var originData = dialog.data("item");
+                    var tempItem = dialog.formData();
+
+                    $.extend(tempItem, originData);
+
+                    widget.displayResults(tempItem, {
+                        title:           trans('Results') + ": " + tempItem.name,
+                        pageResultCount: tempItem.pageResultCount
+                    });
+                }
+            };
+
             widget.query("connections").done(function(connections) {
                 widget.connections = connections;
                 widget.query("select").done(function(results) {
@@ -416,6 +426,7 @@
          * @version 0.2
          */
         query: function(uri, request) {
+            var widget = this;
             return $.ajax({
                 url:         widget.elementUrl + uri,
                 type:        'POST',

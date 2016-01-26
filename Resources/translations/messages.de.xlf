@@ -20,7 +20,7 @@
       </trans-unit>
       <trans-unit id="3fe8be4b8a14c5f6301bf7749ad04fc0" resname="mb.query.builder.Save">
         <source>mb.query.builder.Save</source>
-        <target>Speicern</target>
+        <target>Speichern</target>
       </trans-unit>
       <trans-unit id="ee21d4fb36eb870cdc869fe3caea4b14" resname="mb.query.builder.Remove">
         <source>mb.query.builder.Remove</source>
