@@ -40,6 +40,9 @@ class DataStoreSchemaConfig extends BaseConfiguration
     /** @var boolean Allow print */
     public $allowSearch = false;
 
+    /** @var boolean Allow print */
+    public $allowRefresh = false;
+
     public $idFieldName = "id";
     public $formItems   = array();
 }

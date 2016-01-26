@@ -261,10 +261,33 @@
                 }
 
                 var table = schema.table = $("<div/>").resultTable(resultTableSettings).data('settings', resultTableSettings);
-                var tableWidget = table.data('visUiJsResultTable');
                 schema.schemaName = schemaName;
 
                 var toolBarButtons = [];
+                if(schema.allowRefresh) {
+                    toolBarButtons.push({
+                        type:     "button",
+                        title:    translate("create"),
+                        cssClass: "fa-refresh",
+                        click:    function(e) {
+                            var schema = $(this).closest(".frame").data("schema");
+                            if(widget.currentPopup) {
+                                confirmDialog({
+                                    html:      translate("confirm.close.edit.form"),
+                                    onSuccess: function() {
+                                        widget.currentPopup.popupDialog('close');
+                                        widget.currentPopup = null;
+                                        widget._getData(schema);
+                                    }
+                                });
+                            } else {
+                                widget._getData(schema);
+                            }
+                            e.preventDefault();
+                            return false;
+                        }
+                    });
+                }
 
                 if(schema.allowCreate) {
                     toolBarButtons.push({
@@ -302,6 +325,8 @@
                 frame.css('display', 'none');
                 if(widget.currentPopup){
                     widget.currentPopup.popupDialog('close');
+                    widget.currentPopup = null;
+
                 }
                 //tableApi.clear();
             }
@@ -361,6 +386,7 @@
 
             if(widget.currentPopup) {
                 widget.currentPopup.popupDialog('close');
+                widget.currentPopup = null;
             }
 
             if(schema.allowEdit){
@@ -403,6 +429,7 @@
                                 _.extend(dataItem, response.dataItem);
                                 schema.save(dataItem);
                                 widget.currentPopup.popupDialog('close');
+                                widget.currentPopup = null;
                                 $.notify(translate("save.successfully"), 'info');
                             }).done(function(){
                                 form.enableForm();
@@ -419,6 +446,7 @@
                     click: function() {
                         widget.removeData(dataItem);
                         widget.currentPopup.popupDialog('close');
+                        widget.currentPopup = null;
                     }
                 });
             }
@@ -426,6 +454,7 @@
                 text:  translate("cancel"),
                 click: function() {
                     widget.currentPopup.popupDialog('close');
+                    widget.currentPopup = null;
                 }
             });
             var dialog = $("<div/>");
@@ -511,7 +540,6 @@
          */
         _getData: function(schema) {
             var widget = this;
-            var tableApi = schema.table.resultTable('getApi');
             return widget.query('select', {
                 maxResults: schema.maxResults,
                 schema:     schema.schemaName

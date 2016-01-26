@@ -14,8 +14,12 @@
     }
 
     .form-group > button.btn {
-      margin-left: 15px;
-      margin-right: 15px;
+        &:first-child{
+          margin-left: 15px;
+        }
+        &:last-child{
+          margin-right: 15px;
+        }
     }
     [class^="fa-"]:before, [class*=" fa-"]:before {
       display: inline-block;
