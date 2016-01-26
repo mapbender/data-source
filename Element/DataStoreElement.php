@@ -111,6 +111,9 @@ class DataStoreElement extends HTMLElement
             'js'  => array(
                 'datastore.element.js'
             ),
+            'trans' => array(
+                '@MapbenderDataSourceBundle/Resources/views/Element/datastore.json.twig'
+            )
         );
     }
 
