@@ -237,7 +237,7 @@
                     });
                 }
 
-                option.val(schemaName).html(schema.label);
+                option.val(schemaName).html(schema.label ? schema.label : schemaName);
 
                 //_.each(schema.tableFields, function(fieldSettings, fieldName) {
                 //    fieldSettings.title = fieldSettings.label;
@@ -505,6 +505,7 @@
 
             dialog.generateElements({children: widget.currentSettings.formItems});
             dialog.popupDialog(popupConfig);
+            dialog.addClass("data-store-edit-data");
             widget.currentPopup = dialog;
             return dialog;
         },
