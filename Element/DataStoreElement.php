@@ -174,7 +174,7 @@ class DataStoreElement extends HTMLElement
 
         switch ($action) {
             case 'select':
-                foreach ($dataStore->search(array_merge($defaultCriteria, $request)) as &$dataItem){
+                foreach ($dataStore->search(array_merge($defaultCriteria, $request)) as $dataItem){
                     $results[] = $dataItem->toArray();
                 }
                 break;

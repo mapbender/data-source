@@ -152,7 +152,7 @@ class QueryBuilderElement extends HTMLElement
             case 'select':
                 $results   = array();
                 $dataStore = $this->getDataStore($configuration);
-                foreach ($dataStore->search($request) as &$dataItem) {
+                foreach ($dataStore->search($request) as $dataItem) {
                     $results[] = $dataItem->toArray();
                 }
                 break;
