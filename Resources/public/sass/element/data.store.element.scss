@@ -69,4 +69,30 @@
 
   > .data-store-results {
   }
+
+  a.infoText {
+    display: block;
+    position: absolute;
+    bottom: -1px;
+    right: 0px;
+    font-size: 0;
+    color: #9999A9;
+    opacity: 0.6;
+    cursor: default;
+    text-decoration: none;
+
+    &:hover{
+      opacity: 1;
+    }
+
+    &:after {
+      display: inline-block;
+      font-family: FontAwesome;
+      content: "\f05a";
+      font-size:14px;
+      line-height: 30px;
+      vertical-align: middle;
+      margin-right: 7px;
+    }
+  }
 }
