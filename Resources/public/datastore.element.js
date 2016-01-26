@@ -1,7 +1,6 @@
 (function($) {
     var widget, element;
     var frames = [];
-    var titleElement;
     var selector;
     var options;
     var hasOnlyOneScheme;
@@ -19,7 +18,8 @@
      * @returns {*}
      */
     function translate(title, withoutSuffix) {
-        return Mapbender.trans(withoutSuffix ? title : "mb.digitizer." + title);
+        var key = withoutSuffix ? title : "mb.data.store." + title;
+        return Mapbender.trans(key);
     }
 
     /**
@@ -113,8 +113,10 @@
             inlineSearch:    false,
             useContextMenu:  false,
             dataStore:       "default",
-            tableFields:     [],
-            newItems:        []
+            newItems:        [],
+            popup:          {
+
+            }
         }, 
         toolsets: {
             point: [
@@ -142,21 +144,17 @@
             widget = this;
             element = widget.element;
             widget.elementUrl = Mapbender.configuration.application.urls.element + '/' + element.attr('id') + '/';
-            titleElement = $("> div.title", element);
-            selector = widget.selector = $("select.selector", element);
+            selector = widget.selector = $('<select class="selector"/>');
             options = widget.options;
             hasOnlyOneScheme = _.size(options.schemes) === 1;
 
             if(hasOnlyOneScheme) {
-                var title = _.propertyOf(_.first(_.toArray(options.schemes)))("label");
+                var title = _.propertyOf(_.first(_.toArray(options.schemes)))("title");
                 if(title) {
-                    titleElement.html(title);
-                } else {
-                    titleElement.css('display', 'none');
+                    element.append($('<div class="title"/>').html(title));
                 }
-                selector.css('display', 'none');
             } else {
-                titleElement.css('display', 'none');
+                element.append(selector);
             }
 
             if(options.tableTranslation) {
@@ -167,17 +165,61 @@
             _.each(options.schemes, function(schema, schemaName) {
                 var buttons = [];
                 var option = $("<option/>");
-                var frame = schema.frame = $("<div/>")
+                var frame =  $("<div/>")
                     .addClass('frame')
                     .data("schema", schema);
 
-                schema.schemaName = schemaName;
+                // Improve schema with handling methods
+                _.extend(schema, {
+                    schemaName: schemaName,
+                    newItems:   [],
+                    frame:  frame,
+                    create: function(data) {
+                        var dataItem = {};
+                        var schema = this;
+                        var table = $(schema.table);
+
+                        // create data with empty fields to get table work
+                        _.each(table.data("settings").columns, function(column) {
+                            if(!column.data) {
+                                return;
+                            }
+                            dataItem[column.data] = '';
+                        });
+
+                        data && _.extend(dataItem, data);
+                        schema.dataItems.push(dataItem);
+                        schema.newItems.push(dataItem);
+                        widget.reloadData(schema);
+                        return dataItem;
+                    },
+                    save: function(dataItem) {
+                        var isNew = this.isNew(dataItem);
+                        this.newItems = _.without(this.newItems, dataItem);
+                    },
+                    remove:     function(dataItem) {
+                        this.dataItems = _.without(this.dataItems, dataItem);
+                        widget.reloadData(this);
+                        widget._trigger('removed', null, {
+                            schema:  this,
+                            feature: dataItem
+                        });
+                        $.notify(translate('remove.successfully'), 'info')
+                    },
+                    isNew:      function(dataItem) {
+                        return _.contains(this.newItems, dataItem);
+                    },
+                    getStoreIdKey: function() {
+                        var dataStore = this.dataStore;
+                        return dataStore.uniqueId ? dataStore.uniqueId : "id";
+                    }
+                });
 
                 // Merge settings with default values from options there are not set by backend configuration
                 _.extend(schema, _.omit(options, _.keys(schema)));
 
                 buttons.push({
-                    title:     translate('feature.edit'),
+                    title:     translate('edit'),
                     className: 'fa-edit',
                     onClick:   function(dataItem, ui) {
                         widget._openEditDialog(dataItem);
@@ -186,7 +228,7 @@
 
                 if(schema.allowDelete) {
                     buttons.push({
-                        title:     translate("feature.remove"),
+                        title:     translate("remove"),
                         className: 'fa-times',
                         cssClass:  'critical',
                         onClick:   function(dataItem, ui) {
@@ -196,11 +238,6 @@
                 }
 
                 option.val(schemaName).html(schema.label);
-
-
-                if( !schema.hasOwnProperty("tableFields")){
-                    console.error(translate("table.fields.not.defined"),schema );
-                }
 
                 //_.each(schema.tableFields, function(fieldSettings, fieldName) {
                 //    fieldSettings.title = fieldSettings.label;
@@ -227,18 +264,22 @@
                     resultTableSettings.oLanguage = options.tableTranslation;
                 }
 
-                var table = schema.table = $("<div/>").resultTable(resultTableSettings);
+                var table = schema.table = $("<div/>").resultTable(resultTableSettings).data('settings', resultTableSettings);
                 var tableWidget = table.data('visUiJsResultTable');
                 schema.schemaName = schemaName;
 
                 var toolBarButtons = [];
 
-                if(schema.allowCreate){
+                if(schema.allowCreate) {
                     toolBarButtons.push({
-                        type:  "button",
-                        title: "Create",
-                        click: function() {
-                            console.log("Create");
+                        type:     "button",
+                        title:    translate("create"),
+                        cssClass: "fa-plus",
+                        click: function(e) {
+                            var schema = $(this).closest(".frame").data("schema");
+                            widget._openEditDialog(schema.create());
+                            e.preventDefault();
+                            return false;
                         }
                     })
                 }
@@ -257,7 +298,6 @@
                 element.append(frame);
                 option.data("schema", schema);
                 selector.append(option);
-
             });
 
             function deactivateFrame(schema) {
@@ -327,46 +367,31 @@
                 widget.currentPopup.popupDialog('close');
             }
 
-            if(schema.popup && schema.popup.buttons) {
-                $.each(schema.popup.buttons, function(k, button){
-                    $.each(button, function(k, property) {
-                        if(k == "click") {
-                            button[k] = function() {
-                                var form = $(this).closest(".ui-dialog-content");
-                                var data = form.formData();
-                                eval(property);
-                            }
-                        }
-                        if(k == "title") {
-                            button[k] = translate(property, false);
-                        }
-                    });
-                    buttons.push(button)
-                });
-            }
-
-            if(schema.allowEditData){
+            if(schema.allowEdit){
                 var saveButton = {
-                    text:  translate("feature.save"),
+                    text:  translate("save"),
                     click: function() {
                         var form = $(this).closest(".ui-dialog-content");
-                        var formData = form.formData();
-                        var request = {dataItem: formData};
-
-                        _.extend(dataItem.data, formData);
-
-                        tableApi.draw({"paging": "page"});
-
                         var errorInputs = $(".has-error", dialog);
                         var hasErrors = errorInputs.size() > 0;
 
+
                         if( !hasErrors ){
+                            var formData = form.formData();
+                            var uniqueIdKey = schema.dataStore.uniqueId;
+                            var isNew = !dataItem.hasOwnProperty(uniqueIdKey) && !!dataItem[uniqueIdKey];
+
+                            if(!isNew) {
+                                formData[uniqueIdKey] = dataItem[uniqueIdKey];
+                            }else{
+                                delete formData[uniqueIdKey];
+                            }
+
                             form.disableForm();
                             widget.query('save', {
-                                schema:  widget.schemaName,
-                                feature: request
+                                schema:   schema.schemaName,
+                                dataItem: formData
                             }).done(function(response) {
-
                                 if(response.hasOwnProperty('errors')) {
                                     form.enableForm();
                                     $.each(response.errors, function(i, error) {
@@ -380,27 +405,13 @@
                                     return;
                                 }
 
-                                var hasFeatureAfterSave = response.features.length > 0;
-
-                                if(!hasFeatureAfterSave) {
-                                    widget.reloadFeatures( schema.layer, _.without(schema.layer.features, dataItem));
-                                    widget.currentPopup.popupDialog('close');
-                                    return;
-                                }
-
-                                var dbFeature = response.features[0];
-                                dataItem.fid = dbFeature.id;
-                                dataItem.state = null;
-                                $.extend(dataItem.data, dbFeature.properties);
-
-                                tableApi.draw();
-
-                                delete dataItem.isNew;
-
-                                form.enableForm();
+                                _.extend(dataItem, response.dataItem);
+                                widget.reloadData(schema);
+                                //tableApi.draw();
                                 widget.currentPopup.popupDialog('close');
-                                $.notify(translate("feature.save.successfully"), 'info');
-
+                                $.notify(translate("save.successfully"), 'info');
+                            }).done(function(){
+                                form.enableForm();
                             });
                         }
                     }
@@ -409,7 +420,7 @@
             }
             if(schema.allowDelete) {
                 buttons.push({
-                    text:  translate("feature.remove"),
+                    text:  translate("remove"),
                     'class': 'critical',
                     click: function() {
                         widget.removeData(dataItem);
@@ -418,21 +429,11 @@
                 });
             }
             buttons.push({
-                text:  translate("mb.digitizer.cancel",true),
+                text:  translate("cancel"),
                 click: function() {
                     widget.currentPopup.popupDialog('close');
                 }
             });
-            var popupConfiguration = {
-                title: translate("feature.attributes"),
-                width: widget.featureEditDialogWidth,
-            };
-
-            if(schema.popup) {
-                $.extend(popupConfiguration, schema.popup);
-                popupConfiguration.buttons = buttons;
-            }
-
             var dialog = $("<div/>");
             dialog.on("popupdialogopen", function(event, ui) {
                 setTimeout(function() {
@@ -492,11 +493,19 @@
                     }
                 }
             });
+            if(schema.popup.buttons ){
+                buttons =_.union(schema.popup.buttons , buttons);
+            }
+            var popupConfig = _.extend({
+                title:   translate("edit.title"),
+                width:   widget.featureEditDialogWidth,
+            }, schema.popup);
+
+            popupConfig.buttons = buttons;
 
             dialog.generateElements({children: widget.currentSettings.formItems});
-            dialog.popupDialog(popupConfiguration);
+            dialog.popupDialog(popupConfig);
             widget.currentPopup = dialog;
-
             return dialog;
         },
 
@@ -532,47 +541,26 @@
             return r;
         },
 
-
         /**
-         * Remove OL feature
+         * Remove data item
          *
-         * @param feature
+         * @param dataItem
          * @version 0.2
          * @returns {*}
          */
         removeData: function(dataItem) {
             var schema = widget.findSchemaByDataItem(dataItem);
-            var isNew = dataItem.hasOwnProperty('isNew');
-            var featureData = dataItem;
-
-            if(!schema) {
-                $.notify("Remove failed.", "error");
-                return;
-            }
-
-            function _removeDataFromUI() {
-                //var existingFeatures = schema.isClustered ? _.flatten(_.pluck(layer.features, "cluster")) : layer.features;
-                widget.reloadFeatures( _.without(existingFeatures, dataItem));
-
-
-                widget._trigger('featureRemoved', null, {
-                    schema:  schema,
-                    feature: featureData
-                });
-            }
-
-            if(isNew) {
-                _removeDataFromUI()
+            if(schema.isNew(dataItem)) {
+                schema.remove(dataItem);
             } else {
                 confirmDialog({
-                    html:      translate("feature.remove.from.database"),
+                    html:      translate("remove.confirm.text"),
                     onSuccess: function() {
                         widget.query('delete', {
-                            schema:  schema.schemaName,
-                            feature: featureData
+                            schema: schema.schemaName,
+                            id:     dataItem[schema.getStoreIdKey()]
                         }).done(function(fid) {
-                            _removeDataFromUI();
-                            $.notify(translate('feature.remove.successfully'), 'info');
+                            schema.remove(dataItem);
                         });
                     }
                 });

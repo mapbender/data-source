@@ -10,6 +10,7 @@ use Mapbender\CoreBundle\Element\HTMLElement;
 use Mapbender\CoreBundle\Entity\Element;
 use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Entity\DataItem;
+use Mapbender\DataSourceBundle\Entity\DataStoreSchemaConfig;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -95,14 +96,7 @@ class DataStoreElement extends HTMLElement
      */
     public function render()
     {
-        return /** @lang XHTML */
-            '<div
-                id="' . $this->getId() . '"
-                class="mb-element mb-element-data-store modal-body"
-                title="' . _($this->getTitle()) . '">
-                   <div class="title"></div>
-                   <select class="selector"></select>
-            </div>';
+        return /** @lang XHTML */ '<div id="' . $this->getId() . '"  class="mb-element mb-element-data-store modal-body" title="' . _($this->getTitle()) . '"></div>';
     }
 
     /**
@@ -154,9 +148,7 @@ class DataStoreElement extends HTMLElement
      */
     public function httpAction($action)
     {
-        /**
-         * @var $requestService Request
-         */
+        /** @var $requestService Request */
         $configuration   = $this->getConfiguration();
         $requestService  = $this->container->get('request');
         $request         = json_decode($requestService->getContent(), true);
@@ -166,10 +158,11 @@ class DataStoreElement extends HTMLElement
         $defaultCriteria = array('returnType' => 'FeatureCollection',
                                  'maxResults' => 2500);
         $schema          = $schemas[ $schemaName ];
+        $schemaConfig    = new DataStoreSchemaConfig($schemas[ $schemaName ]);
 
 
-        if (is_array($schema['dataStore'])) {
-            $dataStore = new DataStore($this->container, $schema['dataStore']);
+        if (is_array($schemaConfig->dataStore)) {
+            $dataStore = new DataStore($this->container, $schemaConfig->dataStore);
         } else {
             throw new \Exception("DataStore setup is not correct");
         }
@@ -184,51 +177,73 @@ class DataStoreElement extends HTMLElement
                 break;
 
             case 'save':
-                // save once
-                if (isset($request['feature'])) {
-                    $request['features'] = array($request['feature']);
+                //try {
+                if(!$schemaConfig->allowEdit){
+                    $results["errors"] = array(
+                        array(
+                            'message' => "Access denied!",
+                            'code' => "1"
+                        )
+                    );
                 }
 
-                try {
-                    // save collection
-                    if (isset($request['features']) && is_array($request['features'])) {
-                        foreach ($request['features'] as $feature) {
-                            /**
-                             * @var $feature Feature
-                             */
-                            $featureData = $this->prepareQueredFeatureData($feature, $schema['formItems']);
-
-                            foreach ($dataStore->getFileInfo() as $fileConfig) {
-                                if (!isset($fileConfig['field']) || !isset($featureData["properties"][ $fileConfig['field'] ])) {
-                                    continue;
-                                }
-                                $url                                               = $dataStore->getFileUrl($fileConfig['field']);
-                                $requestUrl                                        = $featureData["properties"][ $fileConfig['field'] ];
-                                $newUrl                                            = str_replace($url . "/", "", $requestUrl);
-                                $featureData["properties"][ $fileConfig['field'] ] = $newUrl;
-                            }
-
-                            $feature = $dataStore->save($featureData);
-                            $results = array_merge($dataStore->search(array(
-                                'where' => $dataStore->getUniqueId() . '=' . $feature->getId())));
-                        }
-                    }
-                    $results = $dataStore->toFeatureCollection($results);
-                } catch (DBALException $e) {
-                    $message = $debugMode ? $e->getMessage() : "Feature can't be saved. Maybe something is wrong configured or your database isn't available?\n" .
-                        "For more information have a look at the webserver log file. \n Error code: " . $e->getCode();
-                    $results = array('errors' => array(
-                        array('message' => $message, 'code' => $e->getCode())
-                    ));
+                $uniqueIdKey = $dataStore->getDriver()->getUniqueId();
+                if(empty($request['dataItem'][ $uniqueIdKey ])){
+                    unset($request['dataItem'][ $uniqueIdKey ]);
                 }
+
+                $dataItem = $dataStore->create($request['dataItem']);
+                $result   = $dataStore->save($dataItem);
+                if (!is_object($result) && isset($result["exception"])
+                    && is_object($result["exception"])
+                    && $result["exception"] instanceof \Exception
+                ) {
+                    /** @var \Exception $exception */
+                    $exception         = $result["exception"];
+                    $results["errors"] = array(
+                        array(
+                            'message' => $exception->getMessage(),
+                            'code'    => $exception->getCode()
+                        )
+                    );
+                }
+
+                //var_dump($newDataItem);
+                //die();
+                $results["dataItem"] = $dataItem->toArray();
+                //} catch (DBALException $e) {
+                //    $message = $debugMode ? $e->getMessage() : "Feature can't be saved. Maybe something is wrong configured or your database isn't available?\n" .
+                //        "For more information have a look at the webserver log file. \n Error code: " . $e->getCode();
+                //    $results = array('errors' => array(
+                //        array('message' => $message, 'code' => $e->getCode())
+                //    ));
+                //}
 
                 break;
 
             case 'delete':
-                $results = $dataStore->remove($request['feature']);
+                //try {
+                if(!$schemaConfig->allowRemove){
+                    $results["errors"] = array(
+                        array(
+                            'message' => "Access denied!",
+                            'code' => "1"
+                        )
+                    );
+                }
+                $id      = intval($request['id']);
+                $results = $dataStore->remove($id);
                 break;
 
             case 'file-upload':
+                if(!$schemaConfig->allowEdit){
+                    $results["errors"] = array(
+                        array(
+                            'message' => "Access denied!",
+                            'code' => "1"
+                        )
+                    );
+                }
                 $fieldName                  = $requestService->get('field');
                 $urlParameters              = array('schema' => $schemaName,
                                                     'fid'    => $requestService->get('fid'),

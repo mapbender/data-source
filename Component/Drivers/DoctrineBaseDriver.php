@@ -323,16 +323,23 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
      */
     private function cleanData($data)
     {
-        $fields = array_merge(
-            $this->getFields(),
-            array($this->getUniqueId()));
+        $originalFields = $this->getFields();
+        $uniqueId       = $this->getUniqueId();
+        $fields         = array_merge(
+            $originalFields,
+            array($uniqueId));
 
         // clean data from data item
         foreach ($data as $fieldName => $value) {
-            if (isset($fields[$fieldName])) {
-                unset($data[$fieldName]);
+            if (array_search($fieldName, $fields) === false) {
+                unset($data[ $fieldName ]);
             }
         }
+
+        if(isset($data[ $uniqueId ]) && empty($data[ $uniqueId ])){
+            unset($data[ $uniqueId ]);
+        }
+
         return $data;
     }
 
