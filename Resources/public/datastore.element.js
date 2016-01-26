@@ -194,8 +194,8 @@
                         return dataItem;
                     },
                     save: function(dataItem) {
-                        var isNew = this.isNew(dataItem);
                         this.newItems = _.without(this.newItems, dataItem);
+                        widget.reloadData(schema);
                     },
                     remove:     function(dataItem) {
                         this.dataItems = _.without(this.dataItems, dataItem);
@@ -405,10 +405,8 @@
                                     });
                                     return;
                                 }
-
                                 _.extend(dataItem, response.dataItem);
-                                widget.reloadData(schema);
-                                //tableApi.draw();
+                                schema.save(dataItem);
                                 widget.currentPopup.popupDialog('close');
                                 $.notify(translate("save.successfully"), 'info');
                             }).done(function(){
