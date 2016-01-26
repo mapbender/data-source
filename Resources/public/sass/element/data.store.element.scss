@@ -1,8 +1,16 @@
 .mb-element-data-store.modal-body {
   > .frame{
 
-    > .form-group {
+    > .toolbar {
       margin-top: 8px;
+      button.btn{
+        font-size: 0;
+        line-height: 12px;
+        &:before{
+          font-size: 12px;
+          vertical-align: middle;
+        }
+      }
     }
 
     .form-group > button.btn {
@@ -54,7 +62,7 @@
 .ui-dialog {
 
   > .data-store-edit-data {
-    > .form-group {
+    > .form-group, > form {
       margin: 10px 10px 0px;
 
     }

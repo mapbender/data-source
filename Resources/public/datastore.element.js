@@ -287,7 +287,8 @@
                 frame.generateElements({
                     children: [{
                         type:     'fieldSet',
-                        children: toolBarButtons
+                        children: toolBarButtons,
+                        cssClass: 'toolbar'
                     }]
                 });
                 frame.append(table);
