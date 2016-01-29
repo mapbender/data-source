@@ -91,7 +91,7 @@ class QueryBuilderConfig extends BaseConfiguration
     public function toArray()
     {
         $data = parent::toArray();
-        foreach ($this->tableColumns as &$tableColumn) {
+        foreach ($data["tableColumns"] as &$tableColumn) {
             if ($tableColumn["title"] == "Title") {
                 $tableColumn["data"] = $this->titleFieldName;
             }

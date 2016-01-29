@@ -126,11 +126,19 @@ class QueryBuilderElement extends HTMLElement
     }
 
     /**
+     * @inheritdoc
+     */
+    public function getConfiguration()
+    {
+        return $this->getConfig()->toArray();
+    }
+
+    /**
      * @return QueryBuilderConfig
      */
     public function getConfig()
     {
-        return new QueryBuilderConfig($this->getConfiguration());
+        return new QueryBuilderConfig(parent::getConfiguration());
     }
 
     /**
