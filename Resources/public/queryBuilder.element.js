@@ -379,6 +379,7 @@
                     var buttons = [];
                     var toolBar = [];
                     var pane = [];
+                    var columns = config.tableColumns;
 
                     config.allowExport && buttons.push(exportButton);
                     config.allowExport && buttons.push(exportHtmlButton);
@@ -394,21 +395,28 @@
                         });
                     }
 
+                    _.each(columns, function(column) {
+                        if(column.title){
+                            var title = "sql."+column.title.toLowerCase();
+                            column.title = trans(title);
+                        }
+                    });
+
                     pane.push({
                         type:         "resultTable",
                         name:         "queries",
                         lengthChange: false,
-                        info:         false,
-                        searching:    config.allowSearch,
-                        processing:   false,
-                        ordering:     true,
-                        paging:       false,
-                        selectable:   false,
-                        autoWidth:    false,
-                        order:        [[1, "desc"]],
-                        buttons:      buttons,
-                        data:         results,
-                        columns:      config.tableColumns
+                        info:       false,
+                        searching:  config.allowSearch,
+                        processing: false,
+                        ordering:   true,
+                        paging:     false,
+                        selectable: false,
+                        autoWidth:  false,
+                        order:      [[1, "desc"]],
+                        buttons:    buttons,
+                        data:       results,
+                        columns:    columns
                     });
 
                     element.generateElements({children: pane});
