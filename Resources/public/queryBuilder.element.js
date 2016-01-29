@@ -276,7 +276,7 @@
             var config = widget.options;
             var exportButton = widget.exportButton = {
                 text:  trans('Export'),
-                className: 'fa-cloud-download',
+                className: 'fa-download',
                 click: function() {
                     widget.exportData ($(this).data("item"));
                 }
@@ -413,7 +413,7 @@
                         paging:     false,
                         selectable: false,
                         autoWidth:  false,
-                        order:      [[1, "desc"]],
+                        order:      [[1, "asc"]],
                         buttons:    buttons,
                         data:       results,
                         columns:    columns
