@@ -120,7 +120,7 @@ class QueryBuilderElement extends HTMLElement
                 '@MapbenderDataSourceBundle/Resources/public/queryBuilder.element.js'
             ),
             'trans' => array(
-                '@MapbenderDataSourceBundle/Resources/views/Element/queryBuilder.json.twig'
+                'MapbenderDataSourceBundle:Element:queryBuilder.json.twig'
             )
         );
     }
