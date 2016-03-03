@@ -98,7 +98,7 @@
      *
      * @copyright 20.04.2015 by WhereGroup GmbH & Co. KG
      */
-    $.widget("mapbender.mbDataStore", {
+    $.widget("mapbender.mbDataManager", {
         options: {
             allowCreate:     true,
             allowEditData:   true,

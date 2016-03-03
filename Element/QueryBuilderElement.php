@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Class DataStoreElement
+ * Class QueryBuilderElement
  *
  * TODO:
  *  * Syntax check with EXPLAIN

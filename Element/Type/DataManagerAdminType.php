@@ -8,12 +8,12 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 /**
- * Class DataStoreAdminType
+ * Class DataManagerAdminType
  *
  * @package Mapbender\DataStoreBundle\Element\Type
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class DataStoreAdminType extends AbstractType
+class DataManagerAdminType extends AbstractType
 {
 
     /**
@@ -21,7 +21,7 @@ class DataStoreAdminType extends AbstractType
      */
     public function getName()
     {
-        return 'dataStore';
+        return 'dataManager';
     }
 
     /**
