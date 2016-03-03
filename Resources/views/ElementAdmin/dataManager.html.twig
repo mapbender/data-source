@@ -1,7 +1,7 @@
 <div class="elementForm defaultForm elementDataManager">
     <style media="all">
         .elementDataManager {
-            width: 513px;
+            width: 100%;
         }
 
         .elementDataManager label.labelInput {
@@ -127,12 +127,24 @@
                 mode: "text/x-yaml",
                 styleActiveLine: true,
                 lineNumbers: true,
-                lineWrapping: true
+                lineWrapping: true,
+                extraKeys: {
+                    "F11": function(cm) {
+                        cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+                    },
+                    "Esc": function(cm) {
+                        if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+                    }
+                }
             });
 
             yamlEditor.on("change",function(obj, changedObject){
                 $(textarea).val(obj.getValue());
             })
+
+            $(".popupContainer.modal.show > .popup").width($(document).width()-100);
+            $(".popupContainer.modal.show > .popup").height($(window).height()-200);
+            $("#elementForm > div > div.inputWrapper.code-yaml > div").height($(window).height()-398);
         })
     </script>
     {{ form_label(form.title) }}{{ form_widget(form.title) }}
