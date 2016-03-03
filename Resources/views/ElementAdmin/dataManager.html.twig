@@ -146,9 +146,19 @@
                 var value = obj.getValue().replace(/\t/g,"    ");
                 $(textarea).val(value);
             });
-            $(".popupContainer.modal.show > .popup").width($(document).width()-100);
-            $(".popupContainer.modal.show > .popup").height($(window).height()-200);
-            $("#elementForm > div > div.inputWrapper.code-yaml > div").height($(window).height()-398);
+
+            // Resize popup and elements
+            var popupContainer = $(".popupContainer.modal.show > .popup");
+            var yamlEditorElement = $("#elementForm > div > div.inputWrapper.code-yaml > div");
+
+            popupContainer.animate({
+                width:  $(document).width() - 100,
+                height: $(window).height() - 200
+            }, 350);
+
+            yamlEditorElement.animate({
+                height: $(window).height() - 430
+            }, 350);
         })
     </script>
     {{ form_label(form.title) }}{{ form_widget(form.title) }}
