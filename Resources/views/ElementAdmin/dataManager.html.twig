@@ -123,25 +123,29 @@
 
             var textarea = document.getElementById("form_configuration_schemes");
             var yamlEditor = CodeMirror.fromTextArea(textarea, {
-//                lineNumbers: true,
                 mode: "text/x-yaml",
                 styleActiveLine: true,
                 lineNumbers: true,
-                lineWrapping: true,
-                extraKeys: {
-                    "F11": function(cm) {
-                        cm.setOption("fullScreen", !cm.getOption("fullScreen"));
-                    },
-                    "Esc": function(cm) {
-                        if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+                indentUnit: 2,
+                tabSize: 4,
+                indentWithTabs: false,
+                lineWrapping: true
+            });
+
+            yamlEditor.setOption("extraKeys", {
+                Tab: function(cm) {
+                    if(cm.somethingSelected()) {
+                        cm.indentSelection("add");
+                    } else {
+                        cm.replaceSelection(cm.getOption("indentWithTabs") ? "\t" : Array(cm.getOption("indentUnit") + 1).join(" "), "end", "+input");
                     }
                 }
             });
 
             yamlEditor.on("change",function(obj, changedObject){
-                $(textarea).val(obj.getValue());
-            })
-
+                var value = obj.getValue().replace(/\t/g,"    ");
+                $(textarea).val(value);
+            });
             $(".popupContainer.modal.show > .popup").width($(document).width()-100);
             $(".popupContainer.modal.show > .popup").height($(window).height()-200);
             $("#elementForm > div > div.inputWrapper.code-yaml > div").height($(window).height()-398);
