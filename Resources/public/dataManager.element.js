@@ -528,7 +528,7 @@
 
             dialog.generateElements({children: widget.currentSettings.formItems});
             dialog.popupDialog(popupConfig);
-            dialog.addClass("data-store-edit-data");
+            dialog.addClass("data-manager-edit-data");
             widget.currentPopup = dialog;
             return dialog;
         },

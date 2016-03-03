@@ -96,7 +96,7 @@ class DataManagerElement extends HTMLElement
      */
     public function render()
     {
-        return /** @lang XHTML */ '<div id="' . $this->getId() . '"  class="mb-element mb-element-data-manager modal-body" title="' . _($this->getTitle()) . '"></div>';
+        return /** @lang XHTML */ '<div id="' . $this->getId() . '"  class="mb-element mb-element-digitizer mb-element-data-manager modal-body" title="' . _($this->getTitle()) . '"></div>';
     }
 
     /**
@@ -106,10 +106,10 @@ class DataManagerElement extends HTMLElement
     {
         return array(
             'css' => array(
-                '/bundles/mapbenderdatasource/sass/element/data.store.element.scss'
+                'sass/element/dataManager.element.scss'
             ),
             'js'  => array(
-                'datastore.element.js'
+                'dataManager.element.js'
             ),
             'trans' => array(
                 'MapbenderDataSourceBundle:Element:datastore.json.twig'
