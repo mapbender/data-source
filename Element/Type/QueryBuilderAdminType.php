@@ -40,7 +40,7 @@ class QueryBuilderAdminType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         /** @var Application $application */
-        /** @var DataStoreAdminType $element */
+        /** @var DataManagerAdminType $element */
         /** @var FormBuilder $builder */
         /** @var \AppKernel $kernel */
         /** @var Registry $doctrine */

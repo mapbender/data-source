@@ -75,9 +75,15 @@
          */
         exportData: function(item) {
             var widget = this;
-            return $('<form action="' + widget.elementUrl + 'export" method="post"/>')
-                .append('<input type="text" name="id"  value="' + item.id + '"/>')
-                .submit();
+            var form = $('<form action="' + widget.elementUrl + 'export" style="display: none" method="post"/>')
+                .append('<input type="text" name="id"  value="' + item.id + '"/>');
+            form.appendTo("body");
+
+            setTimeout(function() {
+                form.remove();
+            });
+
+            return form.submit();
         },
 
         /**

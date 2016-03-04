@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Class DataStoreElement
+ * Class QueryBuilderElement
  *
  * TODO:
  *  * Syntax check with EXPLAIN
@@ -119,7 +119,7 @@ class QueryBuilderElement extends BaseElement
                 '@MapbenderDataSourceBundle/Resources/public/queryBuilder.element.js'
             ),
             'trans' => array(
-                '@MapbenderDataSourceBundle/Resources/views/Element/queryBuilder.json.twig'
+                'MapbenderDataSourceBundle:Element:queryBuilder.json.twig'
             )
         );
     }

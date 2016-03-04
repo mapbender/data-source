@@ -1,4 +1,4 @@
-.mb-element-data-store.modal-body {
+.mb-element-data-manager.modal-body {
   > .frame{
 
     > .toolbar {
@@ -65,13 +65,13 @@
 // Pop-up dialogs
 .ui-dialog {
 
-  > .data-store-edit-data {
+  > .data-manager-edit-data {
     > .form-group, > form {
-        margin: 5px 10px;
+      margin: 5px 10px;
     }
   }
 
-  > .data-store-results {
+  > .data-manager-results {
   }
 
   a.infoText {

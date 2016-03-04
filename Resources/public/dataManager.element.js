@@ -98,7 +98,7 @@
      *
      * @copyright 20.04.2015 by WhereGroup GmbH & Co. KG
      */
-    $.widget("mapbender.mbDataStore", {
+    $.widget("mapbender.mbDataManager", {
         options: {
             allowCreate:     true,
             allowEditData:   true,
@@ -528,7 +528,7 @@
 
             dialog.generateElements({children: widget.currentSettings.formItems});
             dialog.popupDialog(popupConfig);
-            dialog.addClass("data-store-edit-data");
+            dialog.addClass("data-manager-edit-data");
             widget.currentPopup = dialog;
             return dialog;
         },
