@@ -24,6 +24,11 @@ use Symfony\Component\HttpFoundation\Request;
 class DataStoreElement extends HTMLElement
 {
     /**
+     * User access denied
+     */
+    const ERROR_ACCESS_DENIED = "1";
+
+    /**
      * The constructor.
      *
      * @param Application        $application The application object
@@ -184,8 +189,8 @@ class DataStoreElement extends HTMLElement
                 if(!$schemaConfig->allowEdit){
                     $results["errors"] = array(
                         array(
-                            'message' => "Access denied!",
-                            'code' => "1"
+                            'message' => "It is not allowed to edit this data",
+                            'code'    => self::ERROR_ACCESS_DENIED
                         )
                     );
                 }
@@ -211,8 +216,6 @@ class DataStoreElement extends HTMLElement
                     );
                 }
 
-                //var_dump($newDataItem);
-                //die();
                 $results["dataItem"] = $dataItem->toArray();
                 //} catch (DBALException $e) {
                 //    $message = $debugMode ? $e->getMessage() : "Feature can't be saved. Maybe something is wrong configured or your database isn't available?\n" .
@@ -226,11 +229,11 @@ class DataStoreElement extends HTMLElement
 
             case 'delete':
                 //try {
-                if(!$schemaConfig->allowRemove){
+                if (!$schemaConfig->allowEdit) {
                     $results["errors"] = array(
                         array(
-                            'message' => "Access denied!",
-                            'code' => "1"
+                            'message' => "It is not allowed to edit this data",
+                            'code'    => self::ERROR_ACCESS_DENIED
                         )
                     );
                 }
@@ -242,8 +245,8 @@ class DataStoreElement extends HTMLElement
                 if(!$schemaConfig->allowEdit){
                     $results["errors"] = array(
                         array(
-                            'message' => "Access denied!",
-                            'code' => "1"
+                            'message' => "It is not allowed to edit this data",
+                            'code'    => self::ERROR_ACCESS_DENIED
                         )
                     );
                 }
