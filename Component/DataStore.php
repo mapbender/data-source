@@ -30,6 +30,7 @@ class DataStore extends ContainerAware
      * @var IDriver $driver
      */
     protected $driver;
+    public    $lifeCycleFunctions;
 
     /**
      * @param ContainerInterface $container
@@ -39,10 +40,12 @@ class DataStore extends ContainerAware
     {
         /** @var Connection $connection */
         $this->setContainer($container);
-        $type           = isset($args["type"]) ? $args["type"] : "doctrine";
-        $connectionName = isset($args["connection"]) ? $args["connection"] : "default";
-        $driver         = null;
-        $hasFields      = isset($args["fields"]) && is_array($args["fields"]);
+        $type                     = isset($args["type"]) ? $args["type"] : "doctrine";
+        $connectionName           = isset($args["connection"]) ? $args["connection"] : "default";
+        $driver                   = null;
+        $this->lifeCycleFunctions = isset($args["lifeCycleFunctions"]) ? $args["lifeCycleFunctions"] : array();
+
+        $hasFields = isset($args["fields"]) && is_array($args["fields"]);
 
         // init $methods by $args
         if (is_array($args)) {
@@ -139,7 +142,14 @@ class DataStore extends ContainerAware
      */
     public function save($item, $autoUpdate = true)
     {
-        return $this->getDriver()->save($item, $autoUpdate);
+        if (isset($this->lifeCycleFunctions['onBeforeInsert'])) {
+            eval($this->lifeCycleFunctions['onBeforeInsert']);
+        }
+        $result = $this->getDriver()->save($item, $autoUpdate);
+        if (isset($this->lifeCycleFunctions['onAfterInsert'])) {
+            eval($this->lifeCycleFunctions['onAfterInsert']);
+        }
+        return $result;
     }
 
     /**
@@ -149,7 +159,16 @@ class DataStore extends ContainerAware
      */
     public function remove($args)
     {
-        return $this->getDriver()->remove($args);
+        if (isset($this->lifeCycleFunctions['onBeforeRemove'])) {
+            eval($this->lifeCycleFunctions['onBeforeRemove']);
+        }
+
+        $result = $this->getDriver()->remove($args);
+
+        if (isset($this->lifeCycleFunctions['onAfterRemove'])) {
+            eval($this->lifeCycleFunctions['onAfterRemove']);
+        }
+        return $result;
     }
 
     /**
@@ -160,7 +179,16 @@ class DataStore extends ContainerAware
      */
     public function search(array $criteria = array())
     {
-        return $this->getDriver()->search($criteria);
+        if (isset($this->lifeCycleFunctions['onBeforeSelect'])) {
+            eval($this->lifeCycleFunctions['onBeforeSelect']);
+        }
+        $results = $this->getDriver()->search($criteria);
+
+        if (isset($this->lifeCycleFunctions['onAfterSelect'])) {
+            eval($this->lifeCycleFunctions['onAfterSelect']);
+        }
+
+        return $results;
     }
 
     /**
