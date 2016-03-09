@@ -30,7 +30,9 @@ class DataStore extends ContainerAware
      * @var IDriver $driver
      */
     protected $driver;
-    public    $lifeCycleFunctions;
+    public    $events;
+    protected $allowSave;
+    protected $allowRemove;
 
     /**
      * @param ContainerInterface $container
@@ -40,12 +42,11 @@ class DataStore extends ContainerAware
     {
         /** @var Connection $connection */
         $this->setContainer($container);
-        $type                     = isset($args["type"]) ? $args["type"] : "doctrine";
-        $connectionName           = isset($args["connection"]) ? $args["connection"] : "default";
-        $driver                   = null;
-        $this->lifeCycleFunctions = isset($args["lifeCycleFunctions"]) ? $args["lifeCycleFunctions"] : array();
-
-        $hasFields = isset($args["fields"]) && is_array($args["fields"]);
+        $type           = isset($args["type"]) ? $args["type"] : "doctrine";
+        $connectionName = isset($args["connection"]) ? $args["connection"] : "default";
+        $driver         = null;
+        $this->events   = isset($args["events"]) ? $args["events"] : array();
+        $hasFields      = isset($args["fields"]) && is_array($args["fields"]);
 
         // init $methods by $args
         if (is_array($args)) {
@@ -142,15 +143,25 @@ class DataStore extends ContainerAware
      */
     public function save($item, $autoUpdate = true)
     {
-        if (isset($this->lifeCycleFunctions['onBeforeInsert'])) {
-            eval($this->lifeCycleFunctions['onBeforeInsert']);
+        $this->allowSave = true;
+        if (isset($this->events['onBeforeSave'])) {
+            $this->secureEval($this->events['onBeforeSave'], array(
+                'item' => &$item
+            ));
         }
-        $result = $this->getDriver()->save($item, $autoUpdate);
-        if (isset($this->lifeCycleFunctions['onAfterInsert'])) {
-            eval($this->lifeCycleFunctions['onAfterInsert']);
+        $result = null;
+        if ($this->allowSave) {
+            $result = $this->getDriver()->save($item, $autoUpdate);
+        }
+
+        if (isset($this->events['onAfterSave'])) {
+            $this->secureEval($this->events['onAfterSave'], array(
+                'item' => &$item
+            ));
         }
         return $result;
     }
+
 
     /**
      * Remove data item
@@ -159,14 +170,22 @@ class DataStore extends ContainerAware
      */
     public function remove($args)
     {
-        if (isset($this->lifeCycleFunctions['onBeforeRemove'])) {
-            eval($this->lifeCycleFunctions['onBeforeRemove']);
+        $this->allowRemove = true;
+        if (isset($this->events['onBeforeRemove'])) {
+
+            $this->secureEval($this->events['onBeforeRemove'], array(
+                'args'   => &$args,
+                'method' => 'remove'
+            ));
         }
+        if ($this->allowRemove) {
+            $result = $this->getDriver()->remove($args);
+        }
+        if (isset($this->events['onAfterRemove'])) {
+            $this->secureEval($this->events['onAfterRemove'], array(
+                'args' => &$args
 
-        $result = $this->getDriver()->remove($args);
-
-        if (isset($this->lifeCycleFunctions['onAfterRemove'])) {
-            eval($this->lifeCycleFunctions['onAfterRemove']);
+            ));
         }
         return $result;
     }
@@ -179,13 +198,19 @@ class DataStore extends ContainerAware
      */
     public function search(array $criteria = array())
     {
-        if (isset($this->lifeCycleFunctions['onBeforeSelect'])) {
-            eval($this->lifeCycleFunctions['onBeforeSelect']);
+
+        if (isset($this->events['onBeforeSearch'])) {
+            $this->secureEval($this->events['onBeforeSearch'], array(
+                'criteria' => &$criteria
+            ));
         }
+
         $results = $this->getDriver()->search($criteria);
 
-        if (isset($this->lifeCycleFunctions['onAfterSelect'])) {
-            eval($this->lifeCycleFunctions['onAfterSelect']);
+        if (isset($this->events['onAfterSearch'])) {
+            $this->secureEval($this->events['onAfterSearch'], array(
+                'criteria' => &$criteria
+            ));
         }
 
         return $results;
@@ -290,5 +315,40 @@ class DataStore extends ContainerAware
     public function getConnection()
     {
         return $this->getDriver()->getConnection();
+    }
+
+    public function secureEval($code, array $args = array())
+    {
+        //extract($args);
+        $user      = $this->container->get("security.context")->getToken()->getUser();
+        $userRoles = $this->container->get("security.context")->getRolesAsArray();
+        $idKey     = $this->getDriver()->getUniqueId();
+
+        foreach ($args as $key => &$value) {
+            ${$key} = &$value;
+        }
+        if (isset($item)) {
+            $originData = $this->get($item);
+        }
+        if (isset($args)) {
+            $originData = $this->get($args);
+        }
+
+        $criteria['where'] = isset($criteria['where']) ? $criteria['where'] : '';
+        $return            = eval($code);
+        if ($return === false && ($errorMessage = error_get_last())) {
+            throw new \Exception($errorMessage);
+        }
+
+    }
+
+    public function preventSave($msg = "")
+    {
+        $this->allowSave = false;
+    }
+
+    public function preventRemove($msg = "")
+    {
+        $this->allowRemove = false;
     }
 }
