@@ -182,7 +182,8 @@ class QueryBuilderElement extends BaseElement
                 $results = $this->executeQuery($id);
                 $query   = $this->getQuery($id);
                 $title   = $query->getAttribute($configuration->titleFieldName);
-                return new HtmlExportResponse($results, $title);
+                $htmlExportResponse = new HtmlExportResponse($results, $title);
+                die($htmlExportResponse->getContent());
                 break;
 
             case 'execute':
