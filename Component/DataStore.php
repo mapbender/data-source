@@ -137,19 +137,20 @@ class DataStore extends ContainerAware
     /**
      * Save data item
      *
-     * @param DataItem $item
-     * @param bool     $autoUpdate Create item if doesn't exists
+     * @param DataItem|array $item Data item
+     * @param bool           $autoUpdate Create item if doesn't exists
      * @return DataItem
+     * @throws \Exception
      */
     public function save($item, $autoUpdate = true)
     {
+        $result = null;
         $this->allowSave = true;
         if (isset($this->events['onBeforeSave'])) {
             $this->secureEval($this->events['onBeforeSave'], array(
                 'item' => &$item
             ));
         }
-        $result = null;
         if ($this->allowSave) {
             $result = $this->getDriver()->save($item, $autoUpdate);
         }
@@ -170,6 +171,7 @@ class DataStore extends ContainerAware
      */
     public function remove($args)
     {
+        $result = null;
         $this->allowRemove = true;
         if (isset($this->events['onBeforeRemove'])) {
 
@@ -198,7 +200,6 @@ class DataStore extends ContainerAware
      */
     public function search(array $criteria = array())
     {
-
         if (isset($this->events['onBeforeSearch'])) {
             $this->secureEval($this->events['onBeforeSearch'], array(
                 'criteria' => &$criteria
@@ -209,23 +210,13 @@ class DataStore extends ContainerAware
 
         if (isset($this->events['onAfterSearch'])) {
             $this->secureEval($this->events['onAfterSearch'], array(
-                'criteria' => &$criteria
+                'criteria' => &$criteria,
+                'results' => &$results
             ));
         }
 
         return $results;
     }
-
-    /**
-     * Get current driver instance
-     *
-     * @return IDriver|BaseDriver|DoctrineBaseDriver
-     */
-    public function getDriver()
-    {
-        return $this->driver;
-    }
-
 
     /**
      * Is oralce platform
@@ -239,6 +230,17 @@ class DataStore extends ContainerAware
             $r = $this->driver->getPlatformName() == self::ORACLE_PLATFORM;
         }
         return $r;
+    }
+
+
+    /**
+     * Get current driver instance
+     *
+     * @return IDriver|BaseDriver|DoctrineBaseDriver
+     */
+    public function getDriver()
+    {
+        return $this->driver;
     }
 
     /**
@@ -320,8 +322,9 @@ class DataStore extends ContainerAware
     public function secureEval($code, array $args = array())
     {
         //extract($args);
-        $user      = $this->container->get("security.context")->getToken()->getUser();
-        $userRoles = $this->container->get("security.context")->getRolesAsArray();
+        $context   = $this->container->get("security.context");
+        $user      = $context->getToken()->getUser();
+        $userRoles = $context->getRolesAsArray();
         $idKey     = $this->getDriver()->getUniqueId();
 
         foreach ($args as $key => &$value) {
@@ -342,12 +345,24 @@ class DataStore extends ContainerAware
 
     }
 
-    public function preventSave($msg = "")
+    /**
+     * Prevent save item.
+     * For event handling only.
+     *
+     * @param string $msg Prevent save message
+     */
+    protected function preventSave($msg = "")
     {
         $this->allowSave = false;
     }
 
-    public function preventRemove($msg = "")
+    /**
+     * Prevent remove item.
+     * For event handling only.
+     *
+     * @param string $msg Prevent reason message
+     */
+    protected function preventRemove($msg = "")
     {
         $this->allowRemove = false;
     }
