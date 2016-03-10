@@ -9,7 +9,7 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class PostgreSQL extends DoctrineBaseDriver
+class PostgreSQL extends DoctrineBaseDriver implements Geographic
 {
     /**
      * Insert data item
