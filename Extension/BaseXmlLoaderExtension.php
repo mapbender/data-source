@@ -42,17 +42,19 @@ class BaseXmlLoaderExtension extends Extension
         $loader  = new XmlFileLoader($container, new FileLocator($fileSrc));
         $loader->load($this->xmlFileName);
     }
-
-    /**
-     * @return string
-     */
-    public function getAlias()
-    {
-        static $alias = null;
-        if (!$alias) {
-            list($prefix) = explode('Bundle\\', $this->reflector->getName());
-            $alias = strtolower(preg_replace("/(.)([A-Z])/e", "'$1_'.strtolower('$2')", str_replace("\\", "", $prefix)));
-        }
-        return $alias;
-    }
+    //
+    ///**
+    // * @return string
+    // */
+    //public function getAlias()
+    //{
+    //    static $alias = null;
+    //    if (!$alias) {
+    //        $alias = str_replace('\\', '_',
+    //            strtolower(
+    //                current(
+    //                    explode('Bundle\\', $this->reflector->getName()))));
+    //    }
+    //    return $alias;
+    //}
 }
