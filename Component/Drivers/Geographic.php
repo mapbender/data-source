@@ -26,4 +26,13 @@ interface Geographic
         $geomFieldName = "geom",
         $schemaName = "public",
         $dimensions = 2);
+
+    /**
+     * Get table geometry type
+     *
+     * @param        $tableName
+     * @param string $schema
+     * @return mixed
+     */
+    public function getTableGeomType($tableName, $schema = null);
 }

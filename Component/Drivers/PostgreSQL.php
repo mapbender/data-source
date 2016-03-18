@@ -92,4 +92,27 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic
         return $db->exec("DROP TABLE IF EXISTS " . $db->quoteIdentifier($name));
     }
 
+
+    /**
+     * Get table geom type
+     *
+     * @param string $tableName Table name. The name can contains schema name splited by dot.
+     * @param string $schema
+     * @return string
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function getTableGeomType($tableName, $schema = null)
+    {
+        $connection = $this->connection;
+        if (strpos($tableName, '.')) {
+            list($schema, $tableName) = explode('.', $tableName);
+        }
+        $_schema = $schema ? $connection->quote($schema) : 'current_schema()';
+        $type    = $connection->query("SELECT \"type\"
+                FROM geometry_columns
+                WHERE f_table_schema = " . $_schema . "
+                AND f_table_name = " . $connection->quote($tableName))->fetchColumn();
+        return $type;
+    }
+
 }
