@@ -202,6 +202,7 @@ class DataStore extends ContainerAware
      */
     public function search(array $criteria = array())
     {
+        $criteria['where'] = isset($criteria['where']) ? $criteria['where'] : '';
         if (isset($this->events['onBeforeSearch'])) {
             $this->secureEval($this->events['onBeforeSearch'], array(
                 'criteria' => &$criteria
@@ -339,7 +340,7 @@ class DataStore extends ContainerAware
             $originData = $this->get($args);
         }
 
-        $criteria['where'] = isset($criteria['where']) ? $criteria['where'] : '';
+
         $return            = eval($code);
         if ($return === false && ($errorMessage = error_get_last())) {
             throw new \Exception($errorMessage);
