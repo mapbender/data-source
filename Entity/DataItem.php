@@ -33,6 +33,13 @@ class DataItem
     protected $uniqueIdField;
 
     /**
+     * DataItem children
+     *
+     * @var  DataItem[]
+     */
+    protected $children;
+
+    /**
      * @param mixed  $args string|array|null Optional JSON string or array
      * @param string $uniqueIdField ID field name
      * @param bool   $fill array|null Fill array
@@ -154,23 +161,18 @@ class DataItem
     }
 
     /**
-     * TODO: implement
-     *
-     * @return DataItem
+     * @param DataItem[] $children
      */
-    public function getParent()
+    public function setChildren($children)
     {
-        return new DataItem();
+        $this->children = $children;
     }
 
     /**
-     * TODO: implement
-     *
-     * @param DataItem $dataItem
-     * @return DataItem
+     * @return DataItem[]
      */
-    public function setParent(DataItem $dataItem = null)
+    public function getChildren()
     {
-        return $dataItem;
+        return $this->children;
     }
 }

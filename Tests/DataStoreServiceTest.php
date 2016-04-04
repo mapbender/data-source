@@ -1,6 +1,7 @@
 <?php
 namespace Mapbender\DataSourceBundle\Tests;
 
+use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Component\DataStoreService;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\IDriver;
@@ -14,8 +15,27 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
  */
 class DataStoreServiceTest extends SymfonyTest
 {
+
+    public function testTree()
+    {
+        if (!$testing = $this->getParameter("testing/dataStores/tree")) {
+            return;
+        }
+
+        $dataStore = new DataStore(parent::$container, $testing);
+        foreach ($dataStore->getTree() as $dataItem) {
+            $this->assertTrue($dataItem->getAttribute($dataStore->getParentField()) == null);
+            $this->assertTrue($dataItem->getAttribute($dataStore->getDriver()->getUniqueId()) > 0);
+        }
+    }
+
     public function testDriver()
     {
+        if(!$testing = $this->getParameter("testing/dataStores/titled")){
+            return;
+        }
+
+        // TODO check
         /** @var DataStoreService $service */
         $service       = $this->get("data.source");
         $dataStoreList = $this->getParameter("dataStores");

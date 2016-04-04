@@ -2,6 +2,7 @@
 namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Statement;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\IDriver;
@@ -34,6 +35,8 @@ class DataStore extends ContainerAware
     protected $allowSave;
     protected $allowRemove;
 
+    protected $parentField;
+
     /**
      * @param ContainerInterface $container
      * @param null               $args
@@ -47,6 +50,10 @@ class DataStore extends ContainerAware
         $driver         = null;
         $this->events   = isset($args["events"]) ? $args["events"] : array();
         $hasFields      = isset($args["fields"]) && is_array($args["fields"]);
+
+        if ($hasFields && isset($args["parentField"])) {
+            $args["fields"][] = $args["parentField"];
+        }
 
         // init $methods by $args
         if (is_array($args)) {
@@ -107,22 +114,59 @@ class DataStore extends ContainerAware
      * Get parent by child ID
      *
      * @param $id
-     * @return DataItem
+     * @return DataItem|null
      */
     public function getParent($id)
     {
-        return new DataItem();
+        /** @var Statement $statement */
+        $dataItem     = $this->get($id);
+        $queryBuilder = $this->driver->getSelectQueryBuilder();
+        $queryBuilder->andWhere($this->driver->getUniqueId() . " = " . $dataItem->getAttribute($this->getParentField()));
+        $statement  = $queryBuilder->execute();
+        $rows       = array($statement->fetch());
+        $hasResults = count($rows) > 0;
+        $parent     = null;
+
+        if ($hasResults) {
+            $this->driver->prepareResults($rows);
+            $parent = $rows[0];
+        }
+
+        return $parent;
     }
 
     /**
-     * Get children ID
+     * Get tree
      *
-     * @param $id
+     * @param null|int $parentId  Parent ID
+     * @param bool $recursive Recursive [true|false]
      * @return DataItem[]
      */
-    public function getChildren($id)
+    public function getTree($parentId = null, $recursive = true)
     {
-        return new DataItem();
+        $queryBuilder = $this->driver->getSelectQueryBuilder();
+        if ($parentId === null) {
+            $queryBuilder->andWhere($this->getParentField() . " IS NULL");
+        } else {
+            $queryBuilder->andWhere($this->getParentField() . " = " . $parentId);
+        }
+        $statement  = $queryBuilder->execute();
+        $rows       = $statement->fetchAll();
+        $hasResults = count($rows) > 0;
+
+        // Cast array to DataItem array list
+        if ($hasResults) {
+            $this->driver->prepareResults($rows);
+        }
+
+        if ($recursive) {
+            /** @var DataItem $dataItem */
+            foreach ($rows as $dataItem) {
+                $dataItem->setChildren($this->getTree($dataItem->getId(), $recursive));
+            }
+        }
+
+        return $rows;
     }
 
     /**
@@ -346,6 +390,22 @@ class DataStore extends ContainerAware
             throw new \Exception($errorMessage);
         }
 
+    }
+
+    /**
+     * @param mixed $parentField
+     */
+    public function setParentField($parentField)
+    {
+        $this->parentField = $parentField;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getParentField()
+    {
+        return $this->parentField;
     }
 
     /**
