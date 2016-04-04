@@ -57,9 +57,32 @@ class SymfonyTest extends WebTestCase
      * @param $name
      * @return mixed|null
      */
-    public function getParameter($name){
-        return self::$container->hasParameter($name)?self::$container->getParameter($name):null;
+    public function getParameter($name)
+    {
+        $names = explode("/", $name);
+        $r     = null;
+        $name  = current($names);
+        if (!$name || !self::$container->hasParameter($name)) {
+            return $r;
+        }
+
+        $parameters = self::$container->getParameter($name);
+        $c          = count($names);
+        foreach ($names as $k => &$name) {
+            if ($k == 0) {
+                continue;
+            }
+
+            if (isset($parameters[ $name ])) {
+                $parameters = $parameters[ $name ];
+                if ($k + 1 == $c) {
+                    $r = $parameters;
+                }
+            } else {
+                break;
+            }
+        }
+
+        return $r;
     }
-
-
 }
