@@ -53,6 +53,9 @@ class DataStore extends ContainerAware
             $methods = get_class_methods(get_class($this));
             foreach ($args as $key => $value) {
                 $keyMethod = "set" . ucwords($key);
+                if($key == "fields"){
+                    continue;
+                }
                 if (in_array($keyMethod, $methods)) {
                     $this->$keyMethod($value);
                 }
@@ -75,12 +78,11 @@ class DataStore extends ContainerAware
 
                 }
                 $driver->connect($connectionName);
-                if (!$hasFields) {
-                    $driver->setFields($driver->getStoreFields());
-                }
-
         }
         $this->driver = $driver;
+        if (!$hasFields) {
+            $driver->setFields($driver->getStoreFields());
+        }
     }
 
     /**
