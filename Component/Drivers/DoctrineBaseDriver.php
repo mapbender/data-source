@@ -197,13 +197,25 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
     /**
      * Get query builder prepared to select from the source table
      *
+     * @param array $fields
      * @return QueryBuilder
      */
-    public function getSelectQueryBuilder()
+    public function getSelectQueryBuilder(array $fields = array())
     {
-        $connection   = $this->getConnection();
-        $attributes   = array_merge(array($this->getUniqueId()), $this->getFields());
-        $queryBuilder = $connection->createQueryBuilder()->select($attributes)->from($this->getTableName(), 't');
+        $connection = $this->getConnection();
+        $qb         = $connection->createQueryBuilder();
+        $fields     = array_merge($this->getFields(), $fields);
+        $fields     = array_merge(array($this->getUniqueId()), $fields);
+
+        foreach ($fields as &$field) {
+            if (is_array($field)) {
+                $keyName    = current(array_keys($field));
+                $expression = current(array_values($field));
+                $field      = "$expression AS " . $this->connection->quoteIdentifier($keyName);
+            }
+        }
+
+        $queryBuilder = $qb->select($fields)->from($this->getTableName(), 't');
         return $queryBuilder;
     }
 
