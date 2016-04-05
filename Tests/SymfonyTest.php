@@ -85,4 +85,32 @@ class SymfonyTest extends WebTestCase
 
         return $r;
     }
+
+    /**
+     * Get method configuration if available
+     *
+     * @return mixed|null
+     */
+    public function getConfiguration()
+    {
+        $trace         = debug_backtrace();
+        $caller        = $trace[1];
+        $methodName    = preg_replace("/^test/", "", $caller["function"]);
+        $methodName[0] = strtolower($methodName[0]);
+        $parameter     = $this->getParameter("test/" . $caller["class"] . "/" . $methodName);
+        return $parameter;
+    }
+
+    /**
+     * Get calss configuration if available
+     *
+     * @return mixed|null
+     */
+    public function getClassConfiguration()
+    {
+        $trace     = debug_backtrace();
+        $caller    = $trace[1];
+        $parameter = $this->getParameter("test/" . $caller["class"]);
+        return $parameter;
+    }
 }
