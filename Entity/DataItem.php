@@ -99,6 +99,14 @@ class DataItem
             $data[$this->uniqueIdField] = $this->getId();
         }
 
+        if($children = $this->getChildren()){
+           $_children = array();
+            foreach($children as $child){
+               $_children[] = $child->toArray();
+           }
+            $data["children"] = &$_children;
+        }
+
         return $data;
     }
 
