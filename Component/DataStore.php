@@ -89,6 +89,8 @@ class DataStore extends ContainerAware
         $this->driver = $driver;
         if (!$hasFields) {
             $driver->setFields($driver->getStoreFields());
+        } else {
+            $driver->setFields($args["fields"]);
         }
     }
 
