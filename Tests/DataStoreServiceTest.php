@@ -15,14 +15,27 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
  */
 class DataStoreServiceTest extends SymfonyTest
 {
+    public function testFields()
+    {
+        if (!$configuration = $this->getConfiguration()) {
+            self::markTestSkipped("No test declaration found");
+            return;
+        }
+        $dataStore = new DataStore(parent::$container, $configuration);
+        $results   = $dataStore->search();
+        foreach ($results as $result) {
+            $attributes = $result->getAttributes();
+        };
+    }
 
     public function testTree()
     {
-        if (!$testing = $this->getParameter("testing/dataStores/tree")) {
+        if (!$configuration = $this->getConfiguration()) {
+            self::markTestSkipped("No test declaration found");
             return;
         }
 
-        $dataStore = new DataStore(parent::$container, $testing);
+        $dataStore = new DataStore(parent::$container, $configuration);
         foreach ($dataStore->getTree() as $dataItem) {
             $this->assertTrue($dataItem->getAttribute($dataStore->getParentField()) == null);
             $this->assertTrue($dataItem->getAttribute($dataStore->getDriver()->getUniqueId()) > 0);
@@ -31,7 +44,8 @@ class DataStoreServiceTest extends SymfonyTest
 
     public function testDriver()
     {
-        if(!$testing = $this->getParameter("testing/dataStores/titled")){
+        if(!$configuration = $this->getConfiguration()){
+            self::markTestSkipped("No dataStore test declaration found");
             return;
         }
 
