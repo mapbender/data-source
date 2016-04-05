@@ -1,6 +1,7 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
+use Doctrine\DBAL\Connection;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -125,7 +126,7 @@ abstract class BaseDriver extends ContainerAware
     /**
      * Get connection link
      *
-     * @return mixed
+     * @return Connection|mixed
      */
     public function getConnection()
     {
