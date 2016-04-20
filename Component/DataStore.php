@@ -36,6 +36,7 @@ class DataStore extends ContainerAware
     protected $allowRemove;
 
     protected $parentField;
+    protected $mapping;
 
     /**
      * @param ContainerInterface $container
@@ -141,7 +142,7 @@ class DataStore extends ContainerAware
      * Get tree
      *
      * @param null|int $parentId  Parent ID
-     * @param bool $recursive Recursive [true|false]
+     * @param bool     $recursive Recursive [true|false]
      * @return DataItem[]
      */
     public function getTree($parentId = null, $recursive = true)
@@ -386,8 +387,7 @@ class DataStore extends ContainerAware
             $originData = $this->get($args);
         }
 
-
-        $return            = eval($code);
+        $return = eval($code);
         if ($return === false && ($errorMessage = error_get_last())) {
             throw new \Exception($errorMessage);
         }
@@ -411,6 +411,16 @@ class DataStore extends ContainerAware
     }
 
     /**
+     * @param mixed $mapping
+     * @return DataStore
+     */
+    public function setMapping($mapping)
+    {
+        $this->mapping = $mapping;
+        return $this;
+    }
+
+    /**
      * Prevent save item.
      * For event handling only.
      *
@@ -430,5 +440,28 @@ class DataStore extends ContainerAware
     protected function preventRemove($msg = "")
     {
         $this->allowRemove = false;
+    }
+
+    /**
+     * @param $mappingId
+     * @param $fid
+     * @internal param $id $
+     */
+    public function getTroughMapping($mappingId, $id)
+    {
+
+        $config = $this->mapping[ $mappingId ];
+
+        $dataStore = $this->container->get("data.source")->get($config["externalDataStore"]);
+        $rightSide = $this->get($id)->getAttribute($config['internalId']);
+        $leftSide  = "t.".$config['externalId'];
+        $where     = "$leftSide='$rightSide'";
+
+        $qb = $dataStore->getDriver()->getSelectQueryBuilder();
+
+        $qb->where($where);
+        $result = $qb->execute();
+        return $result->fetchAll();
+
     }
 }
