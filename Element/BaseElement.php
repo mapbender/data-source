@@ -55,10 +55,11 @@ class BaseElement extends HTMLElement
 
                     unset($item['sql']);
                     unset($item['connection']);
-                    /** @var Connection $dbal */
-                    $dbal = $this->container->get("doctrine.dbal.{$connectionName}_connection");
-                    foreach ($dbal->fetchAll($sql) as $option) {
-                        $options[ current($option) ] = end($option);
+                    /** @var Connection $connection */
+                    $connection = $this->container->get("doctrine.dbal.{$connectionName}_connection");
+                    $all  = $connection->fetchAll($sql);
+                    foreach ($all as $option) {
+                        $options[] = array(reset($option), end($option));
                     }
                     $item["options"] = $options;
                 }
