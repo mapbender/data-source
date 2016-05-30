@@ -297,19 +297,12 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
      * Get data item by id
      *
      * @param $id
-     * @param $fieldName
      * @return mixed
      */
-    public function getById($id, $fieldName = null)
+    public function getById($id)
     {
-        /** @var Statement $statement */
-        $queryBuilder = $this->getSelectQueryBuilder();
-        $queryBuilder->where($fieldName ? $fieldName : $this->getUniqueId() . " = :id");
-        $queryBuilder->setParameter('id', $id);
-        $statement = $queryBuilder->execute();
-        $rows      = $statement->fetchAll();
-        $this->prepareResults($rows);
-        return reset($rows);
+        $list = $this->getByCriteria($id, $this->getUniqueId());
+        return reset($list);
     }
 
     /**
@@ -389,5 +382,25 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
     {
         return $this->getConnection()
             ->delete($this->tableName, array($this->uniqueId => $this->create($arg)->getId())) > 0;
+    }
+
+    /**
+     * List objects by criteria
+     *
+     * @param $criteria
+     * @param $fieldName
+     * @return \Mapbender\DataSourceBundle\Entity\DataItem[]
+     */
+    public function getByCriteria($criteria, $fieldName)
+    {
+        /** @var Statement $statement */
+        $queryBuilder = $this->getSelectQueryBuilder();
+        $queryBuilder->where($fieldName . " = :criteria");
+        $queryBuilder->setParameter('criteria', $criteria);
+
+        $statement = $queryBuilder->execute();
+        $rows      = $statement->fetchAll();
+        $this->prepareResults($rows);
+        return $rows;
     }
 }

@@ -93,7 +93,7 @@ abstract class BaseDriver extends ContainerAware
     }
 
     /**
-     * Get unique ID
+     * Get unique ID field name
      *
      * @return mixed unique ID
      */

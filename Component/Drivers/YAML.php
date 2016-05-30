@@ -26,9 +26,10 @@ class YAML extends BaseDriver implements IDriver
      * Save the data
      *
      * @param array|DataItem $data
+     * @param bool           $autoUpdate Create if not exists or update if ID exists
      * @return mixed
      */
-    public function save($data)
+    public function save($data, $autoUpdate = true)
     {
         // TODO: Implement save() method.
     }
@@ -121,7 +122,7 @@ class YAML extends BaseDriver implements IDriver
      * @param mixed  $id        ID
      * @param string $fieldName Field name
      */
-    public function getById($id, $fieldName = null)
+    public function getById($id)
     {
         // TODO: Implement getById() method.
     }

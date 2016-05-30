@@ -453,7 +453,7 @@ class DataStore extends ContainerAware
      *
      * @param $mappingId
      * @param $id
-     * @return array
+     * @return DataItem[]
      */
     public function getTroughMapping($mappingId, $id)
     {
@@ -486,6 +486,6 @@ class DataStore extends ContainerAware
 
         $criteria = $this->get($id)->getAttribute($internalFieldName);
 
-        return $externalDriver->getById($criteria, $externalFieldName);
+        return $externalDriver->getByCriteria($criteria, $externalFieldName);
     }
 }

@@ -21,11 +21,10 @@ interface IDriver
     /**
      * Get object by ID and field name
      *
-     * @param mixed  $id ID
-     * @param string $fieldName Field name
+     * @param mixed $id ID
      * @return
      */
-    public function getById($id, $fieldName = null);
+    public function getById($id);
 
     /**
      * Cast DataItem by $args
