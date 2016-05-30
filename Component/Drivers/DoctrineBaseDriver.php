@@ -297,14 +297,15 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
      * Get data item by id
      *
      * @param $id
+     * @param $fieldName
      * @return mixed
      */
-    public function getById($id)
+    public function getById($id, $fieldName = 'id')
     {
         /** @var Statement $statement */
         $queryBuilder = $this->getSelectQueryBuilder();
         $queryBuilder->where($this->getUniqueId() . " = :id");
-        $queryBuilder->setParameter('id', $id);
+        $queryBuilder->setParameter($fieldName, $id);
         $statement = $queryBuilder->execute();
         $rows      = $statement->fetchAll();
         $this->prepareResults($rows);

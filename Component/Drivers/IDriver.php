@@ -10,10 +10,22 @@ interface IDriver
 {
 
     /**
-     * @param $id
-     * @return DataItem
+     * Get object by id, array or object himself
+     *
+     * @param mixed $id
+     * @return
+     * @internal param string $fieldName
      */
     public function get($id);
+
+    /**
+     * Get object by ID and field name
+     *
+     * @param mixed  $id ID
+     * @param string $fieldName Field name
+     * @return
+     */
+    public function getById($id, $fieldName ='id');
 
     /**
      * Cast DataItem by $args

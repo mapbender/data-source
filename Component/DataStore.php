@@ -10,6 +10,7 @@ use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Component\Drivers\YAML;
 use Mapbender\DataSourceBundle\Entity\DataItem;
+use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -369,6 +370,11 @@ class DataStore extends ContainerAware
         return $this->getDriver()->getConnection();
     }
 
+    /**
+     * @param       $code
+     * @param array $args
+     * @throws \Exception
+     */
     public function secureEval($code, array $args = array())
     {
         //extract($args);
@@ -443,25 +449,43 @@ class DataStore extends ContainerAware
     }
 
     /**
+     * Get related objects through mapping
+     *
      * @param $mappingId
-     * @param $fid
-     * @internal param $id $
+     * @param $id
+     * @return array
      */
     public function getTroughMapping($mappingId, $id)
     {
+        $config            = $this->mapping[ $mappingId ];
+        $dataStoreService  = $this->container->get("data.source");
+        $externalDataStore = $dataStoreService->get($config["externalDataStore"]);
+        $externalDriver    = $externalDataStore->getDriver();
+        $internalFieldName = null;
+        $externalFieldName = null;
 
-        $config = $this->mapping[ $mappingId ];
+        if (isset($config['internalId'])) {
+            $internalFieldName = $config['internalId'];
+        }
 
-        $dataStore = $this->container->get("data.source")->get($config["externalDataStore"]);
-        $rightSide = $this->get($id)->getAttribute($config['internalId']);
-        $leftSide  = "t.".$config['externalId'];
-        $where     = "$leftSide='$rightSide'";
+        if (isset($config['externalId'])) {
+            $externalFieldName = $config['externalId'];
+        }
 
-        $qb = $dataStore->getDriver()->getSelectQueryBuilder();
+        if (isset($config['internalFieldName'])) {
+            $internalFieldName = $config['internalFieldName'];
+        }
 
-        $qb->where($where);
-        $result = $qb->execute();
-        return $result->fetchAll();
+        if (isset($config['relatedFieldName'])) {
+            $externalFieldName = $config['relatedFieldName'];
+        }
 
+        if (!$externalDriver instanceof DoctrineBaseDriver) {
+            throw new Exception('This kind of externalDriver can\'t get relations');
+        }
+
+        $criteria = $this->get($id)->getAttribute($internalFieldName);
+
+        return $externalDriver->getById($criteria, $externalFieldName);
     }
 }

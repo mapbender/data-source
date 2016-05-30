@@ -13,10 +13,11 @@ class YAML extends BaseDriver implements IDriver
 {
 
     /**
-     * @param $id
+     * @param int|string $id
+     * @param string     $fieldName
      * @return DataItem
      */
-    public function get($id)
+    public function get($id, $fieldName = "")
     {
         // TODO: Implement get() method.
     }
@@ -112,5 +113,17 @@ class YAML extends BaseDriver implements IDriver
     public function search(array $criteria)
     {
         // TODO: Implement search() method.
+    }
+
+    /**
+     * Get object by ID and field name
+     *
+     * @param mixed  $id        ID
+     * @param string $fieldName Field name
+     * @return
+     */
+    public function getById($id, $fieldName = 'id')
+    {
+        // TODO: Implement getById() method.
     }
 }
