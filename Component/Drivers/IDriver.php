@@ -25,7 +25,7 @@ interface IDriver
      * @param string $fieldName Field name
      * @return
      */
-    public function getById($id, $fieldName ='id');
+    public function getById($id, $fieldName = null);
 
     /**
      * Cast DataItem by $args

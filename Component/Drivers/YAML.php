@@ -120,9 +120,8 @@ class YAML extends BaseDriver implements IDriver
      *
      * @param mixed  $id        ID
      * @param string $fieldName Field name
-     * @return
      */
-    public function getById($id, $fieldName = 'id')
+    public function getById($id, $fieldName = null)
     {
         // TODO: Implement getById() method.
     }
