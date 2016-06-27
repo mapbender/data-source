@@ -24,9 +24,19 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class DataStore extends ContainerAware
 {
-    const ORACLE_PLATFORM     = 'oracle';
-    const POSTGRESQL_PLATFORM = 'postgresql';
-    const SQLITE_PLATFORM     = 'sqlite';
+    const ORACLE_PLATFORM        = 'oracle';
+    const POSTGRESQL_PLATFORM    = 'postgresql';
+    const SQLITE_PLATFORM        = 'sqlite';
+
+    /**
+     * Eval events
+     */
+    const EVENT_ON_AFTER_SAVE    = 'onAfterSave';
+    const EVENT_ON_BEFORE_SAVE   = 'onBeforeSave';
+    const EVENT_ON_BEFORE_REMOVE = 'onBeforeRemove';
+    const EVENT_ON_AFTER_REMOVE  = 'onAfterRemove';
+    const EVENT_ON_BEFORE_SEARCH = 'onBeforeSearch';
+    const EVENT_ON_AFTER_SEARCH  = 'onAfterSearch';
 
     /**
      * @var IDriver $driver
@@ -196,8 +206,8 @@ class DataStore extends ContainerAware
     {
         $result = null;
         $this->allowSave = true;
-        if (isset($this->events['onBeforeSave'])) {
-            $this->secureEval($this->events['onBeforeSave'], array(
+        if (isset($this->events[ self::EVENT_ON_BEFORE_SAVE ])) {
+            $this->secureEval($this->events[ self::EVENT_ON_BEFORE_SAVE ], array(
                 'item' => &$item
             ));
         }
@@ -205,8 +215,8 @@ class DataStore extends ContainerAware
             $result = $this->getDriver()->save($item, $autoUpdate);
         }
 
-        if (isset($this->events['onAfterSave'])) {
-            $this->secureEval($this->events['onAfterSave'], array(
+        if (isset($this->events[ self::EVENT_ON_AFTER_SAVE ])) {
+            $this->secureEval($this->events[ self::EVENT_ON_AFTER_SAVE ], array(
                 'item' => &$item
             ));
         }
@@ -223,9 +233,9 @@ class DataStore extends ContainerAware
     {
         $result = null;
         $this->allowRemove = true;
-        if (isset($this->events['onBeforeRemove'])) {
+        if (isset($this->events[ self::EVENT_ON_BEFORE_REMOVE ])) {
 
-            $this->secureEval($this->events['onBeforeRemove'], array(
+            $this->secureEval($this->events[ self::EVENT_ON_BEFORE_REMOVE ], array(
                 'args'   => &$args,
                 'method' => 'remove'
             ));
@@ -233,8 +243,8 @@ class DataStore extends ContainerAware
         if ($this->allowRemove) {
             $result = $this->getDriver()->remove($args);
         }
-        if (isset($this->events['onAfterRemove'])) {
-            $this->secureEval($this->events['onAfterRemove'], array(
+        if (isset($this->events[ self::EVENT_ON_AFTER_REMOVE ])) {
+            $this->secureEval($this->events[ self::EVENT_ON_AFTER_REMOVE ], array(
                 'args' => &$args
 
             ));
@@ -251,16 +261,16 @@ class DataStore extends ContainerAware
     public function search(array $criteria = array())
     {
         $criteria['where'] = isset($criteria['where']) ? $criteria['where'] : '';
-        if (isset($this->events['onBeforeSearch'])) {
-            $this->secureEval($this->events['onBeforeSearch'], array(
+        if (isset($this->events[ self::EVENT_ON_BEFORE_SEARCH ])) {
+            $this->secureEval($this->events[ self::EVENT_ON_BEFORE_SEARCH ], array(
                 'criteria' => &$criteria
             ));
         }
 
         $results = $this->getDriver()->search($criteria);
 
-        if (isset($this->events['onAfterSearch'])) {
-            $this->secureEval($this->events['onAfterSearch'], array(
+        if (isset($this->events[ self::EVENT_ON_AFTER_SEARCH ])) {
+            $this->secureEval($this->events[ self::EVENT_ON_AFTER_SEARCH ], array(
                 'criteria' => &$criteria,
                 'results' => &$results
             ));
