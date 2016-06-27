@@ -169,6 +169,17 @@ class DataItem
     }
 
     /**
+     * Set attribute
+     *
+     * @param $key
+     * @param $value
+     */
+    public function setAttribute($key, $value)
+    {
+        $this->attributes[ $key ] = $value;
+    }
+
+    /**
      * @param DataItem[] $children
      */
     public function setChildren($children)
