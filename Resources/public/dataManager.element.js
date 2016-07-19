@@ -394,12 +394,12 @@
                     text:  translate("save"),
                     click: function() {
                         var form = $(this).closest(".ui-dialog-content");
+                        var formData = form.formData();
                         var errorInputs = $(".has-error", dialog);
                         var hasErrors = errorInputs.size() > 0;
 
+                        if(!hasErrors) {
 
-                        if( !hasErrors ){
-                            var formData = form.formData();
                             var uniqueIdKey = schema.dataStore.uniqueId;
                             var isNew = !dataItem.hasOwnProperty(uniqueIdKey) && !!dataItem[uniqueIdKey];
 
