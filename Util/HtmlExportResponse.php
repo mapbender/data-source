@@ -20,20 +20,42 @@ class HtmlExportResponse extends Response
 
     public $css = /** @lang CSS */
         "
+
+body{
+    font-family: \"Open Sans\", \"Calluna Sans\", \"Gill Sans MT\", Calibri, \"Trebuchet MS\", sans-serif;
+}
+
+
 table{
     width: 100%;
 }
-       table, tbody, tr, td{
-          padding: 0;
-          margin: 0;
-          border: 0;
-       }
-       th{
-        background-color: #c0c0c0;
-       }
-       td{
-            border: 1px solid #c0c0c0
-       }
+table, tbody, tr, td{
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+th{
+  background-color: #c0c0c0;
+}
+td{
+  border: 1px solid #c0c0c0
+}
+table, tbody, tr, td{
+    padding: 4px;
+    margin: 0px;
+    border:1pt solid #000;
+    border-collapse:collapse;
+}
+th{
+    background-color: #d9d9d9;
+    border:1pt solid #000;
+    border-collapse:collapse;            
+}
+h1{
+  font-size: 1.4em;
+}
+
+
     ";
 
     /**
