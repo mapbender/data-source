@@ -403,4 +403,14 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
         $this->prepareResults($rows);
         return $rows;
     }
+
+    /**
+     * Get last insert ID
+     *
+     * @return int
+     */
+    public function getLastInsertId()
+    {
+        return $this->getConnection()->lastInsertId();
+    }
 }

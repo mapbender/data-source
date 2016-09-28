@@ -133,4 +133,11 @@ abstract class BaseDriver extends ContainerAware
         return $this->connection;
     }
 
+    /**
+     * @return int
+     */
+    public function getLastInsertId()
+    {
+        return 0;
+    }
 }

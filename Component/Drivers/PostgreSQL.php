@@ -20,14 +20,8 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic
     public function insert($item)
     {
         $dataItem = parent::insert($item);
-        if ($dataItem->getId() < 1) {
-            $lastId = $this->connection->fetchColumn("SELECT
-                currval(
-                    pg_get_serial_sequence('" . $this->tableName
-                . "','" . $this->getUniqueId() . "')
-                )");
-            $dataItem->setId($lastId);
-        }
+        $id       = $this->getLastInsertId();
+        $dataItem->setId($id);
         return $dataItem;
     }
 
@@ -115,4 +109,65 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic
         return $type;
     }
 
+    /**
+     * Get last insert id
+     *
+     * @return int
+     */
+    public function getLastInsertId()
+    {
+        $connection   = $this->getConnection();
+        $tableName    = $connection->quote($this->tableName);
+        $uidFieldName = $connection->quote($this->getUniqueId());
+        $id           = $connection->lastInsertId();
+
+        if ($id < 1) {
+            $sql = /** @lang PostgreSQL */
+                "SELECT currval(
+                  pg_get_serial_sequence('" . $tableName . "','" . $uidFieldName . "'))
+                ";
+            $id  = $connection->fetchColumn($sql);
+        }
+
+        if ($id < 1) {
+            $fullTableName    = $connection->quoteIdentifier($tableName);
+            $fullUniqueIdName = $fullTableName . '.' . $connection->quoteIdentifier($uidFieldName);
+            $sql              = /** @lang PostgreSQL */
+                "SELECT $fullUniqueIdName 
+                 FROM $fullTableName
+                 LIMIT 1 
+                 OFFSET (SELECT count($fullUniqueIdName)-1 FROM $fullTableName )";
+
+            $id = $connection->fetchColumn($sql);
+            return $id;
+        }
+        return $id;
+    }
+
+    /**
+     * Get nearest node to given geometry
+     *
+     * Important: <-> operator works not well!!
+     *
+     * @param        $waysVerticesTableName
+     * @param        $waysGeomFieldName
+     * @param string $ewkt EWKT
+     * @param null   $transformTo
+     * @return int Node ID
+     */
+    public function getNodeFromGeom($waysVerticesTableName, $waysGeomFieldName, $ewkt, $transformTo = null)
+    {
+        $db   = $this->getConnection();
+        $geom = "ST_GeometryFromText('" . $db->quote($ewkt) . "')";
+
+        if ($transformTo) {
+            $geom = "ST_TRANSFORM($geom,$transformTo)";
+        }
+
+        return $db->fetchColumn(/** @lang PostgreSQL */ "
+            SELECT id, ST_Distance({$db->quoteIdentifier($waysGeomFieldName)}, $geom) AS distance
+            FROM {$db->quoteIdentifier($waysVerticesTableName)}
+            ORDER BY distance ASC
+            LIMIT 1");
+    }
 }
