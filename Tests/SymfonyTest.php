@@ -1,9 +1,4 @@
 <?php
-/**
- *
- * @author Andriy Oblivantsev <eslider@gmail.com>
- */
-
 namespace Mapbender\DataSourceBundle\Tests;
 
 use Symfony\Bundle\FrameworkBundle\Client;
