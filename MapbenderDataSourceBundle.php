@@ -30,7 +30,7 @@ class MapbenderDataSourceBundle extends MapbenderBundle
         return array(
             array(
                 'weight' => 20,
-                'title'  => $trans->trans("DataStores"),
+                'title'  => $trans->trans("Verbindungen"),
                 'route'  => 'mapbender_datasource_datastore_index',
                 'routes' => array(
                     'mapbender_datasource_datastore',
