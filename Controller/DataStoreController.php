@@ -24,7 +24,7 @@ class DataStoreController extends BaseController
     public function indexAction($page)
     {
         return array(
-            'title' => 'DataStore',
+            'title' => 'Verbindungen',
         );
     }
 
@@ -42,7 +42,7 @@ class DataStoreController extends BaseController
 
         return new JsonResponse(array(
             'list' => array(),
-            'title'   => 'DataStore',
+            'title'   => 'Verbindungen',
             'request' => $request,
             'path'    => $configPath
         ));

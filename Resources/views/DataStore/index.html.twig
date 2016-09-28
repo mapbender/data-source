@@ -1,0 +1,59 @@
+{% extends "FOMManagerBundle::manager.html.twig" %}
+
+{% block js %}
+  {{ parent() }}
+  <script type="text/javascript">
+    $(function() {
+      var container = $('.content');
+      var manager = new SymfonyAjaxManager("{{ path("fom_manager_manager_index") }}datastore");
+
+      manager.query("list").done(function(r) {
+        var table = window.routingTable = $("<div/>").resultTable({
+          lengthChange: false,
+          searching:    true,
+          ordering:     true,
+          paging:       false,
+          selectable:   true,
+          autoWidth:    false,
+          columns:      [{
+            title: 'ID',
+            data:  'id'
+          }],
+          buttons:      [],
+          data:         []
+        });
+
+        var tableWidget = table.data('visUiJsResultTable');
+        var tableApi = table.resultTable('getApi');
+        var selectionManager;
+        tableApi.on('draw.dt', function(a, b, c) {
+          selectionManager = tableWidget.getSelection();
+          $.each(tableApi.$('tr'), function() {
+            var tr = this;
+            var rowData = tableWidget.getDataByRow(tr);
+            var $tr = $(tr);
+            var checkbox = $('td.selection input[type=checkbox]', $tr);
+
+            if(rowData.enabled) {
+              selectionManager.add(rowData);
+            }
+          });
+        });
+
+        $(tableWidget._table).delegate("tbody>tr[role='row']", 'click', function(e) {
+          var tr = $(this);
+          var data = tableApi.row(this).data();
+          data.enabled = !data.enabled;
+          // TODO: redraw cell... below doesn't work
+          // tableApi.draw({"paging": "page"});
+        });
+
+        tableApi.clear();
+        //        tableApi.rows.add(r.list);
+        console.log(r.list);
+        tableApi.draw();
+
+      });
+    });
+  </script>
+{% endblock %}
