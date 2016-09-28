@@ -297,7 +297,7 @@ class DataStore extends ContainerAware
     /**
      * Get current driver instance
      *
-     * @return IDriver|BaseDriver|DoctrineBaseDriver
+     * @return IDriver|BaseDriver|DoctrineBaseDriver|PostgreSQL
      */
     public function getDriver()
     {
