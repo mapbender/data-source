@@ -5,7 +5,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
-use Mapbender\DataSourceBundle\Component\Drivers\IDriver;
+use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Component\Drivers\YAML;
@@ -39,7 +39,7 @@ class DataStore extends ContainerAware
     const EVENT_ON_AFTER_SEARCH  = 'onAfterSearch';
 
     /**
-     * @var IDriver $driver
+     * @var Base $driver
      */
     protected $driver;
     public    $events;
@@ -48,6 +48,10 @@ class DataStore extends ContainerAware
 
     protected $parentField;
     protected $mapping;
+    protected $connectionName;
+    protected $connectionType;
+    protected $fields;
+
 
     /**
      * @param ContainerInterface $container
@@ -57,11 +61,14 @@ class DataStore extends ContainerAware
     {
         /** @var Connection $connection */
         $this->setContainer($container);
-        $type           = isset($args["type"]) ? $args["type"] : "doctrine";
-        $connectionName = isset($args["connection"]) ? $args["connection"] : "default";
-        $driver         = null;
-        $this->events   = isset($args["events"]) ? $args["events"] : array();
-        $hasFields      = isset($args["fields"]) && is_array($args["fields"]);
+        $type            = isset($args["type"]) ? $args["type"] : "doctrine";
+        $connectionName  = isset($args["connection"]) ? $args["connection"] : "default";
+        $driver          = null;
+        $this->events    = isset($args["events"]) ? $args["events"] : array();
+        $hasFields       = isset($args["fields"]) && is_array($args["fields"]);
+
+        $this->connectionName = $connectionName;
+        $this->connectionType = $type;
 
         if ($hasFields && isset($args["parentField"])) {
             $args["fields"][] = $args["parentField"];
@@ -79,6 +86,7 @@ class DataStore extends ContainerAware
                     $this->$keyMethod($value);
                 }
             }
+            $this->fields = $args["fields"];
         }
 
         switch ($type) {
@@ -297,7 +305,7 @@ class DataStore extends ContainerAware
     /**
      * Get current driver instance
      *
-     * @return IDriver|BaseDriver|DoctrineBaseDriver|PostgreSQL
+     * @return Base|BaseDriver|DoctrineBaseDriver|PostgreSQL
      */
     public function getDriver()
     {

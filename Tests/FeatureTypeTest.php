@@ -3,9 +3,8 @@ namespace Mapbender\DataSourceBundle\Tests;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\DBAL\Driver\Connection;
-use Mapbender\DataSourceBundle\Component\Drivers\Geographic;
+use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
-use Mapbender\DataSourceBundle\Component\Features;
 use Mapbender\DataSourceBundle\Component\FeatureType;
 use Mapbender\DataSourceBundle\Entity\Feature;
 
@@ -69,7 +68,6 @@ class FeatureTypeTest extends SymfonyTest
         /** @var Connection $db */
         /** @var Registry $doctrine */
         /** @var PostgreSQL|Geographic $driver */
-        /** @var Features $features */
         $container      = self::$container;
         $doctrine       = $container->get("doctrine");
         $features       = $container->get("features");

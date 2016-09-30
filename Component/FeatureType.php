@@ -5,7 +5,8 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Statement;
 use Doctrine\ORM\Mapping as ORM;
 use Mapbender\CoreBundle\Component\Application as AppComponent;
-use Mapbender\DataSourceBundle\Component\Drivers\Geographic;
+use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
+use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
@@ -32,22 +33,6 @@ class FeatureType extends DataStore
      * Default upload directory
      */
     const UPLOAD_DIR_NAME = "featureTypes";
-
-    /**
-     * Geometry types
-     */
-    const TYPE_MULTIPOLYGON    = "MULTIPOLYGON";
-    const TYPE_MULTILINESTRING = "MULTILINESTRING";
-    const TYPE_MULTIPOINT      = "MULTIPOINT";
-    const TYPE_POINT           = "POINT";
-    const TYPE_LINESTRING      = "LINESTRING";
-    const TYPE_POLYGON         = "POLYGON";
-
-    static $simpleGeometries = array(
-        self::TYPE_POINT,
-        self::TYPE_LINESTRING,
-        self::TYPE_POLYGON,
-    );
 
     /**
      * Events
@@ -86,7 +71,7 @@ class FeatureType extends DataStore
     /**
      * @var string Routing ways node table name.
      */
-    protected $waysTableName     = "ways";
+    protected $waysTableName = "ways";
 
     /**
      * @var string Way vertices table name
@@ -121,7 +106,7 @@ class FeatureType extends DataStore
         // if no fields defined, but geomField, find it all and remove geo field from the list
         if (!$hasFields && isset($args["geomField"])) {
             $fields = $this->getDriver()->getStoreFields();
-            unset($fields[array_search($args["geomField"], $fields, false)]);
+            unset($fields[ array_search($args["geomField"], $fields, false) ]);
             $this->setFields($fields);
         }
     }
@@ -183,9 +168,8 @@ class FeatureType extends DataStore
             throw new \Exception("Feature data given isn't compatible to save into the table: " . $this->getTableName());
         }
 
-
-        $feature         = $this->create($featureData);
-        $event           = array(
+        $feature = $this->create($featureData);
+        $event   = array(
             'item'    => &$featureData,
             'feature' => $feature
         );
@@ -265,37 +249,22 @@ class FeatureType extends DataStore
 
 
     /**
-     * @param      $wkt
-     * @param null $srid
+     * @param string $ewkt EWKT geometry
+     * @param null|int $srid SRID
      * @return bool|string
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws \Exception
      */
-    public function transformEwkt($wkt, $srid = null)
+    public function transformEwkt($ewkt, $srid = null)
     {
-        $srid       = $srid ? $srid : $this->getSrid();
-        $sql        = null;
-        $connection = $this->getConnection();
-        switch ($this->getPlatformName()) {
-            case self::POSTGRESQL_PLATFORM:
-                $type = $this->getGeomType($this->getTableName());
-                if ($type) {
-                    $wktType = self::getWktType($wkt);
-                    if ($wktType != $type) {
-                        if ($type == self::TYPE_MULTIPOLYGON || $type == self::TYPE_MULTILINESTRING || $type == self::TYPE_MULTIPOINT) {
-                            if ($wktType == self::TYPE_POLYGON || $wktType == self::TYPE_LINESTRING || $wktType == self::TYPE_POINT) {
-                                $wkt = 'SRID=' . $srid . ';' . $connection->fetchColumn("SELECT ST_ASTEXT(ST_TRANSFORM(ST_MULTI(" . $connection->quote($wkt) . "),$srid))");
-                            }
-                        }
-                    }
-                }
-                $sql    = "SELECT ST_TRANSFORM(ST_GEOMFROMTEXT('$wkt'), $srid)";
-                break;
-            case self::ORACLE_PLATFORM:
-                $sql = "SELECT SDO_CS.TRANSFORM(SDO_UTIL.TO_WKBGEOMETRY('$wkt'), $srid)";
-                break;
+        /** @var Geographic|BaseDriver $driver */
+        $srid   = $srid ? $srid : $this->getSrid();
+        $driver = $this->getDriver();
+
+        if (!($driver instanceof Geographic)) {
+            throw new \Exception('Driver isn\'t ablet to transform ewkt');
         }
 
-        return $connection->fetchColumn($sql);
+        return $driver->transformEwkt($ewkt, $srid);
     }
 
     /**
@@ -361,7 +330,7 @@ class FeatureType extends DataStore
 
         // add GEOM where condition
         if ($intersect) {
-            $geometry     = self::roundGeometry($intersect, 2);
+            $geometry          = self::roundGeometry($intersect, 2);
             $whereConditions[] = self::genIntersectCondition($this->getPlatformName(), $geometry, $this->geomField, $srid, $this->getSrid());
         }
 
@@ -450,8 +419,8 @@ class FeatureType extends DataStore
         $columnNames = array_keys(current($rows));
         foreach ($rows as &$row) {
             foreach ($columnNames as $name) {
-                $row[$functionName($name)] = &$row[$name];
-                unset($row[$name]);
+                $row[ $functionName($name) ] = &$row[ $name ];
+                unset($row[ $name ]);
             }
         }
     }
@@ -610,7 +579,7 @@ class FeatureType extends DataStore
     {
         /** @var Feature $feature */
         foreach ($rows as $k => $feature) {
-            $rows[$k] = $feature->toGeoJson(true);
+            $rows[ $k ] = $feature->toGeoJson(true);
         }
         return array("type"     => "FeatureCollection",
                      "features" => $rows);
@@ -628,8 +597,8 @@ class FeatureType extends DataStore
 
         // clean data from feature
         foreach ($data as $fieldName => $value) {
-            if (isset($fields[$fieldName])) {
-                unset($data[$fieldName]);
+            if (isset($fields[ $fieldName ])) {
+                unset($data[ $fieldName ]);
             }
         }
         return $data;
@@ -903,31 +872,29 @@ class FeatureType extends DataStore
      */
     public function routeBetweenGeom($sourceGeom, $targetGeom)
     {
-        $sourceNode = $this->getNodeFromGeom($sourceGeom);
-        $targetNode = $this->getNodeFromGeom($targetGeom);
-        return $this->routeBetweenNodes($sourceNode, $targetNode);
+        $driver     = $this->getDriver();
+        $srid       = $this->getSrid();
+        $sourceNode = $driver->getNodeFromGeom($this->waysVerticesTableName, $this->waysGeomFieldName, $sourceGeom, $srid, 'id');
+        $targetNode = $driver->getNodeFromGeom($this->waysVerticesTableName, $this->waysGeomFieldName, $targetGeom, $srid, 'id');
+        return $driver->routeBetweenNodes($this->waysVerticesTableName, $this->waysGeomFieldName, $sourceNode, $targetNode, $srid);
     }
 
     /**
-     * Get nearest node to given geometry
-     *
-     * Important: <-> operator works not well!!
-     * @param string $geom EWKT
-     * @return int Node id
+     * @return array
      */
-    public function getNodeFromGeom($geom)
+    public function toArray()
     {
-        $db                    = $this->driver->getConnection();
-        $waysVerticesTableName = $db->quoteIdentifier($this->waysVerticesTableName);
-        $geomFieldName         = $db->quoteIdentifier($this->waysGeomFieldName);
-        $srid                  = $this->getSrid();
-        $nodeId                = $db->fetchColumn("SELECT
-            id,
-            ST_Distance($geomFieldName, ST_TRANSFORM(ST_GeometryFromText('$geom'),$srid)) as distance
-            FROM $waysVerticesTableName
-            ORDER BY distance ASC
-            LIMIT 1");
-        return $nodeId;
+        $tableName = $this->getTableName();
+        return array(
+            'type'        => $this->connectionType,
+            'connection'  => $this->connectionName,
+            'table'       => $tableName,
+            'geomType'    => $this->getGeomType($tableName),
+            'fields'      => $this->fields,
+            'geomField'   => $this->geomField,
+            'srid'        => $this->getSrid(),
+            'allowSave'   => $this->allowSave,
+            'allowRemove' => $this->allowRemove,
+        );
     }
-
 }

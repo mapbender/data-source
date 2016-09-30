@@ -4,7 +4,7 @@ namespace Mapbender\DataSourceBundle\Tests;
 use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Component\DataStoreService;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
-use Mapbender\DataSourceBundle\Component\Drivers\IDriver;
+use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
@@ -57,7 +57,7 @@ class DataStoreServiceTest extends SymfonyTest
             $dataStore = $service->get($name);
             $driver    = $dataStore->getDriver();
             $this->assertTrue($driver instanceof BaseDriver);
-            $this->assertTrue($driver instanceof IDriver);
+            $this->assertTrue($driver instanceof Base);
 
             // Test search method
             foreach ($dataStore->search() as $dataItem) {

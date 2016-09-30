@@ -17,7 +17,7 @@ class DataStoreService extends ContainerAware
      *
      * @var DataStore[] feature types
      */
-    private $storeList = array();
+    protected $storeList = array();
 
     /**
      * @param ContainerInterface $container

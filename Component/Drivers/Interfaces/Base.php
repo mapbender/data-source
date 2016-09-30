@@ -1,19 +1,18 @@
 <?php
-namespace Mapbender\DataSourceBundle\Component\Drivers;
+namespace Mapbender\DataSourceBundle\Component\Drivers\Interfaces;
 
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
  * Interface IDriver
  */
-interface IDriver
+interface Base
 {
-
     /**
      * Get object by id, array or object himself
      *
      * @param mixed $id
-     * @return
+     * @return array
      * @internal param string $fieldName
      */
     public function get($id);
@@ -38,7 +37,7 @@ interface IDriver
      * Save the data
      *
      * @param DataItem $data
-     * @param boolean $autoUpdate Create if item doesn't exits
+     * @param boolean  $autoUpdate Create if item doesn't exits
      * @return mixed
      */
     public function save($data, $autoUpdate = true);
@@ -89,7 +88,8 @@ interface IDriver
 
     /**
      * @param array $criteria
+     * @param bool  $autoUpdate
      * @return mixed
      */
-    public function search(array $criteria);
+    public function search(array $criteria, $autoUpdate = true);
 }

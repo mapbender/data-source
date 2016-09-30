@@ -30,7 +30,7 @@ abstract class BaseDriver extends ContainerAware
     protected $uniqueId = 'id';
 
     /**
-     * @var mixed
+     * @var Connection|mixed
      */
     protected $connection;
 

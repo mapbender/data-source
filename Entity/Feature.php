@@ -19,6 +19,18 @@ class Feature extends DataItem
     const TYPE_MULTIPOLYGON       = 'MULTIPOLYGON';
     const TYPE_GEOMETRYCOLLECTION = 'GEOMETRYCOLLECTION';
 
+    static public $simpleGeometries = array(
+        Feature::TYPE_POINT,
+        Feature::TYPE_LINESTRING,
+        Feature::TYPE_POLYGON,
+    );
+
+    static public $complexGeometries = array(
+        Feature::TYPE_MULTIPOLYGON,
+        Feature::TYPE_MULTILINESTRING,
+        Feature::TYPE_MULTIPOINT
+    );
+
     /**
      * Geometries as WKT
      *

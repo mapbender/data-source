@@ -1,6 +1,7 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
+use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
@@ -9,7 +10,7 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class YAML extends BaseDriver implements IDriver
+class YAML extends BaseDriver implements Base
 {
 
     /**
@@ -109,9 +110,10 @@ class YAML extends BaseDriver implements IDriver
 
     /**
      * @param array $criteria
+     * @param bool  $autoSave
      * @return mixed
      */
-    public function search(array $criteria)
+    public function search(array $criteria, $autoSave = true)
     {
         // TODO: Implement search() method.
     }

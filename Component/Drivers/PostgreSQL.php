@@ -1,7 +1,12 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
+use Doctrine\DBAL\Connection;
+use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
+use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Manageble;
+use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Routable;
 use Mapbender\DataSourceBundle\Entity\DataItem;
+use Mapbender\DataSourceBundle\Entity\Feature;
 
 /**
  * Class PostgreSQL
@@ -9,7 +14,7 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class PostgreSQL extends DoctrineBaseDriver implements Geographic
+class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geographic
 {
     /**
      * Insert data item
@@ -153,21 +158,139 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic
      * @param        $waysGeomFieldName
      * @param string $ewkt EWKT
      * @param null   $transformTo
+     * @param string $idKey
      * @return int Node ID
      */
-    public function getNodeFromGeom($waysVerticesTableName, $waysGeomFieldName, $ewkt, $transformTo = null)
+    public function getNodeFromGeom($waysVerticesTableName, $waysGeomFieldName, $ewkt, $transformTo = null, $idKey = "id")
     {
         $db   = $this->getConnection();
         $geom = "ST_GeometryFromText('" . $db->quote($ewkt) . "')";
 
         if ($transformTo) {
-            $geom = "ST_TRANSFORM($geom,$transformTo)";
+            $geom = "ST_TRANSFORM($geom, $transformTo)";
         }
 
-        return $db->fetchColumn(/** @lang PostgreSQL */ "
-            SELECT id, ST_Distance({$db->quoteIdentifier($waysGeomFieldName)}, $geom) AS distance
-            FROM {$db->quoteIdentifier($waysVerticesTableName)}
-            ORDER BY distance ASC
+        return $db->fetchColumn(/** @lang PostgreSQL */
+            "SELECT 
+              {$db->quoteIdentifier($idKey)}, 
+              ST_Distance({$db->quoteIdentifier($waysGeomFieldName)}, $geom) AS distance
+            FROM 
+              {$db->quoteIdentifier($waysVerticesTableName)}
+            ORDER BY 
+              distance ASC
             LIMIT 1");
     }
+
+    /**
+     * Route between nodes
+     *
+     * @param      $waysTableName
+     * @param      $waysGeomFieldName
+     * @param int  $startNodeId
+     * @param int  $endNodeId
+     * @param      $srid
+     * @param bool $directedGraph  directed graph
+     * @param bool $hasReverseCost Has reverse cost, only can be true, if  directed graph=true
+     * @return \Mapbender\DataSourceBundle\Entity\Feature[]
+     */
+    public function routeBetweenNodes(
+        $waysTableName,
+        $waysGeomFieldName,
+        $startNodeId,
+        $endNodeId,
+        $srid,
+        $directedGraph = false,
+        $hasReverseCost = false)
+    {
+        /** @var Connection $db */
+        $db             = $this->getConnection();
+        $waysTableName  = $db->quoteIdentifier($waysTableName);
+        $geomFieldName  = $db->quoteIdentifier($waysGeomFieldName);
+        $directedGraph  = $directedGraph ? 'TRUE' : 'FALSE'; // directed graph [true|false]
+        $hasReverseCost = $hasReverseCost && $directedGraph ? 'TRUE' : 'FALSE'; // directed graph [true|false]
+        $results        = $db->query("SELECT
+                route.seq as orderId,
+                route.id1 as startNodeId,
+                route.id2 as endNodeId,
+                route.cost as distance,
+                ST_AsEWKT ($waysTableName.$geomFieldName) AS geom
+            FROM
+                pgr_dijkstra (
+                    'SELECT gid AS id, source, target, length AS cost FROM $waysTableName',
+                    $startNodeId,
+                    $endNodeId,
+                    $directedGraph,
+                    $hasReverseCost
+                ) AS route
+            LEFT JOIN $waysTableName ON route.id2 = $waysTableName.gid")->fetchAll();
+        return $this->prepareResults($results, $srid);
+    }
+
+    /**
+     * @return array
+     */
+    public function listDatabases()
+    {
+        return $this->fetchList("SELECT datname FROM pg_database WHERE datistemplate = false");
+    }
+
+    /**
+     * @return array
+     */
+    public function listSchemas($databaseName)
+    {
+
+        return $this->fetchList("SELECT DISTINCT table_schema FROM information_schema.tables");
+    }
+
+    /**
+     * Get database table names
+     *
+     * @param $schemaName
+     * @return array
+     */
+    public function listTables($schemaName)
+    {
+        $schemaName = $this->getConnection()->quote($schemaName);
+        return $this->fetchList("SELECT DISTINCT table_name FROM information_schema.tables WHERE table_schema LIKE '$schemaName'");
+    }
+
+    /**
+     * @param      $ewkt
+     * @param null $srid
+     * @return mixed
+     * @internal param $wkt
+     */
+    public function transformEwkt($ewkt, $srid = null)
+    {
+        $db      = $this->getConnection();
+        $type    = $this->getTableGeomType($this->getTableName());
+        $wktType = static::getWktType($ewkt);
+
+        if ($type
+            && $wktType != $type
+            && in_array(strtoupper($type), Feature::$simpleGeometries)
+            && in_array(strtoupper($wktType), Feature::$complexGeometries)
+        ) {
+            $ewkt = 'SRID=' . $srid . ';' . $db->fetchColumn("SELECT ST_ASTEXT(ST_TRANSFORM(ST_MULTI(" . $db->quote($ewkt) . "),$srid))");
+        }
+
+        return $db->fetchColumn("SELECT ST_TRANSFORM(ST_GEOMFROMTEXT('$ewkt'), $srid)");
+    }
+
+    /**
+     * Detect (E)WKT geometry type
+     *
+     * @param $wkt
+     * @return string
+     */
+    public static function getWktType($wkt)
+    {
+        $isEwkt = strpos($wkt, 'SRID') === 0;
+        if ($isEwkt) {
+            $wkt = substr($wkt, strpos($wkt, ';') + 1);
+        }
+        return substr($wkt, 0, strpos($wkt, '('));
+    }
+
 }

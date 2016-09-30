@@ -1,6 +1,5 @@
 <?php
-
-namespace Mapbender\DataSourceBundle\Component\Drivers;
+namespace Mapbender\DataSourceBundle\Component\Drivers\Interfaces;
 
 /**
  * Interface Geographic
@@ -35,4 +34,12 @@ interface Geographic
      * @return mixed
      */
     public function getTableGeomType($tableName, $schema = null);
+
+    /**
+     * @param      $ewkt
+     * @param null $srid
+     * @return mixed
+     * @internal param $wkt
+     */
+    public function transformEwkt($ewkt, $srid = null);
 }
