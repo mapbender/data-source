@@ -42,19 +42,4 @@ class BaseXmlLoaderExtension extends Extension
         $loader  = new XmlFileLoader($container, new FileLocator($fileSrc));
         $loader->load($this->xmlFileName);
     }
-    //
-    ///**
-    // * @return string
-    // */
-    //public function getAlias()
-    //{
-    //    static $alias = null;
-    //    if (!$alias) {
-    //        $alias = str_replace('\\', '_',
-    //            strtolower(
-    //                current(
-    //                    explode('Bundle\\', $this->reflector->getName()))));
-    //    }
-    //    return $alias;
-    //}
 }

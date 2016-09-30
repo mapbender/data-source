@@ -2,24 +2,136 @@
 
 {% block js %}
   {{ parent() }}
+  <style type="text/css" media="all">
+    .buttons > .button-navigation {
+      white-space: nowrap;
+    }
+
+    .buttons > .button-navigation button::before {
+      white-space: nowrap;
+    }
+  </style>
   <script type="text/javascript">
     $(function() {
       var container = $('.content');
-      var manager = new SymfonyAjaxManager("{{ path("fom_manager_manager_index") }}datastore");
+      var manager = new SymfonyAjaxManager("{{ path("fom_manager_manager_index") }}{{ routeUri }}");
+      var buttons = [];
+      var connectionNames = {};
+
+      manager.query('connection/list').done(function(r) {
+        var connections = r.list;
+        _.each(connections, function(connection) {
+          connectionNames[connection.name] = connection.id + ' (' + connection.type + ')';
+        });
+      });
+
+      function openSaveDialog(schema) {
+        var dialog = $('<div/>');
+        var popupConfiguration = {
+          title:   'Edit data store',
+          width:   400,
+          buttons: [{
+            text:  "OK",
+            click: function(e) {
+              var el = $(this);
+              var formData = dialog.formData();
+
+              debugger;
+              manager.query('save', {item: formData}).done(function(r) {
+                console.log(r);
+              });
+
+              return false;
+            }
+          }, {
+            text:    "Abbrechen",
+            'class': 'critical',
+            click:   function(e) {
+              dialog.popupDialog('close');
+              return false;
+            }
+          }]
+        };
+        var form = {
+          children: [{
+            type:     'form',
+            children: [{
+              type: 'input',
+              placeholder: 'Name',
+              mandatory: true
+            },{
+              title: 'Connection',
+              type:  'select',
+              name:  'connection',
+              options: connectionNames,
+              mandatory: true,
+              change: function(e) {
+                debugger;
+                manager.query('connection/schemas', {id: $(e.target).val()}).done(function(r) {
+                  r.list();
+                })
+              }
+            }, {
+              title: 'Schema',
+              type:  'input',
+              name:  'schema'
+            },{
+              title: 'connection',
+              type: 'select',
+              options: [
+
+              ]
+            }]
+          }]
+        };
+        dialog.generateElements(form);
+        dialog.popupDialog(popupConfiguration);
+        dialog.data('schema', schema);
+
+        setTimeout(function() {
+          dialog.formData(schema);
+        }, 21);
+      }
+
+      buttons.push({
+        title:     "Edit",
+        className: 'edit',
+        onClick:   function(schema, ui) {
+          openSaveDialog(schema);
+        }
+      });
+
+      buttons.push({
+        title:     'Remove',
+        className: 'remove',
+        cssClass:  'critical',
+        onClick:   function(schema, ui) {
+          widget.removeFeature(schema);
+        }
+      });
 
       manager.query("list").done(function(r) {
-        var table = window.routingTable = $("<div/>").resultTable({
+        var table = $("<div/>").resultTable({
           lengthChange: false,
           searching:    true,
           ordering:     true,
           paging:       false,
-          selectable:   true,
           autoWidth:    false,
           columns:      [{
-            title: 'ID',
-            data:  'id'
+            data:  'id',
+            title: 'ID'
+          }, {
+            data:  'geomType',
+            title: 'Type'
+          }, {
+            data:      'connection',
+            title:     'Connection'
+
+          }, {
+            data:  'schema',
+            title: 'Schema'
           }],
-          buttons:      [],
+          buttons:      buttons,
           data:         []
         });
 
@@ -40,19 +152,17 @@
           });
         });
 
-        $(tableWidget._table).delegate("tbody>tr[role='row']", 'click', function(e) {
-          var tr = $(this);
-          var data = tableApi.row(this).data();
-          data.enabled = !data.enabled;
-          // TODO: redraw cell... below doesn't work
-          // tableApi.draw({"paging": "page"});
-        });
-
         tableApi.clear();
-        //        tableApi.rows.add(r.list);
-        console.log(r.list);
+        tableApi.rows.add(_.toArray(r.list));
         tableApi.draw();
-
+        container.append(table);
+        container.generateElements({
+          type:  "button",
+          title: "Create",
+          click: function(e) {
+            openSaveDialog({});
+          }
+        });
       });
     });
   </script>

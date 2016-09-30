@@ -1,15 +1,9 @@
 <?php
 namespace Mapbender\DataSourceBundle\Element;
 
-use Doctrine\Bundle\DoctrineBundle\Registry;
-use Doctrine\DBAL\Connection;
-use FOM\CoreBundle\Component\ExportResponse;
-use Mapbender\CoreBundle\Asset\NamedAssetCache;
 use Mapbender\CoreBundle\Component\Application;
-use Mapbender\CoreBundle\Element\HTMLElement;
 use Mapbender\CoreBundle\Entity\Element;
 use Mapbender\DataSourceBundle\Component\DataStore;
-use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\DataStoreSchemaConfig;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
