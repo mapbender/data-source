@@ -11,6 +11,10 @@
         "php": ">=5.3.3",
         "phayes/geophp": "1.2"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^3.7",
+        "symfony/framework-bundle" :"*"
+    },
     "config": {
         "bin-dir": "bin"
     },
