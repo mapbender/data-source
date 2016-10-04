@@ -61,11 +61,11 @@ class DataStore extends ContainerAware
     {
         /** @var Connection $connection */
         $this->setContainer($container);
-        $type            = isset($args["type"]) ? $args["type"] : "doctrine";
-        $connectionName  = isset($args["connection"]) ? $args["connection"] : "default";
-        $driver          = null;
-        $this->events    = isset($args["events"]) ? $args["events"] : array();
-        $hasFields       = isset($args["fields"]) && is_array($args["fields"]);
+        $type           = isset($args["type"]) ? $args["type"] : "doctrine";
+        $connectionName = isset($args["connection"]) ? $args["connection"] : "default";
+        $driver         = null;
+        $this->events   = isset($args["events"]) ? $args["events"] : array();
+        $hasFields      = isset($args["fields"]) && is_array($args["fields"]);
 
         $this->connectionName = $connectionName;
         $this->connectionType = $type;
@@ -86,7 +86,6 @@ class DataStore extends ContainerAware
                     $this->$keyMethod($value);
                 }
             }
-            $this->fields = $args["fields"];
         }
 
         switch ($type) {

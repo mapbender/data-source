@@ -91,5 +91,5 @@ interface Base
      * @param bool  $autoUpdate
      * @return mixed
      */
-    public function search(array $criteria, $autoUpdate = true);
+    public function search(array $criteria);
 }
