@@ -36,7 +36,6 @@
               var el = $(this);
               var formData = dialog.formData();
 
-              debugger;
               manager.query('save', {item: formData}).done(function(r) {
                 console.log(r);
               });
@@ -56,31 +55,22 @@
           children: [{
             type:     'form',
             children: [{
-              type: 'input',
+              type:        'input',
               placeholder: 'Name',
-              mandatory: true
-            },{
-              title: 'Connection',
-              type:  'select',
-              name:  'connection',
-              options: connectionNames,
+              mandatory:   true
+            }, {
+              title:     'Connection',
+              type:      'select',
+              name:      'connection',
+              options:   connectionNames,
               mandatory: true,
-              change: function(e) {
-                debugger;
-                manager.query('connection/schemas', {id: $(e.target).val()}).done(function(r) {
-                  r.list();
+              change:    function(e) {
+                var connectionId = $(e.target).val();
+                manager.query('connection/schemas', {id: connectionId}).done(function(r) {
+                  debugger;
+                  console.log(r)
                 })
               }
-            }, {
-              title: 'Schema',
-              type:  'input',
-              name:  'schema'
-            },{
-              title: 'connection',
-              type: 'select',
-              options: [
-
-              ]
             }]
           }]
         };

@@ -2,6 +2,8 @@
 namespace Mapbender\DataSourceBundle\Controller;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Schema\SqliteSchemaManager;
 use FOM\ManagerBundle\Configuration\Route;
 use FOM\ManagerBundle\Configuration\Route as ManagerRoute;
 use Mapbender\DataSourceBundle\Component\FeatureType;
@@ -20,13 +22,13 @@ class DataStoreController extends BaseController
      * Renders the layer service repository.
      *
      * @ManagerRoute("{page}", defaults={ "page"=1 }, requirements={ "page"="\d+" })
-     * @Method({ "GET" })
+     * @Method({ "GET" })v
      * @Template
      */
     public function indexAction($page)
     {
         return array(
-            'title'    => 'Verbindungen',
+            'title'    => 'DataStores',
             'routeUri' => 'datastore'
         );
     }
@@ -67,6 +69,7 @@ class DataStoreController extends BaseController
             'list' => $connections,
         ));
     }
+
     /**
      * @ManagerRoute("connection/schemas")
      */
@@ -77,17 +80,28 @@ class DataStoreController extends BaseController
         $connectionId    = $request['id'];
         $registry        = $this->getDoctrine();
         $connectionNames = $registry->getConnectionNames();
-        $connections     = array();
+        $schemas         = array();
 
         if (!in_array($connectionId, array_values($connectionNames))) {
             throw new \Exception('Erronious connection');
         }
 
         $connection = $this->container->get($connectionId);
-        // PHP
+
+        /** @var SqliteSchemaManager $schemaManager */
+
+        try {
+            $schemaManager = $connection->getSchemaManager();
+        } catch (DBALException $e) {
+            var_dump($e->getCode());
+            die();
+        }
+
+        // TODO: get schema list
 
         return new JsonResponse(array(
-            'list' => $connections,
+            'list' => $schemas,
+            'dbs'  => $schemaManager->listDatabases()
         ));
     }
 
