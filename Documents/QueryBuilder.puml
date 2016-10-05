@@ -11,7 +11,7 @@ package Mapbender <<Frame>> {
         # name:String
         __ Doctrine ORM __
         # conditions:QueryCondition[]
-        # user:User
+        # userId:int
         # styleMap:StyleMap
         __ SQL __
         # connectionName:String
@@ -22,8 +22,7 @@ package Mapbender <<Frame>> {
         -- Alternative --
         # sql:String
         # where:String
-        __ Export __
-        + toSQL()
+     
       }
 
       class QueryCondition <extends Entity>{
@@ -95,7 +94,7 @@ package Mapbender <<Frame>> {
           __ User Queries __
           + getById(int id): Query
           + save(Query: query) : Query
-          + list():Query[]
+          + listQueries():Query[]
           + remove(int queryId):bool
       }
     }

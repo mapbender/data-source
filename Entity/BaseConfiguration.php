@@ -9,6 +9,13 @@ namespace Mapbender\DataSourceBundle\Entity;
  */
 class BaseConfiguration
 {
+
+    /* @var id*/
+
+    protected $id;
+
+
+
     /**
      * Constructor
      *
@@ -43,5 +50,23 @@ class BaseConfiguration
     public function toArray()
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * @param mixed $id
+     * @return BaseConfiguration
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getId()
+    {
+        return $this->id;
     }
 }
