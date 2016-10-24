@@ -897,4 +897,24 @@ class FeatureType extends DataStore
             'allowRemove' => $this->allowRemove,
         );
     }
+
+    /**
+     * Get by ID list
+     *
+     * @param $ids
+     */
+    public function getByIds($ids)
+    {
+        $queryBuilder = $this->getSelectQueryBuilder();
+        $connection   = $queryBuilder->getConnection();
+        $rows         = $queryBuilder->where(
+            $queryBuilder->expr()->in($this->getUniqueId(), array_map(function ($id) use ($connection) {
+                return $connection->quote($id);
+            }, $ids))
+        )->execute()->fetchAll();
+
+        $this->prepareResults($rows);
+
+        return $rows;
+    }
 }
