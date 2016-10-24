@@ -936,4 +936,43 @@ class FeatureType extends DataStore
         return isset($this->_args[ $key ]) ? $this->_args[ $key ] : null;
     }
 
+    /**
+     * Export by ID's
+     *
+     * @param array $ids
+     * @return array
+     */
+    public function exportByIds(array $ids)
+    {
+        $config     = $this->getConfiguration('export');
+        $fieldNames = isset($config['fields']) ? $config['fields'] : null;
+        $rows       = $this->getByIds($ids, false);
+        $result     = array();
+
+        if ($fieldNames) {
+            foreach ($rows as $row) {
+                $exportRow = array();
+                foreach ($fieldNames as $fieldName => $fieldCode) {
+                    $exportRow[ $fieldName ] = $this->evaluateField($row, $fieldCode);
+                }
+                $result[] = $exportRow;
+            }
+        } else {
+            $result = &$rows;
+        }
+        return $result;
+    }
+
+    /**
+     * @param $row
+     * @param $code
+     * @return null
+     */
+    private function evaluateField($row, $code)
+    {
+        $result = null;
+        extract($row);
+        eval('$result = ' . $code . ';');
+        return $result;
+    }
 }
