@@ -94,6 +94,11 @@ class FeatureType extends DataStore
     protected $allowUpdate;
 
     /**
+     * @var array Initial arguments
+     */
+    protected $_args = array();
+
+    /**
      * @param ContainerInterface $container
      * @param null               $args
      */
@@ -109,6 +114,8 @@ class FeatureType extends DataStore
             unset($fields[ array_search($args["geomField"], $fields, false) ]);
             $this->setFields($fields);
         }
+
+        $this->_args = $args;
     }
 
     /**
@@ -665,6 +672,7 @@ class FeatureType extends DataStore
         $this->waysVerticesTableName = $waysVerticesTableName;
     }
 
+
     /**
      * Set FeatureType permanent SQL filter used by $this->search()
      * https://trac.wheregroup.com/cp/issues/3733
@@ -903,7 +911,7 @@ class FeatureType extends DataStore
      *
      * @param $ids
      */
-    public function getByIds($ids)
+    public function getByIds($ids, $prepareResults = true)
     {
         $queryBuilder = $this->getSelectQueryBuilder();
         $connection   = $queryBuilder->getConnection();
@@ -913,8 +921,19 @@ class FeatureType extends DataStore
             }, $ids))
         )->execute()->fetchAll();
 
-        $this->prepareResults($rows);
+        if ($prepareResults) {
+            $this->prepareResults($rows);
+        }
 
         return $rows;
     }
+
+    /**
+     * @return mixed|null
+     */
+    public function getConfiguration($key = null)
+    {
+        return isset($this->_args[ $key ]) ? $this->_args[ $key ] : null;
+    }
+
 }
