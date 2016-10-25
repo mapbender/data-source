@@ -99,6 +99,11 @@ class FeatureType extends DataStore
     protected $_args = array();
 
     /**
+     * @var array Operators
+     */
+    protected $operators = array('LIKE' , 'NOT LIKE');
+
+    /**
      * @param ContainerInterface $container
      * @param null               $args
      */
@@ -670,6 +675,18 @@ class FeatureType extends DataStore
     public function setWaysVerticesTableName($waysVerticesTableName)
     {
         $this->waysVerticesTableName = $waysVerticesTableName;
+    }
+
+    /**
+     * Get operators
+     */
+    public function getOperators()
+    {
+        $operators = $this->getConfiguration("operators");
+        if (!$operators) {
+            $operators = $this->operators;
+        }
+        return $operators;
     }
 
 
