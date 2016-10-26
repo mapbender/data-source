@@ -452,7 +452,7 @@ class FeatureType extends DataStore
         $sql = null;
         switch ($platformName) {
             case self::POSTGRESQL_PLATFORM:
-                $sql = "ST_INTERSECTS(ST_TRANSFORM(ST_GEOMFROMTEXT('$geometry',$srid),$sridTo), ST_MakeValid($geometryAttribute))";
+                $sql = "(ST_ISVALID($geometryAttribute) AND ST_INTERSECTS(ST_TRANSFORM(ST_GEOMFROMTEXT('$geometry',$srid),$sridTo), $geometryAttribute)) ";
                 break;
             case self::ORACLE_PLATFORM:
                 $sql = "SDO_RELATE($geometryAttribute ,SDO_GEOMETRY(SDO_CS.TRANSFORM('$geometry',$srid),$sridTo), 'mask=ANYINTERACT querytype=WINDOW') = 'TRUE'";
