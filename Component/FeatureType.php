@@ -188,34 +188,26 @@ class FeatureType extends DataStore
 
         $this->allowSave = true;
 
-        try {
-            if (isset($this->events[ static::EVENT_ON_BEFORE_SAVE ])) {
-                $this->secureEval($this->events[ static::EVENT_ON_BEFORE_SAVE ], $event);
-            }
-
-            if ($this->allowSave) {
-                // Insert if no ID given
-                if (!$autoUpdate || !$feature->hasId()) {
-                    $feature = $this->insert($feature);
-                } // Replace if has ID
-                else {
-                    $feature = $this->update($feature);
-                }
-            }
-
-            if (isset($this->events[ static::EVENT_ON_AFTER_SAVE ])) {
-                $this->secureEval($this->events[ static::EVENT_ON_AFTER_SAVE ], $event);
-            }
-
-            // Get complete feature data
-            $result = $this->getById($feature->getId(), $feature->getSrid());
-        } catch (\Exception $e) {
-            $result = array(
-                "exception"   => $e,
-                "feature"     => $feature,
-                "featureData" => $featureData
-            );
+        if (isset($this->events[ static::EVENT_ON_BEFORE_SAVE ])) {
+            $this->secureEval($this->events[ static::EVENT_ON_BEFORE_SAVE ], $event);
         }
+
+        if ($this->allowSave) {
+            // Insert if no ID given
+            if (!$autoUpdate || !$feature->hasId()) {
+                $feature = $this->insert($feature);
+            } // Replace if has ID
+            else {
+                $feature = $this->update($feature);
+            }
+        }
+
+        if (isset($this->events[ static::EVENT_ON_AFTER_SAVE ])) {
+            $this->secureEval($this->events[ static::EVENT_ON_AFTER_SAVE ], $event);
+        }
+
+        // Get complete feature data
+        $result = $this->getById($feature->getId(), $feature->getSrid());
 
         return $result;
     }
