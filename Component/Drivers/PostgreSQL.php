@@ -121,22 +121,11 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
      */
     public function getLastInsertId()
     {
-        $connection   = $this->getConnection();
-        $tableName    = $connection->quote($this->tableName);
-        $uidFieldName = $connection->quote($this->getUniqueId());
-        $id           = $connection->lastInsertId();
-
+        $connection = $this->getConnection();
+        $id         = $connection->lastInsertId();
         if ($id < 1) {
-            $sql = /** @lang PostgreSQL */
-                "SELECT currval(
-                  pg_get_serial_sequence('" . $tableName . "','" . $uidFieldName . "'))
-                ";
-            $id  = $connection->fetchColumn($sql);
-        }
-
-        if ($id < 1) {
-            $fullTableName    = $connection->quoteIdentifier($tableName);
-            $fullUniqueIdName = $fullTableName . '.' . $connection->quoteIdentifier($uidFieldName);
+            $fullTableName    = $this->tableName;
+            $fullUniqueIdName = $connection->quoteIdentifier($this->getUniqueId());
             $sql              = /** @lang PostgreSQL */
                 "SELECT $fullUniqueIdName 
                  FROM $fullTableName
@@ -144,7 +133,6 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
                  OFFSET (SELECT count($fullUniqueIdName)-1 FROM $fullTableName )";
 
             $id = $connection->fetchColumn($sql);
-            return $id;
         }
         return $id;
     }
