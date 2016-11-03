@@ -89,10 +89,34 @@ class Oracle extends DoctrineBaseDriver implements Geographic
     public function transformEwkt($ewkt, $srid = null)
     {
         return $this->getConnection()->fetchColumn(
-        /** @lang Oracle */
             "SELECT 
               SDO_CS.TRANSFORM(
                 SDO_UTIL.TO_WKBGEOMETRY('$ewkt'), 
               $srid)");
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getIntersectCondition($wkt, $geomFieldName, $srid, $sridTo)
+    {
+        return "SDO_RELATE($wkt ,SDO_GEOMETRY(SDO_CS.TRANSFORM('$geomFieldName',$srid),$sridTo), 'mask=ANYINTERACT querytype=WINDOW') = 'TRUE'";
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getGeomAttributeAsWkt($geometryAttribute, $sridTo)
+    {
+      return "SDO_UTIL.TO_WKTGEOMETRY(SDO_CS.TRANSFORM($geometryAttribute, $sridTo)) AS $geometryAttribute";
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function findGeometryFieldSrid($tableName, $geomFieldName)
+    {
+        $connection = $this->getConnection();
+        return $connection->fetchColumn("SELECT {$tableName}.{$geomFieldName}.SDO_SRID FROM TABLE " . $tableName);
     }
 }

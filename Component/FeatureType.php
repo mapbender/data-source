@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Mapbender\CoreBundle\Component\Application as AppComponent;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
+use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
@@ -334,8 +335,8 @@ class FeatureType extends DataStore
 
         // add GEOM where condition
         if ($intersect) {
-            $geometry          = self::roundGeometry($intersect, 2);
-            $whereConditions[] = self::genIntersectCondition($this->getPlatformName(), $geometry, $this->geomField, $srid, $this->getSrid());
+            $geometry          = BaseDriver::roundGeometry($intersect, 2);
+            $whereConditions[] = $this->getDriver()->getIntersectCondition($geometry, $this->geomField, $srid, $this->getSrid());
         }
 
         // add filter (https://trac.wheregroup.com/cp/issues/3733)
@@ -413,85 +414,6 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Transform result column names from lower case to upper
-     *
-     * @param        $rows         array Two dimensional array link
-     * @param string $functionName function name to call for each field name
-     */
-    public static function transformColumnNames(&$rows, $functionName = "strtolower")
-    {
-        $columnNames = array_keys(current($rows));
-        foreach ($rows as &$row) {
-            foreach ($columnNames as $name) {
-                $row[ $functionName($name) ] = &$row[ $name ];
-                unset($row[ $name ]);
-            }
-        }
-    }
-
-    /**
-     * Generate intersect where condition
-     *
-     * @param $platformName
-     * @param $geometry
-     * @param $geometryAttribute
-     * @param $srid   string SRID from
-     * @param $sridTo string SRID to
-     * @return null|string
-     */
-    public static function genIntersectCondition($platformName, $geometry, $geometryAttribute, $srid, $sridTo)
-    {
-        $sql = null;
-        switch ($platformName) {
-            case self::POSTGRESQL_PLATFORM:
-                $sql = "(ST_ISVALID($geometryAttribute) AND ST_INTERSECTS(ST_TRANSFORM(ST_GEOMFROMTEXT('$geometry',$srid),$sridTo), $geometryAttribute)) ";
-                break;
-            case self::ORACLE_PLATFORM:
-                $sql = "SDO_RELATE($geometryAttribute ,SDO_GEOMETRY(SDO_CS.TRANSFORM('$geometry',$srid),$sridTo), 'mask=ANYINTERACT querytype=WINDOW') = 'TRUE'";
-                break;
-        }
-        return $sql;
-    }
-
-
-    /**
-     * Get geometry attribute
-     *
-     * @param $platformName
-     * @param $geometryAttribute
-     * @param $sridTo
-     * @return null|string
-     */
-    public static function getGeomAttribute($platformName, $geometryAttribute, $sridTo)
-    {
-        $sql = null;
-        switch ($platformName) {
-            case self::POSTGRESQL_PLATFORM:
-                $sql = "ST_ASTEXT(ST_TRANSFORM($geometryAttribute, $sridTo)) AS $geometryAttribute";
-                break;
-            case self::ORACLE_PLATFORM:
-                $sql = "SDO_UTIL.TO_WKTGEOMETRY(SDO_CS.TRANSFORM($geometryAttribute, $sridTo)) AS $geometryAttribute";
-                break;
-        }
-        return $sql ? $sql : $geometryAttribute;
-    }
-
-
-    /**
-     *
-     * Round geometry up to $round parameter.
-     *
-     * Default: geometry round = 0.2
-     *
-     * @param string $geometry WKT
-     * @return string WKT
-     */
-    public static function roundGeometry($geometry, $round = 2)
-    {
-        return preg_replace("/(\\d+)\\.(\\d{$round})\\d+/", '$1.$2', $geometry);
-    }
-
-    /**
      * Convert results to Feature objects
      *
      * @param Feature[] $rows
@@ -501,9 +423,9 @@ class FeatureType extends DataStore
     public function prepareResults(&$rows, $srid = null)
     {
         $hasSrid = $srid != null;
-        // Transform Oracle result column names from upper to lower case
-        if ($this->isOracle()) {
-            self::transformColumnNames($rows, "strtolower");
+
+        if ($this->driver instanceof Oracle) {
+            Oracle::transformColumnNames($rows);
         }
 
         foreach ($rows as $key => &$row) {
@@ -524,8 +446,9 @@ class FeatureType extends DataStore
      */
     public function getSelectQueryBuilder($srid = null)
     {
-        $geomFieldCondition = self::getGeomAttribute($this->getPlatformName(), $this->geomField, $srid ? $srid : $this->getSrid());
-        $queryBuilder       = $this->driver->getSelectQueryBuilder(array($geomFieldCondition));
+        $driver             = $this->driver;
+        $geomFieldCondition = $driver->getGeomAttributeAsWkt($this->geomField, $srid ? $srid : $this->getSrid());
+        $queryBuilder       = $driver->getSelectQueryBuilder(array($geomFieldCondition));
         return $queryBuilder;
     }
 
@@ -557,18 +480,10 @@ class FeatureType extends DataStore
      */
     public function getSrid()
     {
-        if (!$this->srid) {
-            $connection = $this->getConnection();
-            $tableName  = $this->getTableName();
-            switch ($this->getPlatformName()) {
-                case self::POSTGRESQL_PLATFORM:
-                    $this->srid = $connection->fetchColumn("SELECT Find_SRID(concat(current_schema()), '" . $tableName . "', '$this->geomField')");
-                    break;
-                // TODO: not tested
-                case self::ORACLE_PLATFORM:
-                    $this->srid = $connection->fetchColumn("SELECT {$tableName}.{$this->geomField}.SDO_SRID FROM TABLE " . $tableName);
-                    break;
-            }
+        $driver = $this->driver;
+        if (!$this->srid  && $driver instanceof Geographic) {
+            /** @var PostgreSQL|Geographic $driver */
+            $this->srid = $driver->findGeometryFieldSrid($this->getTableName(), $this->geomField);
         }
         return $this->srid;
     }
@@ -872,11 +787,7 @@ class FeatureType extends DataStore
      */
     public static function getWktType($wkt)
     {
-        $isEwkt = strpos($wkt, 'SRID') === 0;
-        if ($isEwkt) {
-            $wkt = substr($wkt, strpos($wkt, ';') + 1);
-        }
-        return substr($wkt, 0, strpos($wkt, '('));
+        return BaseDriver::getWktType($wkt);
     }
 
 
