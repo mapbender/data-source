@@ -596,7 +596,6 @@ class FeatureType extends DataStore
         return $operators;
     }
 
-
     /**
      * Set FeatureType permanent SQL filter used by $this->search()
      * https://trac.wheregroup.com/cp/issues/3733
@@ -859,18 +858,19 @@ class FeatureType extends DataStore
     /**
      * Export by ID's
      *
-     * @param array $ids
+     * @param array $rows
      * @return array
+     * @internal param array $features
+     * @internal param array $ids
      */
-    public function exportByIds(array $ids)
+    public function export(array &$rows)
     {
         $config     = $this->getConfiguration('export');
         $fieldNames = isset($config['fields']) ? $config['fields'] : null;
-        $rows       = $this->getByIds($ids, false);
         $result     = array();
 
         if ($fieldNames) {
-            foreach ($rows as $row) {
+            foreach ($rows as &$row) {
                 $exportRow = array();
                 foreach ($fieldNames as $fieldName => $fieldCode) {
                     $exportRow[ $fieldName ] = $this->evaluateField($row, $fieldCode);
@@ -880,6 +880,7 @@ class FeatureType extends DataStore
         } else {
             $result = &$rows;
         }
+
         return $result;
     }
 
@@ -888,7 +889,7 @@ class FeatureType extends DataStore
      * @param $code
      * @return null
      */
-    private function evaluateField($row, $code)
+    private function evaluateField(&$row, $code)
     {
         $result = null;
         extract($row);
