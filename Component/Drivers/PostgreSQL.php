@@ -267,18 +267,39 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     }
 
     /**
-     * Detect (E)WKT geometry type
-     *
-     * @param $wkt
-     * @return string
+     * @inheritdoc
      */
-    public static function getWktType($wkt)
+    public function getIntersectCondition($wkt, $geomFieldName, $srid, $sridTo)
     {
-        $isEwkt = strpos($wkt, 'SRID') === 0;
-        if ($isEwkt) {
-            $wkt = substr($wkt, strpos($wkt, ';') + 1);
-        }
-        return substr($wkt, 0, strpos($wkt, '('));
+        $connection    = $this->getConnection();
+        $geomFieldName = $connection->quoteIdentifier($geomFieldName);
+        return "(ST_ISVALID($geomFieldName) AND ST_INTERSECTS(ST_TRANSFORM(ST_GEOMFROMTEXT('$wkt',$srid),$sridTo), $geomFieldName ))";
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getGeomAttributeAsWkt($geometryAttribute, $sridTo)
+    {
+        $connection    = $this->getConnection();
+        $geomFieldName = $connection->quoteIdentifier($geometryAttribute);
+        return "ST_ASTEXT(ST_TRANSFORM($geomFieldName, $sridTo)) AS $geomFieldName";
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function findGeometryFieldSrid($tableName, $geomFieldName)
+    {
+        $connection = $this->getConnection();
+        $schemaName = "current_schema()";
+        if (strpos($tableName, ".")) {
+            list($schemaName, $tableName) = explode('.', $tableName);
+            $schemaName = $connection->quote($schemaName);
+        }
+
+        return $connection->fetchColumn("SELECT Find_SRID(" . $schemaName . ", 
+            " . $connection->quote($tableName) . ", 
+            " . $connection->quote($geomFieldName) . ")");
+    }
 }
