@@ -100,11 +100,6 @@ class FeatureType extends DataStore
     protected $_args = array();
 
     /**
-     * @var array Operators
-     */
-    protected $operators = array('LIKE' , 'NOT LIKE');
-
-    /**
      * @param ContainerInterface $container
      * @param null               $args
      */
@@ -585,18 +580,6 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Get operators
-     */
-    public function getOperators()
-    {
-        $operators = $this->getConfiguration("operators");
-        if (!$operators) {
-            $operators = $this->operators;
-        }
-        return $operators;
-    }
-
-    /**
      * Set FeatureType permanent SQL filter used by $this->search()
      * https://trac.wheregroup.com/cp/issues/3733
      *
@@ -848,7 +831,10 @@ class FeatureType extends DataStore
     }
 
     /**
-     * @return mixed|null
+     * Get feature type configuration by key name
+     *
+     * @param string $key Key name
+     * @return array|mixed|null
      */
     public function getConfiguration($key = null)
     {
