@@ -3,6 +3,7 @@ namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
+use FOM\UserBundle\Entity\User;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
@@ -411,8 +412,10 @@ class DataStore extends ContainerAware
         }
 
         $return = eval($code);
-        if ($return === false && ($errorMessage = error_get_last())) {
-            throw new \Exception($errorMessage);
+
+        if ($return === false && ($errorDetails = error_get_last())) {
+            $lastError = end($errorDetails);
+            throw new \Exception($lastError["message"], $lastError["type"]);
         }
 
     }
