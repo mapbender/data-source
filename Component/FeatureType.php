@@ -336,7 +336,13 @@ class FeatureType extends DataStore
 
         // add filter (https://trac.wheregroup.com/cp/issues/3733)
         if (!empty($this->sqlFilter)) {
-            $whereConditions[] = $this->sqlFilter;
+            $securityContext   = $this->container->get("security.context");
+            $user              = $securityContext->getUser();
+            $sqlFilter         = strtr($this->sqlFilter, array(
+                ':userName' => $user->getUsername()
+            ));
+            $whereConditions[] = $sqlFilter;
+
         }
 
         // add second filter (https://trac.wheregroup.com/cp/issues/4643)
