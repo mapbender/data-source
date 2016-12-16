@@ -235,8 +235,7 @@ class FeatureType extends DataStore
         }
 
         if ($this->allowInsert) {
-            $connection->insert($tableName, $data);
-            $lastId = $driver->getLastInsertId();
+            $lastId = $driver->insert($data, false)->getId();
         }
 
         $feature->setId($lastId);
@@ -356,11 +355,13 @@ class FeatureType extends DataStore
                 . "," . $criteria['distance'] . ')';
         }
 
+
         if (count($whereConditions)) {
             $queryBuilder->where(join(" AND ", $whereConditions));
         }
 
         $queryBuilder->setMaxResults($maxResults);
+
         // $queryBuilder->setParameters($params);
         // $sql = $queryBuilder->getSQL();
 

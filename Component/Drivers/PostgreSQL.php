@@ -16,18 +16,51 @@ use Mapbender\DataSourceBundle\Entity\Feature;
  */
 class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geographic
 {
+
     /**
      * Insert data item
      *
      * @param array|DataItem $item
+     * @param bool           $cleanData Clean data before insert?
      * @return DataItem
+     * @internal param string $idFieldName
+     * @internal param array|DataItem $rawData
+     * @internal param string $idField
+     * @internal param array|DataItem $item
      */
-    public function insert($item)
+    public function insert($item, $cleanData = true)
     {
-        $dataItem = parent::insert($item);
-        $id       = $this->getLastInsertId();
-        $dataItem->setId($id);
-        return $dataItem;
+        $connection = $this->connection;
+        $keys       = array();
+        $values     = array();
+        $item       = $this->create($item);
+
+        $connection->connect();
+
+        if ($cleanData) {
+            $data = $this->cleanData($item->toArray());
+        } else {
+            $data = $item->toArray();
+        }
+
+        foreach ($data as $key => $value) {
+            if ($value === null) {
+                continue;
+
+            }
+            $keys[]   = $connection->quoteIdentifier($key);
+            $values[] = $connection->quote($value);
+        }
+
+        $sql = 'INSERT INTO ' . $connection->quoteIdentifier($this->tableName)
+            . ' (' . implode(', ', $keys) . ')'
+            . ' VALUES '
+            . ' (' . implode(', ', $values) . ')'
+            . ' RETURNING ' . $connection->quoteIdentifier($this->getUniqueId());
+
+        $id = $connection->fetchColumn($sql);
+        $item->setId($id);
+        return $item;
     }
 
     /**

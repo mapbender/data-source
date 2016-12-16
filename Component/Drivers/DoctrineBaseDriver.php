@@ -326,13 +326,21 @@ class DoctrineBaseDriver extends BaseDriver implements Base
      * Insert data item
      *
      * @param array|DataItem $item
+     * @param bool           $cleanData
      * @return DataItem
+     * @internal param string $idFieldName
      */
-    public function insert($item)
+    public function insert($item, $cleanData = true)
     {
         $item       = $this->create($item);
-        $data       = $this->cleanData($item->toArray());
         $connection = $this->getConnection();
+
+        if ($cleanData) {
+            $data = $this->cleanData($item->toArray());
+        } else {
+            $data = $item->toArray();
+        }
+
         $connection->insert($this->tableName, $data);
         $item->setId($connection->lastInsertId());
         return $item;
@@ -344,7 +352,7 @@ class DoctrineBaseDriver extends BaseDriver implements Base
      * @param array $data
      * @return array
      */
-    private function cleanData($data)
+    protected function cleanData($data)
     {
         $originalFields = $this->getFields();
         $uniqueId       = $this->getUniqueId();
@@ -429,5 +437,26 @@ class DoctrineBaseDriver extends BaseDriver implements Base
     public function getLastInsertId()
     {
         return $this->getConnection()->lastInsertId();
+    }
+
+    /**
+     * Extract ordered type list from two associate key lists of data and types.
+     *
+     * @param array $data
+     * @param array $types
+     *
+     * @return array
+     */
+    protected function extractTypeValues(array $data, array $types)
+    {
+        $typeValues = array();
+
+        foreach ($data as $k => $_) {
+            $typeValues[] = isset($types[$k])
+                ? $types[$k]
+                : \PDO::PARAM_STR;
+        }
+
+        return $typeValues;
     }
 }
