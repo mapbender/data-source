@@ -396,10 +396,11 @@ class DataStore extends ContainerAware
     public function secureEval($code, array $args = array())
     {
         //extract($args);
-        $context   = $this->container->get("security.context");
-        $user      = $context->getToken()->getUser();
-        $userRoles = $context->getRolesAsArray();
-        $idKey     = $this->getDriver()->getUniqueId();
+        $context    = $this->container->get("security.context");
+        $user       = $context->getToken()->getUser();
+        $userRoles  = $context->getRolesAsArray();
+        $idKey      = $this->getDriver()->getUniqueId();
+        $connection = $this->getConnection();
 
         foreach ($args as $key => &$value) {
             ${$key} = &$value;
