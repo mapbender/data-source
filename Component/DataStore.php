@@ -3,9 +3,10 @@ namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
+use FOM\UserBundle\Entity\User;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
-use Mapbender\DataSourceBundle\Component\Drivers\IDriver;
+use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Component\Drivers\YAML;
@@ -39,7 +40,7 @@ class DataStore extends ContainerAware
     const EVENT_ON_AFTER_SEARCH  = 'onAfterSearch';
 
     /**
-     * @var IDriver $driver
+     * @var Base $driver
      */
     protected $driver;
     public    $events;
@@ -48,6 +49,10 @@ class DataStore extends ContainerAware
 
     protected $parentField;
     protected $mapping;
+    protected $connectionName;
+    protected $connectionType;
+    protected $fields;
+
 
     /**
      * @param ContainerInterface $container
@@ -62,6 +67,9 @@ class DataStore extends ContainerAware
         $driver         = null;
         $this->events   = isset($args["events"]) ? $args["events"] : array();
         $hasFields      = isset($args["fields"]) && is_array($args["fields"]);
+
+        $this->connectionName = $connectionName;
+        $this->connectionType = $type;
 
         if ($hasFields && isset($args["parentField"])) {
             $args["fields"][] = $args["parentField"];
@@ -297,7 +305,7 @@ class DataStore extends ContainerAware
     /**
      * Get current driver instance
      *
-     * @return IDriver|BaseDriver|DoctrineBaseDriver
+     * @return Base|BaseDriver|DoctrineBaseDriver|PostgreSQL
      */
     public function getDriver()
     {
@@ -388,10 +396,11 @@ class DataStore extends ContainerAware
     public function secureEval($code, array $args = array())
     {
         //extract($args);
-        $context   = $this->container->get("security.context");
-        $user      = $context->getToken()->getUser();
-        $userRoles = $context->getRolesAsArray();
-        $idKey     = $this->getDriver()->getUniqueId();
+        $context    = $this->container->get("security.context");
+        $user       = $context->getToken()->getUser();
+        $userRoles  = $context->getRolesAsArray();
+        $idKey      = $this->getDriver()->getUniqueId();
+        $connection = $this->getConnection();
 
         foreach ($args as $key => &$value) {
             ${$key} = &$value;
@@ -404,8 +413,10 @@ class DataStore extends ContainerAware
         }
 
         $return = eval($code);
-        if ($return === false && ($errorMessage = error_get_last())) {
-            throw new \Exception($errorMessage);
+
+        if ($return === false && ($errorDetails = error_get_last())) {
+            $lastError = end($errorDetails);
+            throw new \Exception($lastError["message"], $lastError["type"]);
         }
 
     }

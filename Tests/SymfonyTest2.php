@@ -1,9 +1,4 @@
 <?php
-/**
- *
- * @author Andriy Oblivantsev <eslider@gmail.com>
- */
-
 namespace Mapbender\DataSourceBundle\Tests;
 
 use Symfony\Bundle\FrameworkBundle\Client;
@@ -11,12 +6,13 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\Container;
 
 /**
- * Class SymfonyTest
+ * Class SymfonyTest2
  *
  * @package Mapbender\DataSourceBundle\Tests
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class SymfonyTest extends WebTestCase
+
+class SymfonyTest2 extends WebTestCase
 {
 
     /** @var Client */

@@ -3,6 +3,9 @@ namespace Mapbender\DataSourceBundle\Element;
 
 use Doctrine\DBAL\Connection;
 use Mapbender\CoreBundle\Element\HTMLElement;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Zumba\Util\JsonSerializer;
 
 /**
  * Class BaseElement
@@ -28,6 +31,37 @@ class BaseElement extends HTMLElement
         }
         return $items;
     }
+
+    /**
+     * Handles requests (API)
+     *
+     * Get request "action" variable and run defined action method.
+     *
+     * Example: if $action="feature/get", then convert name
+     *          and run $this->getFeatureAction($request);
+     *
+     * @inheritdoc
+     */
+    public function httpAction($action)
+    {
+        $request     = $this->getRequestData();
+        $names       = array_reverse(explode('/', $action));
+        $namesLength = count($names);
+        for ($i = 1; $i < $namesLength; $i++) {
+            $names[ $i ][0] = strtoupper($names[ $i ][0]);
+        }
+        $action     = implode($names);
+        $methodName = preg_replace('/[^a-z]+/si', null, $action) . 'Action';
+        $result     = $this->{$methodName}($request);
+
+        if (is_array($result)) {
+            $serializer = new JsonSerializer();
+            $result     = new Response($serializer->serialize($result));
+        }
+
+        return $result;
+    }
+
 
     /**
      * Prepare element by type
@@ -57,7 +91,7 @@ class BaseElement extends HTMLElement
                     unset($item['connection']);
                     /** @var Connection $connection */
                     $connection = $this->container->get("doctrine.dbal.{$connectionName}_connection");
-                    $all  = $connection->fetchAll($sql);
+                    $all        = $connection->fetchAll($sql);
                     foreach ($all as $option) {
                         $options[] = array(reset($option), end($option));
                     }
@@ -92,4 +126,57 @@ class BaseElement extends HTMLElement
         return $item;
     }
 
+    /**
+     * @return array|mixed
+     * @throws \LogicException
+     * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
+     * @throws \Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException
+     */
+    protected function getRequestData()
+    {
+        $content = $this->container->get('request')->getContent();
+        $request = array_merge($_POST, $_GET);
+
+        if (!empty($content)) {
+            $request = array_merge($request, json_decode($content, true));
+        }
+
+        return $this->decodeRequest($request);
+    }
+
+    /**
+     * @return int
+     * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
+     * @throws \Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException
+     */
+    protected function getUserId()
+    {
+        return $this->container->get('security.context')->getUser()->getId();
+    }
+
+    /**
+     * Decode request array variables
+     *
+     * @param array $request
+     * @return mixed
+     */
+    public function decodeRequest(array $request)
+    {
+        foreach ($request as $key => $value) {
+            if (is_array($value)) {
+                $request[ $key ] = $this->decodeRequest($value);
+            } elseif (strpos($key, '[')) {
+                preg_match('/(.+?)\[(.+?)\]/', $key, $matches);
+                list($match, $name, $subKey) = $matches;
+
+                if (!isset($request[ $name ])) {
+                    $request[ $name ] = array();
+                }
+
+                $request[ $name ][ $subKey ] = $value;
+                unset($request[ $key ]);
+            }
+        }
+        return $request;
+    }
 }

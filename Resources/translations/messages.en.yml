@@ -1,0 +1,27 @@
+mb.data.store.feature.remove: Remove
+mb.query.builder.Cancel: Cancel
+mb.query.builder.Edit: Edit
+mb.query.builder.Create: Create
+mb.query.builder.Save: Save
+mb.query.builder.Remove: Remove
+mb.query.builder.Execute: Execute
+mb.query.builder.sql.title: Title
+mb.query.builder.sql.connection.name: Connection
+mb.query.builder.sql.publish: Public
+mb.query.builder.confirm.remove: 'Confirm remove'
+mb.query.builder.OK: OK
+mb.query.builder.sql.saved: 'SQL saved successfully.'
+mb.query.builder.sql.removed: 'SQL removed successfully.'
+mb.query.builder.Export: Export
+mb.query.builder.Results: Results
+mb.query.builder.HTML-Export: HTML-Export
+mb.data.store.edit: Edit
+mb.data.store.save: Save
+mb.data.store.cancel: Cancel
+mb.data.store.edit.title: Data
+mb.data.store.save.successfully: 'Save successfully!'
+mb.data.store.remove.successfully: 'Removed successfully!'
+mb.data.store.remove.confirm.text: 'Remove data?'
+api.query.error-message: Error
+mb.data.store.remove: Remove
+mb.data.store.create: Create

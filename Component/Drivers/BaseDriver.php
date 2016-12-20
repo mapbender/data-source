@@ -30,7 +30,7 @@ abstract class BaseDriver extends ContainerAware
     protected $uniqueId = 'id';
 
     /**
-     * @var mixed
+     * @var Connection|mixed
      */
     protected $connection;
 
@@ -133,4 +133,41 @@ abstract class BaseDriver extends ContainerAware
         return $this->connection;
     }
 
+    /**
+     * @return int
+     */
+    public function getLastInsertId()
+    {
+        return 0;
+    }
+
+    /**
+     * Detect (E)WKT geometry type
+     *
+     * @param $wkt
+     * @return string
+     */
+    public static function getWktType($wkt)
+    {
+        $isEwkt = strpos($wkt, 'SRID') === 0;
+        if ($isEwkt) {
+            $wkt = substr($wkt, strpos($wkt, ';') + 1);
+        }
+        return substr($wkt, 0, strpos($wkt, '('));
+    }
+
+    /**
+     *
+     * Round geometry up to $round parameter.
+     *
+     * Default: geometry round = 0.2
+     *
+     * @param string $geometry WKT
+     * @param int    $round    Default=2
+     * @return string WKT
+     */
+    public static function roundGeometry($geometry, $round = 2)
+    {
+        return preg_replace("/(\\d+)\\.(\\d{$round})\\d+/", '$1.$2', $geometry);
+    }
 }

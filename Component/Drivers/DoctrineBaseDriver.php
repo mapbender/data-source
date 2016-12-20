@@ -4,6 +4,7 @@ namespace Mapbender\DataSourceBundle\Component\Drivers;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Statement;
+use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
@@ -12,7 +13,7 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class DoctrineBaseDriver extends BaseDriver implements IDriver
+class DoctrineBaseDriver extends BaseDriver implements Base
 {
     const MAX_RESULTS = 100;
 
@@ -138,6 +139,22 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
     public function fetchColumn($statement, array $params = array(), $colnum = 0)
     {
         $this->connection->fetchColumn($statement, $params, $colnum);
+    }
+
+
+    /**
+     * Executes statement and fetch list as array
+     *
+     * @param $statement
+     * @return array
+     */
+    public function fetchList($statement)
+    {
+        $result = array();
+        foreach ($this->getConnection()->fetchAll($statement) as $row) {
+            $result[] = current($row);
+        }
+        return $result;
     }
 
     /**
@@ -309,13 +326,21 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
      * Insert data item
      *
      * @param array|DataItem $item
+     * @param bool           $cleanData
      * @return DataItem
+     * @internal param string $idFieldName
      */
-    public function insert($item)
+    public function insert($item, $cleanData = true)
     {
         $item       = $this->create($item);
-        $data       = $this->cleanData($item->toArray());
         $connection = $this->getConnection();
+
+        if ($cleanData) {
+            $data = $this->cleanData($item->toArray());
+        } else {
+            $data = $item->toArray();
+        }
+
         $connection->insert($this->tableName, $data);
         $item->setId($connection->lastInsertId());
         return $item;
@@ -327,7 +352,7 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
      * @param array $data
      * @return array
      */
-    private function cleanData($data)
+    protected function cleanData($data)
     {
         $originalFields = $this->getFields();
         $uniqueId       = $this->getUniqueId();
@@ -342,7 +367,7 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
             }
         }
 
-        if(isset($data[ $uniqueId ]) && empty($data[ $uniqueId ])){
+        if (isset($data[ $uniqueId ]) && empty($data[ $uniqueId ])) {
             unset($data[ $uniqueId ]);
         }
 
@@ -362,7 +387,7 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
         $dataItem   = $this->create($dataItem);
         $data       = $this->cleanData($dataItem->toArray());
         $connection = $this->getConnection();
-        unset($data[$this->getUniqueId()]);
+        unset($data[ $this->getUniqueId() ]);
 
         if (empty($data)) {
             throw new \Exception("DataItem can't be updated without criteria");
@@ -402,5 +427,36 @@ class DoctrineBaseDriver extends BaseDriver implements IDriver
         $rows      = $statement->fetchAll();
         $this->prepareResults($rows);
         return $rows;
+    }
+
+    /**
+     * Get last insert ID
+     *
+     * @return int
+     */
+    public function getLastInsertId()
+    {
+        return $this->getConnection()->lastInsertId();
+    }
+
+    /**
+     * Extract ordered type list from two associate key lists of data and types.
+     *
+     * @param array $data
+     * @param array $types
+     *
+     * @return array
+     */
+    protected function extractTypeValues(array $data, array $types)
+    {
+        $typeValues = array();
+
+        foreach ($data as $k => $_) {
+            $typeValues[] = isset($types[$k])
+                ? $types[$k]
+                : \PDO::PARAM_STR;
+        }
+
+        return $typeValues;
     }
 }
