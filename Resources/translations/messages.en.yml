@@ -1,4 +1,3 @@
-mb.data.store.feature.remove: Remove
 mb.query.builder.Cancel: Cancel
 mb.query.builder.Edit: Edit
 mb.query.builder.Create: Create
@@ -15,13 +14,4 @@ mb.query.builder.sql.removed: 'SQL removed successfully.'
 mb.query.builder.Export: Export
 mb.query.builder.Results: Results
 mb.query.builder.HTML-Export: HTML-Export
-mb.data.store.edit: Edit
-mb.data.store.save: Save
-mb.data.store.cancel: Cancel
-mb.data.store.edit.title: Data
-mb.data.store.save.successfully: 'Save successfully!'
-mb.data.store.remove.successfully: 'Removed successfully!'
-mb.data.store.remove.confirm.text: 'Remove data?'
 api.query.error-message: Error
-mb.data.store.remove: Remove
-mb.data.store.create: Create
