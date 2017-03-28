@@ -6,13 +6,12 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\Container;
 
 /**
- * Class SymfonyTest2
+ * Class SymfonyTest
  *
  * @package Mapbender\DataSourceBundle\Tests
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-
-class SymfonyTest2 extends WebTestCase
+class SymfonyTest extends WebTestCase
 {
 
     /** @var Client */
