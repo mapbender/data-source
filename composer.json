@@ -1,25 +1,32 @@
 {
-    "name": "mapbender/data-source",
-    "description": "Mapbender data source handler",
-    "keywords": ["mapbender", "data", "data source"],
-    "type": "library",
-    "license": "MIT",
-    "authors": [
-        {"name": "Andriy Oblivantsev",  "email": "andriy.oblivantsev@wheregroup.com"}
-    ],
-    "require": {
-        "php": ">=5.3.3",
-        "zumba/json-serializer": "1.x",
-        "phayes/geophp": "1.2"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^3.7",
-        "symfony/framework-bundle" :"*"
-    },
-    "config": {
-        "bin-dir": "bin"
-    },
-    "autoload": {
-        "psr-0": {"Mapbender\\DataSourceBundle": "."}
+  "name": "mapbender/data-source",
+  "description": "Mapbender data source handler",
+  "keywords": [
+    "mapbender",
+    "data",
+    "data source"
+  ],
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Andriy Oblivantsev",
+      "email": "andriy.oblivantsev@wheregroup.com"
     }
+  ],
+  "require": {
+    "php": ">=5.3.3",
+    "zumba/json-serializer": "1.x",
+    "phayes/geophp": "1.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^3.7",
+    "symfony/framework-bundle": "*"
+  },
+  "config": {
+    "bin-dir": "bin"
+  },
+  "autoload": {
+    "psr-0": {"Mapbender\\DataSourceBundle": "."}
+  }
 }
