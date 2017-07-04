@@ -296,7 +296,10 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
             $ewkt = 'SRID=' . $srid . ';' . $db->fetchColumn("SELECT ST_ASTEXT(ST_TRANSFORM(ST_MULTI(" . $db->quote($ewkt) . "),$srid))");
         }
 
-        return $db->fetchColumn("SELECT ST_TRANSFORM(ST_GEOMFROMTEXT('$ewkt'), $srid)");
+        $srid = $db->quote($srid);
+        $ewkt = $db->quote($ewkt);
+
+        return $db->fetchColumn("SELECT ST_TRANSFORM(ST_GEOMFROMTEXT($ewkt), $srid)");
     }
 
     /**
@@ -304,9 +307,12 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
      */
     public function getIntersectCondition($wkt, $geomFieldName, $srid, $sridTo)
     {
-        $connection    = $this->getConnection();
-        $geomFieldName = $connection->quoteIdentifier($geomFieldName);
-        return "(ST_ISVALID($geomFieldName) AND ST_INTERSECTS(ST_TRANSFORM(ST_GEOMFROMTEXT('$wkt',$srid),$sridTo), $geomFieldName ))";
+        $db            = $this->getConnection();
+        $geomFieldName = $db->quoteIdentifier($geomFieldName);
+        $wkt           = $db->quote($wkt);
+        $srid          = $db->quote($srid);
+        $sridTo        = $db->quote($sridTo);
+        return "(ST_ISVALID($geomFieldName) AND ST_INTERSECTS(ST_TRANSFORM(ST_GEOMFROMTEXT($wkt,$srid),$sridTo), $geomFieldName ))";
     }
 
     /**
@@ -316,6 +322,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     {
         $connection    = $this->getConnection();
         $geomFieldName = $connection->quoteIdentifier($geometryAttribute);
+        $sridTo        = $connection->quote($sridTo);
         return "ST_ASTEXT(ST_TRANSFORM($geomFieldName, $sridTo)) AS $geomFieldName";
     }
 
