@@ -322,7 +322,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     {
         $connection    = $this->getConnection();
         $geomFieldName = $connection->quoteIdentifier($geometryAttribute);
-        $sridTo        = $connection->quote($sridTo);
+        $sridTo        = is_numeric($sridTo)?intval($sridTo):$connection->quote($sridTo);
         return "ST_ASTEXT(ST_TRANSFORM($geomFieldName, $sridTo)) AS $geomFieldName";
     }
 
