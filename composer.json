@@ -10,6 +10,7 @@
     "require": {
         "php": ">=5.3.3",
         "zumba/json-serializer": "1.x",
+        "eslider/spatialite": "0.x",
         "phayes/geophp": "1.2"
     },
     "require-dev": {
