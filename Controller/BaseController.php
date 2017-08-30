@@ -15,7 +15,7 @@ class BaseController extends Controller
      */
     protected function getRequestData()
     {
-        $content = $this->getRequest()->getContent();
+        $content = $this->get('request_stack')->getCurrentRequest()->getContent();
         $request = array_merge($_POST, $_GET);
         if (!empty($content)) {
             $request = array_merge($request, json_decode($content, true));
