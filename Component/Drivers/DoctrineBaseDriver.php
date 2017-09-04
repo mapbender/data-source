@@ -467,4 +467,17 @@ class DoctrineBaseDriver extends BaseDriver implements Base
 
         return $typeValues;
     }
+
+    /**
+     * Return next possible ID
+     *
+     * @return mixed
+     */
+    public function getNextPossibleId()
+    {
+        $con = $this->connection;
+        return $con->fetchColumn('SELECT MAX('
+            . $con->quoteIdentifier($this->getUniqueId())
+            . ")+1 FROM " . $con->quoteIdentifier($this->getTableName()));
+    }
 }
