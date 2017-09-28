@@ -56,7 +56,8 @@ class BaseElement extends HTMLElement
 
         if (is_array($result)) {
             $serializer = new JsonSerializer();
-            $result     = new Response($serializer->serialize($result));
+            $responseBody = $serializer->serialize($result);
+            $result     = new Response($responseBody, 200, array('Content-Type' => 'application/json'));
         }
 
         return $result;
