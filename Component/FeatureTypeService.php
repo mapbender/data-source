@@ -1,6 +1,7 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component;
 
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -23,6 +24,18 @@ class FeatureTypeService extends DataStoreService
 
     /** @var FeatureType[] */
     protected $instances;
+
+    protected $declarationPath;
+
+    /**
+     * @param ContainerInterface $container
+     * @param string $declarationPath container param key or file name; treated as file name if it contains slash(es)
+     */
+    public function __construct(ContainerInterface $container, $declarationPath = null)
+    {
+        parent::__construct($container);
+        $this->declarationPath = $declarationPath;
+    }
 
     /**
      * Get feature type by name
@@ -111,12 +124,28 @@ class FeatureTypeService extends DataStoreService
     {
         if ($this->declarations === null) {
             $list = array();
-            if ($this->container->hasParameter('featureTypes')) {
-                $list = array_merge($list, $this->container->getParameter('featureTypes'));
+            $paramKey = $this->declarationPath ?: 'featureTypes';
+            if ($this->declarationPath) {
+                if (false !== strpos($paramKey, '/')) {
+                    $filePath = $paramKey;
+                    $paramKey = null;
+                } else {
+                    $filePath = false;
+                }
+            } else {
+                if ($this->hasDb()) {
+                    $filePath = $this->getDbPath();
+                } else {
+                    $filePath = false;
+                }
             }
 
-            if ($this->hasDb()) {
-                $list = array_merge($list, Yaml::parse(file_get_contents($this->getDbPath())));
+            if ($this->container->hasParameter($paramKey)) {
+                $list = array_merge($list, $this->container->getParameter($paramKey));
+            }
+
+            if ($filePath !== false) {
+                $list = array_merge($list, Yaml::parse(file_get_contents($filePath)));
             } else {
                 foreach ($list as $id => &$item) {
                     $item['id'] = $id;
