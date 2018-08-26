@@ -19,6 +19,11 @@ class FeatureTypeService extends DataStoreService
      */
     protected $storeList = array();
 
+    protected $declarations;
+
+    /** @var FeatureType[] */
+    protected $instances;
+
     /**
      * Get feature type by name
      *
@@ -27,8 +32,14 @@ class FeatureTypeService extends DataStoreService
      */
     public function get($id)
     {
-        $list = $this->search();
-        return $list[ $id ];
+        if (empty($this->instances[$id])) {
+            $declarations = $this->getFeatureTypeDeclarations();
+            if (empty($declarations[$id])) {
+                throw new \RuntimeException("No FeatureType with id " . var_export($id, true));
+            }
+            $this->instances[$id] = new FeatureType($this->container, $declarations[$id]);
+        }
+        return $this->instances[$id];
     }
 
     /**
@@ -38,11 +49,12 @@ class FeatureTypeService extends DataStoreService
      */
     public function search()
     {
-        $list = array();
         foreach ($this->getFeatureTypeDeclarations() as $id => $declaration) {
-            $list[ $id ] = new FeatureType($this->container, $declaration);
+            if (empty($this->instances[$id])) {
+                $this->instances[$id] = new FeatureType($this->container, $declaration);
+            }
         }
-        return $list;
+        return $this->instances;
     }
 
     /**
@@ -97,21 +109,21 @@ class FeatureTypeService extends DataStoreService
      */
     public function getFeatureTypeDeclarations()
     {
-        $list        = array();
+        if ($this->declarations === null) {
+            $list = array();
+            if ($this->container->hasParameter('featureTypes')) {
+                $list = array_merge($list, $this->container->getParameter('featureTypes'));
+            }
 
-        if ($this->container->hasParameter('featureTypes')) {
-            $list = array_merge($list, $this->container->getParameter('featureTypes'));
+            if ($this->hasDb()) {
+                $list = array_merge($list, Yaml::parse(file_get_contents($this->getDbPath())));
+            } else {
+                foreach ($list as $id => &$item) {
+                    $item['id'] = $id;
+                }
+            }
+            $this->declarations = $list;
         }
-
-        if ($this->hasDb()) {
-            $list = array_merge($list, Yaml::parse(file_get_contents($this->getDbPath())));
-            return $list;
-        }
-
-        foreach ($list as $id => &$item) {
-            $item['id'] = $id;
-        }
-
-        return $list;
+        return $this->declarations;
     }
 }
