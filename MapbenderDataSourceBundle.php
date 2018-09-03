@@ -10,13 +10,4 @@ use Mapbender\CoreBundle\Component\MapbenderBundle;
  */
 class MapbenderDataSourceBundle extends MapbenderBundle
 {
-    /**
-     * @inheritdoc
-     */
-    public function getElements()
-    {
-        return array(
-            'Mapbender\DataSourceBundle\Element\QueryBuilderElement'
-        );
-    }
 }
