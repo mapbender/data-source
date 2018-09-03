@@ -1,139 +1,32 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
-use Eslider\Driver\SqliteExtended;
-use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
-use Mapbender\DataSourceBundle\Entity\DataItem;
-
 /**
  * Class SQLite
  *
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class SQLite extends SqliteExtended implements Base
+class SQLite extends DoctrineBaseDriver
 {
     /**
-     * @inheritdoc
-     */
-    public function getVersion()
-    {
-        $this->fetchColumn("select sqlite_version()");
-    }
-
-    /**
-     * Get object by id, array or object himself
+     * Get table fields
      *
-     * @param mixed $id
-     * @return array|void
-     */
-    public function get($id)
-    {
-        // TODO: Implement get() method.
-    }
-
-    /**
-     * Get object by ID and field name
+     * Info: $schemaManager->listTableColumns($this->tableName) doesn't work if fields are geometries!
      *
-     * @param mixed $id ID
+     * @throws \Doctrine\DBAL\DBALException
+     * @return array field names
      */
-    public function getById($id)
+    public function getStoreFields()
     {
-        // TODO: Implement getById() method.
-    }
+        $schemaManager = $this->connection->getDriver()->getSchemaManager($this->connection);
+        $columns       = array();
+        $sql           = $schemaManager->getDatabasePlatform()->getListTableColumnsSQL($this->tableName, $this->connection->getDatabase());
+        $all           = $this->connection->fetchAll($sql);
 
-    /**
-     * Cast DataItem by $args
-     *
-     * @param mixed $args
-     * @return DataItem
-     */
-    public function create($args)
-    {
-        // TODO: Implement create() method.
-    }
-
-    /**
-     * Save the data
-     *
-     * @param DataItem $data
-     * @param boolean  $autoUpdate Create if item doesn't exits
-     * @return mixed
-     */
-    public function save($data, $autoUpdate = true)
-    {
-        // TODO: Implement save() method.
-    }
-
-    /**
-     * Remove by args
-     *
-     * @param $args
-     * @return mixed
-     */
-    public function remove($args)
-    {
-        // TODO: Implement remove() method.
-    }
-
-    /**
-     * Connect to the source
-     *
-     * @param $url
-     * @return mixed
-     */
-    public function connect($url)
-    {
-        // TODO: Implement connect() method.
-    }
-
-    /**
-     * Is the driver connected an ready to interact?
-     *
-     * @return bool
-     */
-    public function isReady()
-    {
-        // TODO: Implement isReady() method.
-    }
-
-    /**
-     * Has permission to read?
-     *
-     * @return bool
-     */
-    public function canRead()
-    {
-        // TODO: Implement canRead() method.
-    }
-
-    /**
-     * Has permission to write?
-     *
-     * @return bool
-     */
-    public function canWrite()
-    {
-        // TODO: Implement canWrite() method.
-    }
-
-    /**
-     * Get platform name
-     *
-     * @return string
-     */
-    public function getPlatformName()
-    {
-        // TODO: Implement getPlatformName() method.
-    }
-
-    /**
-     * @param array $criteria
-     * @param bool  $autoUpdate
-     * @return mixed
-     */
-    public function search(array $criteria, $autoUpdate = true)
-    {
-        // TODO: Implement search() method.
+        foreach ($all as $fieldInfo) {
+            $columns[] = $fieldInfo["name"];
+        }
+        return $columns;
     }
 }
