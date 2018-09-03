@@ -1,4 +1,3 @@
-mb.data.store.feature.remove: Удалить
 mb.query.builder.Cancel: Отмена
 mb.query.builder.Edit: Редактировать
 mb.query.builder.Create: Создать
@@ -15,13 +14,4 @@ mb.query.builder.sql.removed: 'SQL запрос удалён.'
 mb.query.builder.Export: Экспорт
 mb.query.builder.Results: Результат
 mb.query.builder.HTML-Export: 'HTML Экспорт'
-mb.data.store.edit: Редактировать
-mb.data.store.save: Сохранить
-mb.data.store.cancel: Отменить
-mb.data.store.edit.title: 'Редактирование данных'
-mb.data.store.save.successfully: 'Данные сохранены'
-mb.data.store.remove.successfully: 'Данные удалены'
-mb.data.store.remove.confirm.text: 'Подведите удаление'
 api.query.error-message: Ошибка
-mb.data.store.remove: Удалить
-mb.data.store.create: Создать

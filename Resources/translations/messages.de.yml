@@ -1,4 +1,3 @@
-mb.data.store.feature.remove: Löschen
 mb.query.builder.Cancel: Abbrechen
 mb.query.builder.Edit: Änderun
 mb.query.builder.Create: Erstellen
@@ -15,13 +14,4 @@ mb.query.builder.sql.removed: 'SQL erfolgreich gelöscht.'
 mb.query.builder.Export: Exportieren
 mb.query.builder.Results: Ergebnisse
 mb.query.builder.HTML-Export: HTML-Export
-mb.data.store.edit: Edit
-mb.data.store.save: Speichern
-mb.data.store.cancel: Abbrechen
-mb.data.store.edit.title: Daten
-mb.data.store.save.successfully: 'Datensatz ist gespeichert!'
-mb.data.store.remove.successfully: 'Datensatz ist gelöscht!'
-mb.data.store.remove.confirm.text: 'Datensatz löschen?'
 api.query.error-message: Fehler
-mb.data.store.remove: Löschen
-mb.data.store.create: Erstellen

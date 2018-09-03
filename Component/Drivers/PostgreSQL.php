@@ -290,8 +290,8 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
 
         if ($type
             && $wktType != $type
-            && in_array(strtoupper($type), Feature::$simpleGeometries)
-            && in_array(strtoupper($wktType), Feature::$complexGeometries)
+            && in_array(strtoupper($wktType), Feature::$simpleGeometries)
+            && in_array(strtoupper($type), Feature::$complexGeometries)
         ) {
             $ewkt = 'SRID=' . $srid . ';' . $db->fetchColumn("SELECT ST_ASTEXT(ST_TRANSFORM(ST_MULTI(" . $db->quote($ewkt) . "),$srid))");
         }
