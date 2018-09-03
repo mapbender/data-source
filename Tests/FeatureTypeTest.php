@@ -104,7 +104,6 @@ class FeatureTypeTest extends SymfonyTest
             ), $srid, $uniqueIdField, $geomFieldName);
 
             $driver->createTable($tableName, $uniqueIdField, true);
-            //$db->exec("DELETE FROM " . $tableName);
             $featureType->addGeometryColumn($tableName, $type, $srid, $geomFieldName);
 
             for ($i = 0; $i < 10; $i++) {

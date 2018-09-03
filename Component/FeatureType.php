@@ -362,9 +362,6 @@ class FeatureType extends DataStore
 
         $queryBuilder->setMaxResults($maxResults);
 
-        // $queryBuilder->setParameters($params);
-        // $sql = $queryBuilder->getSQL();
-
         $statement  = $queryBuilder->execute();
         $rows       = $statement->fetchAll();
         $hasResults = count($rows) > 0;

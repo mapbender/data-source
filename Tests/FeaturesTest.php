@@ -52,10 +52,7 @@ class FeaturesTest extends WebTestCase
 
     public function testSearch()
     {
-        $results = self::$featureType->search(array(//            'intersectGeometry' => "WKT",
-                                                    //            'intersect' => "WKT",
-            )
-        );
+        $results = self::$featureType->search(array());
     }
 
     public function testCustomSearch()
@@ -98,14 +95,6 @@ class FeaturesTest extends WebTestCase
         $featureType = self::$featureType;
         $this->assertGreaterThan(0, $featureType->remove(array(self::$fieldName => "testSaveArray")));
         $this->assertGreaterThan(0, $featureType->remove(array(self::$fieldName => "testSaveObject")));
-
-        //        $feature = $this->getRandomFeature();
-        //        $this->assertGreaterThan(0, $featureType->remove($feature));
-        //        $this->assertFalse($featureType->getById($feature->getId()));
-        //        $feature = $featureType->save($feature, false);
-        //        $restoredFeature = $featureType->getById($feature->getId());
-        //        $this->assertTrue($restoredFeature instanceof Feature);
-        //        $this->assertTrue($restoredFeature->getId() == $feature->getId());
     }
 
     public function testUpdate()

@@ -191,7 +191,6 @@ class Feature extends DataItem
         $data = $this->getAttributes();
 
         if ($this->hasGeom()) {
-            //$wkb = \geoPHP::load($feature->getGeom(), 'wkt')->out('wkb');
             if ($this->getSrid()) {
                 $data[$this->geomField] = "SRID=" . $this->getSrid() . ";" . $this->getGeom();
             } else {

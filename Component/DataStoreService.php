@@ -41,11 +41,6 @@ class DataStoreService extends ContainerAware
                 $configs = $this->container->getParameter('dataStores');
             }
 
-            //if (is_int($name)) {
-            //    $keys = array_keys($configs);
-            //    $name = $keys[ $name ];
-            //}
-
             $this->storeList[ $name ] = new DataStore($this->container, $configs[ $name ]);
         }
         return $this->storeList[ $name ];

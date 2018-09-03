@@ -30,7 +30,6 @@ class QueryManagerTest extends SymfonyTest2
         self::assertObjectHasAttribute($idKey, $hkv, $saveFailedMessage);
 
         $hkvToArray = $hkv->toArray();
-        //var_dump($hkvToArray);
         self::assertNotEquals(null, $hkvToArray["id"], json_encode($hkv));
 
     }

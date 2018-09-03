@@ -249,7 +249,6 @@ class DoctrineBaseDriver extends BaseDriver implements Base
         $maxResults   = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
         $where        = isset($criteria['where']) ? $criteria['where'] : null;
         $queryBuilder = $this->getSelectQueryBuilder();
-        //        $returnType   = isset($criteria['returnType']) ? $criteria['returnType'] : null;
 
         // add filter (https://trac.wheregroup.com/cp/issues/3733)
         if (!empty($this->sqlFilter)) {
@@ -262,7 +261,6 @@ class DoctrineBaseDriver extends BaseDriver implements Base
         }
 
         $queryBuilder->setMaxResults($maxResults);
-        // $queryBuilder->setParameters($params);
         $statement  = $queryBuilder->execute();
         $rows       = $statement->fetchAll();
         $hasResults = count($rows) > 0;
