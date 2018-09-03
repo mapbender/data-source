@@ -88,7 +88,6 @@ interface Base
 
     /**
      * @param array $criteria
-     * @param bool  $autoUpdate
      * @return mixed
      */
     public function search(array $criteria);

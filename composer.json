@@ -20,7 +20,8 @@
         "bin-dir": "bin"
     },
     "autoload": {
-        "psr-0": {"Mapbender\\DataSourceBundle": "."}
-    },
-    "target-dir": "Mapbender/DataSourceBundle"
+        "psr-4": {
+            "Mapbender\\DataSourceBundle\\": "."
+        }
+    }
 }

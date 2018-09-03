@@ -67,7 +67,6 @@
               change:    function(e) {
                 var connectionId = $(e.target).val();
                 manager.query('connection/schemas', {id: connectionId}).done(function(r) {
-                  debugger;
                   console.log(r)
                 })
               }
