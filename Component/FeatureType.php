@@ -6,6 +6,7 @@ use Doctrine\DBAL\Statement;
 use Doctrine\ORM\Mapping as ORM;
 use Mapbender\CoreBundle\Component\Application as AppComponent;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
+use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
@@ -191,7 +192,17 @@ class FeatureType extends DataStore
         if ($this->allowSave) {
             // Insert if no ID given
             if (!$autoUpdate || !$feature->hasId()) {
-                $feature = $this->insert($feature);
+                try{
+                    $feature = $this->insert($feature);
+                } catch (\Exception $e){
+                    // Fallback, if can't save, course no auto ID set
+                    // then try it to set it manuel and try to save it one more time.
+                    $driver = $this->getDriver();
+                    if($driver instanceof  DoctrineBaseDriver){
+                        $feature->setId($driver->getNextPossibleId());
+                        $feature = $this->insert($feature);
+                    }
+                }
             } // Replace if has ID
             else {
                 $feature = $this->update($feature);
@@ -313,6 +324,8 @@ class FeatureType extends DataStore
      *
      * @param array $criteria
      * @return Feature[]
+     * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
+     * @throws \Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException
      */
     public function search(array $criteria = array())
     {

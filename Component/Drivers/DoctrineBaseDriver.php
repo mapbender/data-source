@@ -244,27 +244,7 @@ class DoctrineBaseDriver extends BaseDriver implements Base
      */
     public function search(array $criteria = array())
     {
-
-        /** @var Statement $statement */
-        $maxResults   = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
-        $where        = isset($criteria['where']) ? $criteria['where'] : null;
-        $queryBuilder = $this->getSelectQueryBuilder();
-        //        $returnType   = isset($criteria['returnType']) ? $criteria['returnType'] : null;
-
-        // add filter (https://trac.wheregroup.com/cp/issues/3733)
-        if (!empty($this->sqlFilter)) {
-            $queryBuilder->andWhere($this->sqlFilter);
-        }
-
-        // add second filter (https://trac.wheregroup.com/cp/issues/4643)
-        if ($where) {
-            $queryBuilder->andWhere($where);
-        }
-
-        $queryBuilder->setMaxResults($maxResults);
-        // $queryBuilder->setParameters($params);
-        $statement  = $queryBuilder->execute();
-        $rows       = $statement->fetchAll();
+        $rows = $this->getSearchQueryBuilder($criteria)->execute()->fetchAll();
         $hasResults = count($rows) > 0;
 
         // Cast array to DataItem array list
@@ -440,6 +420,34 @@ class DoctrineBaseDriver extends BaseDriver implements Base
     }
 
     /**
+     * Get search query builder
+     *
+     * @param array $criteria
+     * @return QueryBuilder
+     */
+    public function getSearchQueryBuilder(array $criteria)
+    {
+        /** @var Statement $statement */
+        $maxResults   = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
+        $where        = isset($criteria['where']) ? $criteria['where'] : null;
+        $queryBuilder = $this->getSelectQueryBuilder();
+        //        $returnType   = isset($criteria['returnType']) ? $criteria['returnType'] : null;
+
+        // add filter (https://trac.wheregroup.com/cp/issues/3733)
+        if (!empty($this->sqlFilter)) {
+            $queryBuilder->andWhere($this->sqlFilter);
+        }
+
+        // add second filter (https://trac.wheregroup.com/cp/issues/4643)
+        if ($where) {
+            $queryBuilder->andWhere($where);
+        }
+
+        $queryBuilder->setMaxResults($maxResults);
+        return $queryBuilder;
+    }
+
+    /**
      * Extract ordered type list from two associate key lists of data and types.
      *
      * @param array $data
@@ -458,5 +466,18 @@ class DoctrineBaseDriver extends BaseDriver implements Base
         }
 
         return $typeValues;
+    }
+
+    /**
+     * Return next possible ID
+     *
+     * @return mixed
+     */
+    public function getNextPossibleId()
+    {
+        $con = $this->connection;
+        return $con->fetchColumn('SELECT MAX('
+            . $con->quoteIdentifier($this->getUniqueId())
+            . ")+1 FROM " . $con->quoteIdentifier($this->getTableName()));
     }
 }

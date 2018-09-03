@@ -3,7 +3,6 @@ namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
-use FOM\UserBundle\Entity\User;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
@@ -12,7 +11,7 @@ use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Component\Drivers\YAML;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Symfony\Component\Config\Definition\Exception\Exception;
-use Symfony\Component\DependencyInjection\ContainerAware;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -23,8 +22,10 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @package Mapbender\DataSourceBundle
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class DataStore extends ContainerAware
+class DataStore
 {
+    use ContainerAwareTrait;
+
     const ORACLE_PLATFORM        = 'oracle';
     const POSTGRESQL_PLATFORM    = 'postgresql';
     const SQLITE_PLATFORM        = 'sqlite';

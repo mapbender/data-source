@@ -329,6 +329,17 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     /**
      * @inheritdoc
      */
+    public function getGeomAttributeAsJson($geometryAttribute, $sridTo)
+    {
+        $connection    = $this->getConnection();
+        $geomFieldName = $connection->quoteIdentifier($geometryAttribute);
+        $sridTo        = is_numeric($sridTo)?intval($sridTo):$connection->quote($sridTo);
+        return "ST_AsGeoJSON(ST_TRANSFORM($geomFieldName, $sridTo)) AS $geomFieldName";
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function findGeometryFieldSrid($tableName, $geomFieldName)
     {
         $connection = $this->getConnection();
