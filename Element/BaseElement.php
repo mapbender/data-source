@@ -237,4 +237,13 @@ class BaseElement extends HTMLElement
     {
         return static::autoTemplate('Element', $suffix);
     }
+
+    /**
+     * @param array $arr
+     * @return bool
+     */
+    protected static function isAssoc(&$arr)
+    {
+        return array_keys($arr) !== range(0, count($arr) - 1);
+    }
 }
