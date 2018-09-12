@@ -180,4 +180,61 @@ class BaseElement extends HTMLElement
         }
         return $request;
     }
+
+    /**
+     * Auto-calculation of AdminType class from Element class name.
+     * Bare-bones reimplementation of deprecated upstream method.
+     *
+     * @return string fully qualified class name
+     */
+    public static function getType()
+    {
+        $clsInfo = explode('\\', get_called_class());
+        $namespaceParts = array_slice($clsInfo, 0, -1);
+        // convention: AdminType classes are placed into the "<bundle>\Element\Type" namespace
+        $namespaceParts[] = "Type";
+        $bareClassName = implode('', array_slice($clsInfo, -1));
+        // convention: AdminType class name is the same as the element class name suffixed with AdminType
+        return implode('\\', $namespaceParts) . '\\' . $bareClassName . 'AdminType';
+    }
+
+    /**
+     * Auto-calculation of template reference from class name.
+     * Bare-bones reimplementation of deprecated upstream method.
+     *
+     * @param string $section 'Element' or 'ElementAdmin'
+     * @param string $suffix '.html.twig' (default) or '.json.twig'
+     * @return string twig-style template resource reference
+     */
+    private static function autoTemplate($section, $suffix = '.html.twig')
+    {
+        $cls = get_called_class();
+        $bundleName = str_replace('\\', '', preg_replace('/^([\w]+\\\\)*?(\w+\\\\\w+Bundle).*$/', '\2', $cls));
+        $elementName = implode('', array_slice(explode('\\', $cls), -1));
+        $elementSnakeCase = strtolower(preg_replace('/([^A-Z])([A-Z])/', '\\1_\\2', $elementName));
+        return "{$bundleName}:{$section}:{$elementSnakeCase}{$suffix}";
+    }
+
+    /**
+     * Auto-calculation of admin template reference from class name.
+     * Bare-bones reimplementation of deprecated upstream method.
+     *
+     * @return string twig-style template resource reference
+     */
+    public static function getFormTemplate()
+    {
+        return static::autoTemplate('ElementAdmin');
+    }
+
+    /**
+     * Auto-calculation of frontend template reference from class name.
+     * Bare-bones reimplementation of deprecated upstream method.
+     *
+     * @param string $suffix '.html.twig' (default) or '.json.twig'
+     * @return string twig-style template resource reference
+     */
+    public function getFrontendTemplatePath($suffix = '.html.twig')
+    {
+        return static::autoTemplate('Element', $suffix);
+    }
 }
