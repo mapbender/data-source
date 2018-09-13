@@ -1,7 +1,6 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component;
 
-use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -10,7 +9,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  * @package   Mapbender\CoreBundle\Component
  */
-class DataStoreService extends ContainerAware
+class DataStoreService
 {
     /**
      * Feature type s defined in mapbebder.yml > parameters.featureTypes
@@ -18,20 +17,22 @@ class DataStoreService extends ContainerAware
      * @var DataStore[] feature types
      */
     protected $storeList = array();
+    /** @var ContainerInterface */
+    protected $container;
 
     /**
      * @param ContainerInterface $container
      */
     public function __construct(ContainerInterface $container)
     {
-        $this->setContainer($container);
+        $this->container = $container;
     }
 
     /**
      * Get store by name
      *
      * @param $name String data store name
-     * @return DataStore
+     * @return DataStore|null
      */
     public function get($name)
     {
