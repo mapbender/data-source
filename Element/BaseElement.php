@@ -283,4 +283,13 @@ class BaseElement extends HTMLElement
             )
         );
     }
+
+    public function getConfiguration()
+    {
+        $configuration = $this->entity->getConfiguration();
+        if (isset($configuration['children'])) {
+            $configuration['children'] = $this->prepareItems($configuration['children']);
+        }
+        return $configuration;
+    }
 }
