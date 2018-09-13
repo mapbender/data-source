@@ -3,7 +3,6 @@ namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Doctrine\DBAL\Connection;
 use Mapbender\DataSourceBundle\Entity\DataItem;
-use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -12,8 +11,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-abstract class BaseDriver extends ContainerAware
+abstract class BaseDriver
 {
+    /** @var ContainerInterface */
+     protected $container;
+
     /**
      * @var array Driver settings
      */
@@ -42,7 +44,7 @@ abstract class BaseDriver extends ContainerAware
      */
     public function __construct(ContainerInterface $container, array $args = array())
     {
-        $this->setContainer($container);
+        $this->container = $container;
 
         // init $methods by $args
         if (is_array($args)) {

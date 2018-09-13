@@ -12,7 +12,6 @@ use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Component\Drivers\YAML;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Symfony\Component\Config\Definition\Exception\Exception;
-use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -23,7 +22,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @package Mapbender\DataSourceBundle
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class DataStore extends ContainerAware
+class DataStore
 {
     const ORACLE_PLATFORM        = 'oracle';
     const POSTGRESQL_PLATFORM    = 'postgresql';
@@ -38,6 +37,9 @@ class DataStore extends ContainerAware
     const EVENT_ON_AFTER_REMOVE  = 'onAfterRemove';
     const EVENT_ON_BEFORE_SEARCH = 'onBeforeSearch';
     const EVENT_ON_AFTER_SEARCH  = 'onAfterSearch';
+
+    /** @var ContainerInterface */
+    protected $container;
 
     /**
      * @var Base $driver
@@ -61,7 +63,7 @@ class DataStore extends ContainerAware
     public function __construct(ContainerInterface $container, $args = null)
     {
         /** @var Connection $connection */
-        $this->setContainer($container);
+        $this->container = $container;
         $type           = isset($args["type"]) ? $args["type"] : "doctrine";
         $connectionName = isset($args["connection"]) ? $args["connection"] : "default";
         $driver         = null;
