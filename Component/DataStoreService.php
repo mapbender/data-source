@@ -12,20 +12,22 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class DataStoreService
 {
     /**
-     * Feature type s defined in mapbebder.yml > parameters.featureTypes
-     *
      * @var DataStore[] feature types
      */
     protected $storeList = array();
     /** @var ContainerInterface */
     protected $container;
+    /** @var null|string */
+    protected $declarationPath;
 
     /**
      * @param ContainerInterface $container
+     * @param string $declarationPath container param key or file name; treated as file name if it contains slash(es)
      */
-    public function __construct(ContainerInterface $container)
+    public function __construct(ContainerInterface $container, $declarationPath = null)
     {
         $this->container = $container;
+        $this->declarationPath = $declarationPath;
     }
 
     /**
@@ -36,17 +38,8 @@ class DataStoreService
      */
     public function get($name)
     {
-        static $configs = null;
         if (!isset($this->storeList[ $name ])) {
-            if (!$configs) {
-                $configs = $this->container->getParameter('dataStores');
-            }
-
-            //if (is_int($name)) {
-            //    $keys = array_keys($configs);
-            //    $name = $keys[ $name ];
-            //}
-
+            $configs = $this->getDataStoreDeclarations();
             $this->storeList[ $name ] = new DataStore($this->container, $configs[ $name ]);
         }
         return $this->storeList[ $name ];
@@ -63,5 +56,11 @@ class DataStoreService
             'YAML',
             'JSON'
         );
+    }
+
+    public function getDataStoreDeclarations()
+    {
+        $paramKey = $this->declarationPath ?: 'dataStores';
+        return $this->container->getParameter($paramKey);
     }
 }

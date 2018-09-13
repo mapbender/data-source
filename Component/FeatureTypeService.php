@@ -19,13 +19,11 @@ class FeatureTypeService extends DataStoreService
      * @var FeatureType[] feature types
      */
     protected $storeList = array();
-
+    /** @var mixed */
     protected $declarations;
 
     /** @var FeatureType[] */
     protected $instances;
-
-    protected $declarationPath;
 
     /**
      * @param ContainerInterface $container
@@ -33,8 +31,7 @@ class FeatureTypeService extends DataStoreService
      */
     public function __construct(ContainerInterface $container, $declarationPath = null)
     {
-        parent::__construct($container);
-        $this->declarationPath = $declarationPath;
+        parent::__construct($container, $declarationPath);
     }
 
     /**
