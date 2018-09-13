@@ -246,4 +246,41 @@ class BaseElement extends HTMLElement
     {
         return array_keys($arr) !== range(0, count($arr) - 1);
     }
+
+    public function getAssets()
+    {
+        return $this->listAssets();
+    }
+
+    public static function listAssets()
+    {
+        return array(
+            'js'  => array(
+                '/bundles/mapbenderdatasource/mapbender.element.datasource.base.js',
+            ),
+            'css' => array(
+                '/bundles/mapbendercore/sass/element/htmlelement.scss',
+            ),
+        );
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function getFormAssets()
+    {
+        return array(
+            'js'  => array(
+                'components/codemirror/lib/codemirror.js',
+                'components/codemirror/mode/xml/xml.js',
+                'components/codemirror/keymap/sublime.js',
+                'components/codemirror/addon/selection/active-line.js',
+                'bundles/mapbendercore/mapbender.admin.htmlelement.js',
+            ),
+            'css' => array(
+                'components/codemirror/lib/codemirror.css',
+                'components/codemirror/theme/neo.css',
+            )
+        );
+    }
 }
