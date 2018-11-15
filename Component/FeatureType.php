@@ -13,6 +13,7 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\Finder;
+use FOM\UserBundle\Entity\User;
 
 /**
  * Class FeatureType handles Feature objects.
@@ -335,13 +336,25 @@ class FeatureType extends DataStore
 
         // add filter (https://trac.wheregroup.com/cp/issues/3733)
         if (!empty($this->sqlFilter)) {
-            $securityContext   = $this->container->get("security.context");
-            $user              = $securityContext->getUser();
-            $sqlFilter         = strtr($this->sqlFilter, array(
-                ':userName' => $user->getUsername()
-            ));
-            $whereConditions[] = $sqlFilter;
+            $replace = array(
+                '"' => '\''
+            );
 
+            $user = $this->container->get('security.context')->getUser();
+            if ($user instanceof User) {
+                // supporting old place holder for the user name.
+                $replace[':userName'] = '\'' . $user->getUsername() . '\'';
+
+                $replace['%user%'] = '\'' . $user->getUsername() . '\'';
+
+                if (count($user->getRoles()) > 0) {
+                    $replace['%userRoles%'] = $this->getUserRolesString($user->getRoles());
+                }
+            }
+
+            $sqlFilter = strtr($this->sqlFilter, $replace);
+
+            $whereConditions[] = '(' . $sqlFilter . ')';
         }
 
         // add second filter (https://trac.wheregroup.com/cp/issues/4643)
@@ -888,5 +901,19 @@ class FeatureType extends DataStore
         extract($row);
         eval('$result = ' . $code . ';');
         return $result;
+    }
+
+    /**
+     * @param array $userRoles
+     * @return string
+     */
+    private function getUserRolesString($userRoles)
+    {
+        $userRolesTmp = [];
+        foreach ($userRoles as $userRole) {
+            $userRolesTmp[] = '\'' . $userRole . '\'';
+        }
+
+        return '(' . implode(',', $userRolesTmp) . ')';
     }
 }
