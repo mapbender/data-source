@@ -284,6 +284,15 @@ class BaseElement extends HTMLElement
         );
     }
 
+    public function getFrontendTemplateVars()
+    {
+        // The default fallback getConfiguration call (see below) can be outrageously expensive.
+        // This can make a default inherited render() call very slow. BaseElement child classes
+        // generally have pretty trivial templates, accessing only id and title of the Element
+        // entity, so this is completely appropriate here.
+        return $this->entity->getConfiguration();
+    }
+
     public function getConfiguration()
     {
         $configuration = $this->entity->getConfiguration();
