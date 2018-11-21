@@ -5,9 +5,11 @@
     <services>
         <service class="Mapbender\DataSourceBundle\Component\DataStoreService" id="data.source">
             <argument type="service" id="service_container"/>
+            <argument key="declarationPath">dataStores</argument>
         </service>
         <service class="Mapbender\DataSourceBundle\Component\FeatureTypeService" id="features">
             <argument type="service" id="service_container"/>
+            <argument key="declarationPath">featureTypes</argument>
         </service>
     </services>
 </container>

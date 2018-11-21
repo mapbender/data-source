@@ -22,9 +22,9 @@ class DataStoreService
 
     /**
      * @param ContainerInterface $container
-     * @param string $declarationPath container param key or file name; treated as file name if it contains slash(es)
+     * @param string $declarationPath container param key for data store configuration array
      */
-    public function __construct(ContainerInterface $container, $declarationPath = null)
+    public function __construct(ContainerInterface $container, $declarationPath = 'dataStores')
     {
         $this->container = $container;
         $this->declarationPath = $declarationPath;
@@ -60,7 +60,7 @@ class DataStoreService
 
     public function getDataStoreDeclarations()
     {
-        $paramKey = $this->declarationPath ?: 'dataStores';
+        $paramKey = $this->declarationPath;
         return $this->container->getParameter($paramKey);
     }
 }

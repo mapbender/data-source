@@ -29,7 +29,7 @@ class FeatureTypeService extends DataStoreService
      * @param ContainerInterface $container
      * @param string $declarationPath container param key or file name; treated as file name if it contains slash(es)
      */
-    public function __construct(ContainerInterface $container, $declarationPath = null)
+    public function __construct(ContainerInterface $container, $declarationPath = 'featureTypes')
     {
         parent::__construct($container, $declarationPath);
     }
@@ -121,7 +121,7 @@ class FeatureTypeService extends DataStoreService
     {
         if ($this->declarations === null) {
             $list = array();
-            $paramKey = $this->declarationPath ?: 'featureTypes';
+            $paramKey = $this->declarationPath;
             if ($this->declarationPath) {
                 if (false !== strpos($paramKey, '/')) {
                     $filePath = $paramKey;
