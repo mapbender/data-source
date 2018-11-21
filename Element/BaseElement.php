@@ -10,19 +10,33 @@ use Zumba\Util\JsonSerializer;
 /**
  * Class BaseElement
  */
-class BaseElement extends HTMLElement
+abstract class BaseElement extends HTMLElement
 {
-    /** @var string translation subject */
-    protected static $description  = "mb.core.element.class.description";
-
-    /** @var string[] translation subjects */
-    protected static $title = "mb.core.element.class.title";
+    /**
+     * Legacy mechanism to provide Element description for backend display and filtering  via static attribute.
+     * Mapbender will remove support for this mechanism.
+     * Preferred method is to override getClassDescription.
+     * Class descriptions are subject to translation.
+     *
+     * @var string
+     * @deprecated
+     */
+    protected static $description  = '';
 
     /**
-     * Returns the element class title
+     * Legacy mechanism to provide Element title for backend display and filtering via static attribute.
+     * Mapbender will remove support for this mechanism.
+     * Preferred method is to override getClassTitle.
+     * Class titles are subject to translation.
      *
-     * This is primarily used in the manager backend when a list of available
-     * elements is given.
+     * @var string
+     * @deprecated
+     */
+    protected static $title = '';
+
+    /**
+     * Returns the element class title for backend Element selection and filtering.
+     * Subject to translation.
      *
      * @return string
      */
@@ -32,10 +46,8 @@ class BaseElement extends HTMLElement
     }
 
     /**
-     * Returns the element class description.
-     *
-     * This is primarily used in the manager backend when a list of available
-     * elements is given.
+     * Returns the element class description for backend Element selection and filtering.
+     * Subject to translation.
      *
      * @return string
      */
