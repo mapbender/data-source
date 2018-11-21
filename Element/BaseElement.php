@@ -12,6 +12,38 @@ use Zumba\Util\JsonSerializer;
  */
 class BaseElement extends HTMLElement
 {
+    /** @var string translation subject */
+    protected static $description  = "mb.core.element.class.description";
+
+    /** @var string[] translation subjects */
+    protected static $title = "mb.core.element.class.title";
+
+    /**
+     * Returns the element class title
+     *
+     * This is primarily used in the manager backend when a list of available
+     * elements is given.
+     *
+     * @return string
+     */
+    public static function getClassTitle()
+    {
+        return static::$title;
+    }
+
+    /**
+     * Returns the element class description.
+     *
+     * This is primarily used in the manager backend when a list of available
+     * elements is given.
+     *
+     * @return string
+     */
+    public static function getClassDescription()
+    {
+        return static::$description;
+    }
+
     /**
      * Prepare elements recursive.
      *
