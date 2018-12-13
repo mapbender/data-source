@@ -297,9 +297,15 @@ class FeatureType extends DataStore
         }
 
         $tableName = $this->getTableName();
+        $keys = array_keys($data);
+        foreach($data as $key => $value){
+            $quotedData[$connection->quoteIdentifier($key)] = $value;
+        }
+
+
 
         if ($this->allowUpdate) {
-            $connection->update($tableName, $data, array($this->getUniqueId() => $feature->getId()));
+            $connection->update($tableName, $quotedData, array($this->getUniqueId() => $feature->getId()));
         }
 
         if (isset($this->events[ self::EVENT_ON_AFTER_UPDATE ])) {
