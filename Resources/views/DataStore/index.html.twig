@@ -16,88 +16,6 @@
       var container = $('.content');
       var manager = new SymfonyAjaxManager("{{ path("fom_manager_manager_index") }}{{ routeUri }}");
       var buttons = [];
-      var connectionNames = {};
-
-      manager.query('connection/list').done(function(r) {
-        var connections = r.list;
-        _.each(connections, function(connection) {
-          connectionNames[connection.name] = connection.id + ' (' + connection.type + ')';
-        });
-      });
-
-      function openSaveDialog(schema) {
-        var dialog = $('<div/>');
-        var popupConfiguration = {
-          title:   'Edit data store',
-          width:   400,
-          buttons: [{
-            text:  "OK",
-            click: function(e) {
-              var el = $(this);
-              var formData = dialog.formData();
-
-              manager.query('save', {item: formData}).done(function(r) {
-                console.log(r);
-              });
-
-              return false;
-            }
-          }, {
-            text:    "Abbrechen",
-            'class': 'critical',
-            click:   function(e) {
-              dialog.popupDialog('close');
-              return false;
-            }
-          }]
-        };
-        var form = {
-          children: [{
-            type:     'form',
-            children: [{
-              type:        'input',
-              placeholder: 'Name',
-              mandatory:   true
-            }, {
-              title:     'Connection',
-              type:      'select',
-              name:      'connection',
-              options:   connectionNames,
-              mandatory: true,
-              change:    function(e) {
-                var connectionId = $(e.target).val();
-                manager.query('connection/schemas', {id: connectionId}).done(function(r) {
-                  console.log(r)
-                })
-              }
-            }]
-          }]
-        };
-        dialog.generateElements(form);
-        dialog.popupDialog(popupConfiguration);
-        dialog.data('schema', schema);
-
-        setTimeout(function() {
-          dialog.formData(schema);
-        }, 21);
-      }
-
-      buttons.push({
-        title:     "Edit",
-        className: 'edit',
-        onClick:   function(schema, ui) {
-          openSaveDialog(schema);
-        }
-      });
-
-      buttons.push({
-        title:     'Remove',
-        className: 'remove',
-        cssClass:  'critical',
-        onClick:   function(schema, ui) {
-          widget.removeFeature(schema);
-        }
-      });
 
       manager.query("list").done(function(r) {
         var table = $("<div/>").resultTable({
@@ -111,14 +29,14 @@
             title: 'ID'
           }, {
             data:  'geomType',
-            title: 'Type'
+            title: 'Type',
+            render: function(data, type, row) {
+                return data || row.geomType || null;
+            }
           }, {
             data:      'connection',
             title:     'Connection'
 
-          }, {
-            data:  'schema',
-            title: 'Schema'
           }],
           buttons:      buttons,
           data:         []
@@ -132,8 +50,6 @@
           $.each(tableApi.$('tr'), function() {
             var tr = this;
             var rowData = tableWidget.getDataByRow(tr);
-            var $tr = $(tr);
-            var checkbox = $('td.selection input[type=checkbox]', $tr);
 
             if(rowData.enabled) {
               selectionManager.add(rowData);
@@ -145,13 +61,6 @@
         tableApi.rows.add(_.toArray(r.list));
         tableApi.draw();
         container.append(table);
-        container.generateElements({
-          type:  "button",
-          title: "Create",
-          click: function(e) {
-            openSaveDialog({});
-          }
-        });
       });
     });
   </script>
