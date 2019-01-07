@@ -344,7 +344,7 @@ class FeatureType extends DataStore
             $securityContext   = $this->container->get("security.context");
             $user              = $securityContext->getUser();
             $sqlFilter         = strtr($this->sqlFilter, array(
-                ':userName' => $user->getId()
+                ':userName' => $user->getUsername()
             ));
             $whereConditions[] = $sqlFilter;
 
@@ -367,6 +367,9 @@ class FeatureType extends DataStore
         }
 
         $queryBuilder->setMaxResults($maxResults);
+
+        // $queryBuilder->setParameters($params);
+        // $sql = $queryBuilder->getSQL();
 
         $statement  = $queryBuilder->execute();
         $rows       = $statement->fetchAll();
