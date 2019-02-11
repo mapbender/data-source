@@ -3,8 +3,6 @@ namespace Mapbender\DataSourceBundle\Controller;
 
 use FOM\ManagerBundle\Configuration\Route as ManagerRoute;
 use Mapbender\DataSourceBundle\Component\FeatureTypeService;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -16,16 +14,14 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class DataStoreController extends Controller
 {
     /**
-     * @ManagerRoute("{page}", defaults={ "page"=1 }, requirements={ "page"="\d+" })
-     * @Method({ "GET" })
-     * @Template
+     * @ManagerRoute("{page}", defaults={ "page"=1 }, requirements={ "page"="\d+" }, methods={"GET"})
      */
     public function indexAction($page)
     {
-        return array(
+        return $this->render('@MapbenderDataSource/DataStore/index.html.twig', array(
             'title'    => 'DataStores',
             'routeUri' => 'datastore'
-        );
+        ));
     }
 
     /**
