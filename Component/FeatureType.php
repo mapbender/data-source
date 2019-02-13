@@ -344,7 +344,7 @@ class FeatureType extends DataStore
             $securityContext   = $this->container->get("security.context");
             $user              = $securityContext->getUser();
             $sqlFilter         = strtr($this->sqlFilter, array(
-                ':userName' => $user->getUsername()
+                ':userName' => $user->getId()
             ));
             $whereConditions[] = $sqlFilter;
 
