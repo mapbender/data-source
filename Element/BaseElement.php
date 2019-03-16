@@ -2,15 +2,14 @@
 namespace Mapbender\DataSourceBundle\Element;
 
 use Doctrine\DBAL\Connection;
-use Mapbender\CoreBundle\Element\HTMLElement;
-use Symfony\Component\HttpFoundation\Request;
+use Mapbender\CoreBundle\Component\Element;
 use Symfony\Component\HttpFoundation\Response;
 use Zumba\Util\JsonSerializer;
 
 /**
  * Class BaseElement
  */
-abstract class BaseElement extends HTMLElement
+abstract class BaseElement extends Element
 {
     /**
      * Legacy mechanism to provide Element description for backend display and filtering  via static attribute.
@@ -54,6 +53,21 @@ abstract class BaseElement extends HTMLElement
     public static function getClassDescription()
     {
         return static::$description;
+    }
+
+    /**
+     * Returns the JavaScript widget constructor name, magically auto-calculated from the component
+     * class name.
+     *
+     * @return string
+     * @deprecated every Element component should return its widget constructor name explicitly
+     *  unless it wants to inherit a parent value.
+     */
+    public function getWidgetName()
+    {
+        @trigger_error("Deprecated: " . get_called_class() . " relies on automatically calculated widget constructor name. Please implement getWidgetName in your Element class", E_USER_DEPRECATED);
+        $classNameParts = explode('\\', get_called_class());
+        return 'mapbender.mb' . end($classNameParts);
     }
 
     /**
