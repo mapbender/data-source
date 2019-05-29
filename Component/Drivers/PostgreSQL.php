@@ -1,4 +1,5 @@
 <?php
+
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Doctrine\DBAL\Connection;
@@ -21,7 +22,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
      * Insert data item
      *
      * @param array|DataItem $item
-     * @param bool           $cleanData Clean data before insert?
+     * @param bool $cleanData Clean data before insert?
      * @return DataItem
      * @internal param string $idFieldName
      * @internal param array|DataItem $rawData
@@ -31,9 +32,9 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     public function insert($item, $cleanData = true)
     {
         $connection = $this->connection;
-        $keys       = array();
-        $values     = array();
-        $item       = $this->create($item);
+        $keys = array();
+        $values = array();
+        $item = $this->create($item);
 
         $connection->connect();
 
@@ -48,7 +49,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
                 continue;
 
             }
-            $keys[]   = $connection->quoteIdentifier($key);
+            $keys[] = $connection->quoteIdentifier($key);
             $values[] = $connection->quote($value);
         }
 
@@ -71,16 +72,16 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
      * @param string $srid
      * @param string $geomFieldName
      * @param string $schemaName
-     * @param int    $dimensions
+     * @param int $dimensions
      * @return bool
      * @throws \Doctrine\DBAL\DBALException
      */
     public function addGeometryColumn($tableName,
-        $type,
-        $srid,
-        $geomFieldName = "geom",
-        $schemaName = "public",
-        $dimensions = 2)
+                                      $type,
+                                      $srid,
+                                      $geomFieldName = "geom",
+                                      $schemaName = "public",
+                                      $dimensions = 2)
     {
         $connection = $this->getConnection();
         return $this->connection->exec("SELECT AddGeometryColumn("
@@ -96,7 +97,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     /**
      * @param        $name
      * @param string $idColumn
-     * @param bool   $dropBeforeCreate
+     * @param bool $dropBeforeCreate
      * @return bool
      * @throws \Doctrine\DBAL\DBALException
      */
@@ -140,7 +141,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
             list($schema, $tableName) = explode('.', $tableName);
         }
         $_schema = $schema ? $connection->quote($schema) : 'current_schema()';
-        $type    = $connection->query("SELECT \"type\"
+        $type = $connection->query("SELECT \"type\"
                 FROM geometry_columns
                 WHERE f_table_schema = " . $_schema . "
                 AND f_table_name = " . $connection->quote($tableName))->fetchColumn();
@@ -155,11 +156,11 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     public function getLastInsertId()
     {
         $connection = $this->getConnection();
-        $id         = $connection->lastInsertId();
+        $id = $connection->lastInsertId();
         if ($id < 1) {
-            $fullTableName    = $this->tableName;
+            $fullTableName = $this->tableName;
             $fullUniqueIdName = $connection->quoteIdentifier($this->getUniqueId());
-            $sql              = /** @lang PostgreSQL */
+            $sql = /** @lang PostgreSQL */
                 "SELECT $fullUniqueIdName 
                  FROM $fullTableName
                  LIMIT 1 
@@ -178,13 +179,13 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
      * @param        $waysVerticesTableName
      * @param        $waysGeomFieldName
      * @param string $ewkt EWKT
-     * @param null   $transformTo
+     * @param null $transformTo
      * @param string $idKey
      * @return int Node ID
      */
     public function getNodeFromGeom($waysVerticesTableName, $waysGeomFieldName, $ewkt, $transformTo = null, $idKey = "id")
     {
-        $db   = $this->getConnection();
+        $db = $this->getConnection();
         $geom = "ST_GeometryFromText('" . $db->quote($ewkt) . "')";
 
         if ($transformTo) {
@@ -207,10 +208,10 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
      *
      * @param      $waysTableName
      * @param      $waysGeomFieldName
-     * @param int  $startNodeId
-     * @param int  $endNodeId
+     * @param int $startNodeId
+     * @param int $endNodeId
      * @param      $srid
-     * @param bool $directedGraph  directed graph
+     * @param bool $directedGraph directed graph
      * @param bool $hasReverseCost Has reverse cost, only can be true, if  directed graph=true
      * @return \Mapbender\DataSourceBundle\Entity\Feature[]
      */
@@ -224,12 +225,12 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
         $hasReverseCost = false)
     {
         /** @var Connection $db */
-        $db             = $this->getConnection();
-        $waysTableName  = $db->quoteIdentifier($waysTableName);
-        $geomFieldName  = $db->quoteIdentifier($waysGeomFieldName);
-        $directedGraph  = $directedGraph ? 'TRUE' : 'FALSE'; // directed graph [true|false]
+        $db = $this->getConnection();
+        $waysTableName = $db->quoteIdentifier($waysTableName);
+        $geomFieldName = $db->quoteIdentifier($waysGeomFieldName);
+        $directedGraph = $directedGraph ? 'TRUE' : 'FALSE'; // directed graph [true|false]
         $hasReverseCost = $hasReverseCost && $directedGraph ? 'TRUE' : 'FALSE'; // directed graph [true|false]
-        $results        = $db->query("SELECT
+        $results = $db->query("SELECT
                 route.seq as orderId,
                 route.id1 as startNodeId,
                 route.id2 as endNodeId,
@@ -284,34 +285,40 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
      */
     public function transformEwkt($ewkt, $srid = null)
     {
-        $db      = $this->getConnection();
-        $type    = $this->getTableGeomType($this->getTableName());
+        $db = $this->getConnection();
+        $type = $this->getTableGeomType($this->getTableName());
         $wktType = static::getWktType($ewkt);
 
-        if ($type
-            && $wktType != $type
-            && in_array(strtoupper($wktType), Feature::$simpleGeometries)
-            && in_array(strtoupper($type), Feature::$complexGeometries)
-        ) {
-            $ewkt = 'SRID=' . $srid . ';' . $db->fetchColumn("SELECT ST_ASTEXT(ST_TRANSFORM(ST_MULTI(" . $db->quote($ewkt) . "),$srid))");
+        if (strpos(strtoupper($ewkt), 'NAN') !== false) {
+            return $db->fetchColumn("SELECT ST_TRANSFORM(ST_GEOMFROMTEXT('SRID=4326;POINT EMPTY' ), " . $srid . ")");
+            // Return null geometry in case of NaN $ewkt
+        } else {
+            if ($type
+                && $wktType != $type
+                && in_array(strtoupper($wktType), Feature::$simpleGeometries)
+                && in_array(strtoupper($type), Feature::$complexGeometries)
+            ) {
+                $ewkt = 'SRID=' . $srid . ';' . $db->fetchColumn("SELECT ST_ASTEXT(ST_TRANSFORM(ST_MULTI(" . $db->quote($ewkt) . "),$srid))");
+            }
+
+            $srid = is_numeric($srid) ? intval($srid) : $db->quote($srid);
+            $ewkt = $db->quote($ewkt);
+
+            return $db->fetchColumn("SELECT ST_TRANSFORM(ST_GEOMFROMTEXT($ewkt), $srid)");
         }
-
-        $srid = is_numeric($srid) ? intval($srid) : $db->quote($srid);
-        $ewkt = $db->quote($ewkt);
-
-        return $db->fetchColumn("SELECT ST_TRANSFORM(ST_GEOMFROMTEXT($ewkt), $srid)");
     }
+
 
     /**
      * @inheritdoc
      */
     public function getIntersectCondition($wkt, $geomFieldName, $srid, $sridTo)
     {
-        $db            = $this->getConnection();
+        $db = $this->getConnection();
         $geomFieldName = $db->quoteIdentifier($geomFieldName);
-        $wkt           = $db->quote($wkt);
-        $srid          = is_numeric($srid) ? intval($srid) : $db->quote($srid);
-        $sridTo        = is_numeric($sridTo) ? intval($sridTo) : $db->quote($sridTo);
+        $wkt = $db->quote($wkt);
+        $srid = is_numeric($srid) ? intval($srid) : $db->quote($srid);
+        $sridTo = is_numeric($sridTo) ? intval($sridTo) : $db->quote($sridTo);
         return "(ST_ISVALID($geomFieldName) AND ST_INTERSECTS(ST_TRANSFORM(ST_GEOMFROMTEXT($wkt,$srid),$sridTo), $geomFieldName ))";
     }
 
@@ -320,9 +327,9 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
      */
     public function getGeomAttributeAsWkt($geometryAttribute, $sridTo)
     {
-        $connection    = $this->getConnection();
+        $connection = $this->getConnection();
         $geomFieldName = $connection->quoteIdentifier($geometryAttribute);
-        $sridTo        = is_numeric($sridTo)?intval($sridTo):$connection->quote($sridTo);
+        $sridTo = is_numeric($sridTo) ? intval($sridTo) : $connection->quote($sridTo);
         return "ST_ASTEXT(ST_TRANSFORM($geomFieldName, $sridTo)) AS $geomFieldName";
     }
 

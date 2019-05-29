@@ -2,8 +2,12 @@
 namespace Mapbender\DataSourceBundle\Element;
 
 use Doctrine\DBAL\Connection;
+use FOM\UserBundle\Entity\User;
 use Mapbender\CoreBundle\Component\Element;
+use Mapbender\DataSourceBundle\Component\DataStoreService;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Zumba\Util\JsonSerializer;
 
 /**
@@ -170,7 +174,9 @@ abstract class BaseElement extends Element
 
                 if (isset($item['dataStore'])) {
                     $dataStoreInfo = $item['dataStore'];
-                    $dataStore     = $this->container->get('data.source')->get($dataStoreInfo["id"]);
+                    /** @var DataStoreService $dataStoreService */
+                    $dataStoreService = $this->container->get('data.source');
+                    $dataStore = $dataStoreService->get($dataStoreInfo["id"]);
                     $options       = array();
                     foreach ($dataStore->search() as $dataItem) {
                         $options[ $dataItem->getId() ] = $dataItem->getAttribute($dataStoreInfo["text"]);
@@ -204,13 +210,24 @@ abstract class BaseElement extends Element
     }
 
     /**
-     * @return int
+     * @return int|string
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException
      */
     protected function getUserId()
     {
-        return $this->container->get('security.context')->getUser()->getId();
+        /** @var TokenStorageInterface $tokenStorage */
+        $tokenStorage = $this->container->get('security.token_storage');
+        $token = $tokenStorage->getToken();
+        if ($token instanceof AnonymousToken) {
+            return 0;
+        }
+        $user = $token->getUser();
+        if (is_object($user) && $user instanceof User) {
+            return $user->getId();
+        } else {
+            return $token->getUsername();
+        }
     }
 
     /**
@@ -319,26 +336,6 @@ abstract class BaseElement extends Element
             'css' => array(
                 '/bundles/mapbendercore/sass/element/htmlelement.scss',
             ),
-        );
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function getFormAssets()
-    {
-        return array(
-            'js'  => array(
-                'components/codemirror/lib/codemirror.js',
-                'components/codemirror/mode/xml/xml.js',
-                'components/codemirror/keymap/sublime.js',
-                'components/codemirror/addon/selection/active-line.js',
-                'bundles/mapbendercore/mapbender.admin.htmlelement.js',
-            ),
-            'css' => array(
-                'components/codemirror/lib/codemirror.css',
-                'components/codemirror/theme/neo.css',
-            )
         );
     }
 

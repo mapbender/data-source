@@ -3,7 +3,6 @@ namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Statement;
-use Doctrine\ORM\Mapping as ORM;
 use Mapbender\CoreBundle\Component\Application as AppComponent;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
@@ -13,6 +12,7 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
  * Class FeatureType handles Feature objects.
@@ -216,12 +216,9 @@ class FeatureType extends DataStore
      */
     public function insert($featureData)
     {
-        /** @var Feature $feature */
-        $tableName                     = $this->getTableName();
         $feature                       = $this->create($featureData);
         $data                          = $this->cleanFeatureData($feature->toArray());
         $driver                        = $this->getDriver();
-        $connection                    = $driver->getConnection();
         $lastId                        = null;
         $data[ $this->getGeomField() ] = $this->transformEwkt($data[ $this->getGeomField() ], $this->getSrid());
         $event                         = array(
@@ -297,7 +294,7 @@ class FeatureType extends DataStore
         }
 
         $tableName = $this->getTableName();
-        $keys = array_keys($data);
+        $quotedData = array();
         foreach($data as $key => $value){
             $quotedData[$connection->quoteIdentifier($key)] = $value;
         }
@@ -341,8 +338,10 @@ class FeatureType extends DataStore
 
         // add filter (https://trac.wheregroup.com/cp/issues/3733)
         if (!empty($this->sqlFilter)) {
-            $securityContext   = $this->container->get("security.context");
-            $user              = $securityContext->getUser();
+            /** @var TokenStorageInterface $tokenStorage */
+            $tokenStorage = $this->container->get("security.token_storage");
+            $userName = $tokenStorage->getToken()->getUsername();
+            $user = $tokenStorage->getToken()->getUser();
             $sqlFilter         = strtr($this->sqlFilter, array(
                 ':userName' => $user->getId()
             ));
@@ -550,14 +549,12 @@ class FeatureType extends DataStore
         $schemaName = "public",
         $dimensions = 2)
     {
-        $r = false;
-        if ($this->driver instanceof Geographic) {
-            /** @var Geographic $driver */
-            $driver = $this->getDriver();
+        $driver = $this->getDriver();
+        if ($driver instanceof Geographic) {
             $driver->addGeometryColumn($tableName, $type, $srid, $geomFieldName, $schemaName, $dimensions);
-            $r = true;
+            return true;
         }
-        return $r;
+        return false;
     }
 
     /**
@@ -704,7 +701,7 @@ class FeatureType extends DataStore
      * Generate unique file name for a field.
      *
      * @param null $fieldName Field
-     * @return string
+     * @return string[]
      * @internal param string $extension File extension
      */
     public function genFilePath($fieldName = null)
@@ -824,17 +821,16 @@ class FeatureType extends DataStore
     /**
      * Get by ID list
      *
-     * @param $ids
+     * @param mixed[] $ids
+     * @param bool $prepareResults
+     * @return array[][]
      */
     public function getByIds($ids, $prepareResults = true)
     {
         $queryBuilder = $this->getSelectQueryBuilder();
         $connection   = $queryBuilder->getConnection();
-        $rows         = $queryBuilder->where(
-            $queryBuilder->expr()->in($this->getUniqueId(), array_map(function ($id) use ($connection) {
-                return $connection->quote($id);
-            }, $ids))
-        )->execute()->fetchAll();
+        $condition = $queryBuilder->expr()->in($this->getUniqueId(), array_map(array($connection, 'quote'), $ids));
+        $rows = $queryBuilder->where($condition)->execute()->fetchAll();
 
         if ($prepareResults) {
             $this->prepareResults($rows);
