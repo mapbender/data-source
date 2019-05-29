@@ -12,6 +12,7 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
  * Class FeatureType handles Feature objects.
@@ -337,10 +338,11 @@ class FeatureType extends DataStore
 
         // add filter (https://trac.wheregroup.com/cp/issues/3733)
         if (!empty($this->sqlFilter)) {
-            $securityContext   = $this->container->get("security.context");
-            $user              = $securityContext->getUser();
+            /** @var TokenStorageInterface $tokenStorage */
+            $tokenStorage = $this->container->get("security.token_storage");
+            $userName = $tokenStorage->getToken()->getUsername();
             $sqlFilter         = strtr($this->sqlFilter, array(
-                ':userName' => $user->getUsername()
+                ':userName' => $userName,
             ));
             $whereConditions[] = $sqlFilter;
 

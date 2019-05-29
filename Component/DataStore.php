@@ -12,6 +12,8 @@ use Mapbender\DataSourceBundle\Component\Drivers\YAML;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
  * Class DataSource
@@ -397,9 +399,15 @@ class DataStore
     public function secureEval($code, array $args = array())
     {
         //extract($args);
-        $context    = $this->container->get("security.context");
-        $user       = $context->getToken()->getUser();
-        $userRoles  = $context->getRolesAsArray();
+        /** @var AuthorizationCheckerInterface $context */
+        $context    = $this->container->get("security.authorization_checker");
+        /** @var TokenStorageInterface $tokenStorage */
+        $tokenStorage = $this->container->get('security.token_storage');
+        $user       = $tokenStorage->getToken()->getUser();
+        $userRoles = array();
+        foreach ($tokenStorage->getToken()->getRoles() as $role) {
+            $roles[] = $role->getRole();
+        }
         $idKey      = $this->getDriver()->getUniqueId();
         $connection = $this->getConnection();
 
