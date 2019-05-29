@@ -3,7 +3,6 @@ namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
-use FOM\UserBundle\Entity\User;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
@@ -481,6 +480,7 @@ class DataStore
     public function getTroughMapping($mappingId, $id)
     {
         $config            = $this->mapping[ $mappingId ];
+        /** @var DataStoreService $dataStoreService */
         $dataStoreService  = $this->container->get("data.source");
         $externalDataStore = $dataStoreService->get($config["externalDataStore"]);
         $externalDriver    = $externalDataStore->getDriver();

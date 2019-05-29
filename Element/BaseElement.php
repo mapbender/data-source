@@ -2,7 +2,9 @@
 namespace Mapbender\DataSourceBundle\Element;
 
 use Doctrine\DBAL\Connection;
+use FOM\UserBundle\Entity\User;
 use Mapbender\CoreBundle\Component\Element;
+use Mapbender\DataSourceBundle\Component\DataStoreService;
 use Symfony\Component\HttpFoundation\Response;
 use Zumba\Util\JsonSerializer;
 
@@ -170,7 +172,9 @@ abstract class BaseElement extends Element
 
                 if (isset($item['dataStore'])) {
                     $dataStoreInfo = $item['dataStore'];
-                    $dataStore     = $this->container->get('data.source')->get($dataStoreInfo["id"]);
+                    /** @var DataStoreService $dataStoreService */
+                    $dataStoreService = $this->container->get('data.source');
+                    $dataStore = $dataStoreService->get($dataStoreInfo["id"]);
                     $options       = array();
                     foreach ($dataStore->search() as $dataItem) {
                         $options[ $dataItem->getId() ] = $dataItem->getAttribute($dataStoreInfo["text"]);
@@ -319,26 +323,6 @@ abstract class BaseElement extends Element
             'css' => array(
                 '/bundles/mapbendercore/sass/element/htmlelement.scss',
             ),
-        );
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function getFormAssets()
-    {
-        return array(
-            'js'  => array(
-                'components/codemirror/lib/codemirror.js',
-                'components/codemirror/mode/xml/xml.js',
-                'components/codemirror/keymap/sublime.js',
-                'components/codemirror/addon/selection/active-line.js',
-                'bundles/mapbendercore/mapbender.admin.htmlelement.js',
-            ),
-            'css' => array(
-                'components/codemirror/lib/codemirror.css',
-                'components/codemirror/theme/neo.css',
-            )
         );
     }
 
