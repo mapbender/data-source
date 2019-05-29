@@ -12,6 +12,7 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
@@ -340,10 +341,20 @@ class FeatureType extends DataStore
         if (!empty($this->sqlFilter)) {
             /** @var TokenStorageInterface $tokenStorage */
             $tokenStorage = $this->container->get("security.token_storage");
-            $userName = $tokenStorage->getToken()->getUsername();
-            $user = $tokenStorage->getToken()->getUser();
+            $token = $tokenStorage->getToken();
+            if ($token instanceof AnonymousToken) {
+                $userId = null;
+            } else {
+                $user = $token->getUser();
+                if ($user && is_object($user) && method_exists($user, 'getId')) {
+                    $userId = $user->getId();
+                } else {
+                    $userId = null;
+                }
+            }
+            $userName = $token->getUsername();
             $sqlFilter         = strtr($this->sqlFilter, array(
-                ':userName' => $user->getId()
+                ':userName' => $userId,
             ));
             $whereConditions[] = $sqlFilter;
 
