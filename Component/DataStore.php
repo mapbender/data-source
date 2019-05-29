@@ -3,6 +3,7 @@ namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
+use Mapbender\CoreBundle\Component\UploadsManager;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
@@ -518,5 +519,15 @@ class DataStore
         $criteria = $this->get($id)->getAttribute($internalFieldName);
 
         return $externalDriver->getByCriteria($criteria, $externalFieldName);
+    }
+
+    /**
+     * @return UploadsManager
+     */
+    protected function getUploadsManager()
+    {
+        /** @var UploadsManager $ulm */
+        $ulm = $this->container->get('mapbender.uploads_manager.service');
+        return $ulm;
     }
 }
