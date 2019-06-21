@@ -1,0 +1,21 @@
+{% extends "MapbenderManagerBundle::manager.html.twig" %}
+{% block js %}
+    {{ parent() }}
+    <script type="text/javascript" src="{{ asset('bundles/mapbenderdatasource/healthStatus.js') }}"></script>
+{% endblock %}
+{% block manager_content %}
+    <h1>Health Status Database</h1>
+
+    <table id="-fn-healthstatus-table" class="table">
+        <thead>
+        <tr>
+
+        </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+
+    </table>
+
+{% endblock %}

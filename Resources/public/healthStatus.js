@@ -1,36 +1,43 @@
 (function (window) {
     var Mapbender = window.Mapbender || {};
 
-    Mapbender.DatabaseHealthCheck = function () {
+    var DatabaseHealthCheck = window.DatabaseHealthCheck = function () {
         this.getHealthStatus()
-            .then(this.generateTableHeaders(response[0]).bind(this))
-            .then(this.updateHealhStatusTable(response).bind(this))
-            .then(this.initDataTable())
+            .done(this.generateTableHeaders.bind(this))
+            .done(this.initDataTable.bind(this))
+            .done(this.updateHealhStatusTable.bind(this))
+
         ;
 
     };
 
-    var proto = Mapbender.DatabaseHealthCheck.prototype;
+    var proto = DatabaseHealthCheck.prototype;
 
     proto.getHealthStatus = function () {
-        return $.ajax("getHealtStatus");
+        return $.ajax("getHealth");
     };
 
     proto.initDataTable = function () {
 
-        this.getHealtStatusTable().DataTable();
+        this.getHealtStatusTable().dataTable({
+            "createdRow": function (row,data) {
+
+                    data[2] !== '' ? $(row).addClass('bg-danger') :  $(row).addClass('bg-success')
+
+            }
+        });
     };
 
     proto.parseHealthStatusResponse = function (response) {
         var dataSets = [];
         _.each(response, function (connection) {
-            dataSets.push(this.getDataset(connection));
+            this.getHealtStatusTable().DataTable().row.add(this.getDataset(connection)).draw( false );
         }.bind(this));
-        return dataSets;
+        //return dataSets;
     };
 
-    proto.updateHealhStatusTable = function () {
-
+    proto.updateHealhStatusTable = function (response) {
+        this.parseHealthStatusResponse(response.connectionHealth)
     };
 
     proto.getHealtStatusTable = function () {
@@ -39,13 +46,14 @@
 
     proto.getDataset = function (connection) {
         var dataSet = [];
-        _.each(connection, function (connectionAttribute, value) {
+        _.each(connection, function (value,key) {
             dataSet.push(value);
         });
         return dataSet;
     };
 
-    proto.generateTableHeaders = function (connection) {
+    proto.generateTableHeaders = function (response) {
+        var connection = response.connectionHealth[0];
         var headerNames = Object.keys(connection);
         var $headerRow = this.getHealtStatusTable().find("thead > tr");
         _.each(headerNames, function (name) {
@@ -56,4 +64,6 @@
     };
 })(window);
 
-new Mapbender.DatabaseHealthCheck();
+new DatabaseHealthCheck();
+
+
