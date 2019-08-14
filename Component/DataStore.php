@@ -13,6 +13,7 @@ use Mapbender\DataSourceBundle\Component\Drivers\YAML;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
@@ -42,6 +43,8 @@ class DataStore
 
     /** @var ContainerInterface */
     protected $container;
+    /** @var Filesystem */
+    protected $filesystem;
 
     /**
      * @var Base $driver
@@ -64,8 +67,8 @@ class DataStore
      */
     public function __construct(ContainerInterface $container, $args = null)
     {
-        /** @var Connection $connection */
         $this->container = $container;
+        $this->filesystem = $container->get('filesystem');
         $type           = isset($args["type"]) ? $args["type"] : "doctrine";
         $connectionName = isset($args["connection"]) ? $args["connection"] : "default";
         $driver         = null;

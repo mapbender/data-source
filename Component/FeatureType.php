@@ -679,7 +679,7 @@ class FeatureType extends DataStore
     public function getFileUrl($fieldName = "")
     {
         $fileUri = $this->getFileUri($fieldName);
-        if (0 === strpos($fileUri, '/')) {
+        if ($this->filesystem->isAbsolutePath($fileUri)) {
             return $fileUri;
         } else {
             /** @var Request $request */
