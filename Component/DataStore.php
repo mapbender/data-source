@@ -7,6 +7,7 @@ use Mapbender\CoreBundle\Component\UploadsManager;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
+use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Entity\DataItem;
@@ -95,19 +96,23 @@ class DataStore
             }
         }
 
+        /** @var Connection $connection */
         switch ($type) {
             default: // doctrine
-                $connection = $this->container->get("doctrine.dbal.{$connectionName}_connection");
+                $connection = $container->get("doctrine.dbal.{$connectionName}_connection");
                 switch ($connection->getDatabasePlatform()->getName()) {
                     case self::SQLITE_PLATFORM;
-                        $driver = new SQLite($this->container, $args);
+                        $driver = new SQLite($container, $args);
                         break;
                     case self::POSTGRESQL_PLATFORM;
-                        $driver = new PostgreSQL($this->container, $args);
+                        $driver = new PostgreSQL($container, $args);
                         break;
-
+                    case self::ORACLE_PLATFORM;
+                        $driver = new Oracle($this->container, $args);
+                        break;
                 }
                 $driver->connect($connectionName);
+                break;
         }
         $this->driver = $driver;
         if (!$hasFields) {
