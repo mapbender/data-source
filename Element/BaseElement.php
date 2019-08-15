@@ -98,9 +98,11 @@ abstract class BaseElement extends Element
     /**
      * @param Request $request
      * @return Response
+     * @deprecated do not rely on method name inflection magic; use your own implementation supporting valid actions explicitly
      */
     public function handleHttpRequest(Request $request)
     {
+        @trigger_error('DEPRECATED: ' . get_class($this) . ' should not rely on BaseElement to handle Ajax requests, write your own implementation', E_USER_DEPRECATED);
         $requestData = $this->getRequestData();
         $action = $request->attributes->get('action');
         $names = array_reverse(explode('/', $action));
@@ -211,6 +213,7 @@ abstract class BaseElement extends Element
      */
     protected function getRequestData(Request $request = null)
     {
+        @trigger_error('DEPRECATED: ' . get_class($this) . '::getRequestData will be removed in a future release (version TBD).', E_USER_DEPRECATED);
         if (!$request) {
             $request = $this->container->get('request_stack')->getCurrentRequest();
         }
