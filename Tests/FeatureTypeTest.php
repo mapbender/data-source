@@ -2,9 +2,6 @@
 namespace Mapbender\DataSourceBundle\Tests;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
-use Doctrine\DBAL\Driver\Connection;
-use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
-use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\FeatureType;
 use Mapbender\DataSourceBundle\Entity\Feature;
 
@@ -65,15 +62,12 @@ class FeatureTypeTest extends SymfonyTest
      */
     public function testGeometries()
     {
-        /** @var Connection $db */
         /** @var Registry $doctrine */
-        /** @var PostgreSQL|Geographic $driver */
         $container      = self::$container;
         $doctrine       = $container->get("doctrine");
-        $features       = $container->get("features");
+        $container->get("features");
         $connectionName = $this->configuration['connection'];
-        $db             = $doctrine->getConnection($connectionName);
-        $schemaName     = 'public';
+        $doctrine->getConnection($connectionName);
 
         foreach (array(
                      self::WKT_POINT,
@@ -104,7 +98,6 @@ class FeatureTypeTest extends SymfonyTest
             ), $srid, $uniqueIdField, $geomFieldName);
 
             $driver->createTable($tableName, $uniqueIdField, true);
-            //$db->exec("DELETE FROM " . $tableName);
             $featureType->addGeometryColumn($tableName, $type, $srid, $geomFieldName);
 
             for ($i = 0; $i < 10; $i++) {
