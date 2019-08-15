@@ -5,6 +5,7 @@ use Doctrine\DBAL\Connection;
 use FOM\UserBundle\Entity\User;
 use Mapbender\CoreBundle\Component\Element;
 use Mapbender\DataSourceBundle\Component\DataStoreService;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -95,26 +96,19 @@ abstract class BaseElement extends Element
     }
 
     /**
-     * Handles requests (API)
-     *
-     * Get request "action" variable and run defined action method.
-     *
-     * Example: if $action="feature/get", then convert name
-     *          and run $this->getFeatureAction($request);
-     *
-     * @inheritdoc
+     * @param Request $request
+     * @return Response
      */
-    public function httpAction($action)
+    public function handleHttpRequest(Request $request)
     {
-        $request     = $this->getRequestData();
-        $names       = array_reverse(explode('/', $action));
-        $namesLength = count($names);
-        for ($i = 1; $i < $namesLength; $i++) {
-            $names[ $i ][0] = strtoupper($names[ $i ][0]);
-        }
+        $requestData = $this->getRequestData();
+        $action = $request->attributes->get('action');
+        $names = array_reverse(explode('/', $action));
+        $names = array_merge(array($names[0]), array_map('ucfirst', array_slice($names, 1)));
+
         $action     = implode($names);
         $methodName = preg_replace('/[^a-z]+/si', null, $action) . 'Action';
-        $result     = $this->{$methodName}($request);
+        $result     = $this->{$methodName}($requestData);
 
         if (is_array($result)) {
             $serializer = new JsonSerializer();
@@ -123,6 +117,22 @@ abstract class BaseElement extends Element
         }
 
         return $result;
+    }
+
+    /**
+     * Handles requests (API)
+     *
+     * Get request "action" variable and run defined action method.
+     *
+     * Example: if $action="feature/get", then convert name
+     *          and run $this->getFeatureAction($request);
+     *
+     * @inheritdoc
+     * @deprecated
+     */
+    public function httpAction($action)
+    {
+        return $this->handleHttpRequest($this->container->get('request_stack')->getCurrentRequest());
     }
 
 
@@ -192,21 +202,26 @@ abstract class BaseElement extends Element
     }
 
     /**
+     * @param Request|null $request
      * @return array|mixed
      * @throws \LogicException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException
+     * @deprecated implement your own data extraction in action methods
      */
-    protected function getRequestData()
+    protected function getRequestData(Request $request = null)
     {
-        $content = $this->container->get('request')->getContent();
-        $request = array_merge($_POST, $_GET);
+        if (!$request) {
+            $request = $this->container->get('request_stack')->getCurrentRequest();
+        }
+        $content = $request->getContent();
+        $requestData = array_merge($_POST, $_GET);
 
         if (!empty($content)) {
-            $request = array_merge($request, json_decode($content, true));
+            $requestData = array_merge($requestData, json_decode($content, true));
         }
 
-        return $this->decodeRequest($request);
+        return $this->decodeRequest($requestData);
     }
 
     /**
