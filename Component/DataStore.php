@@ -9,7 +9,6 @@ use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
-use Mapbender\DataSourceBundle\Component\Drivers\YAML;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -97,9 +96,6 @@ class DataStore
         }
 
         switch ($type) {
-            case'yaml':
-                $driver = new YAML($this->container, $args);
-                break;
             default: // doctrine
                 $connection = $this->container->get("doctrine.dbal.{$connectionName}_connection");
                 switch ($connection->getDatabasePlatform()->getName()) {
