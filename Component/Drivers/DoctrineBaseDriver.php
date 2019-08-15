@@ -183,7 +183,7 @@ class DoctrineBaseDriver extends BaseDriver implements Base
      * Info: $schemaManager->listTableColumns($this->tableName) doesn't work if fields are geometries!
      *
      * @throws \Doctrine\DBAL\DBALException
-     * @return array field names
+     * @return string[] field names
      */
     public function getStoreFields()
     {
@@ -314,7 +314,7 @@ class DoctrineBaseDriver extends BaseDriver implements Base
      * Get data item by id
      *
      * @param $id
-     * @return mixed
+     * @return DataItem
      */
     public function getById($id)
     {
