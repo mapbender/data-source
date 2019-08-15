@@ -269,17 +269,12 @@ class DataStore
     }
 
     /**
-     * Is oralce platform
-     *
      * @return bool
+     * @deprecated
      */
     public function isOracle()
     {
-        static $r;
-        if (is_null($r)) {
-            $r = $this->driver->getPlatformName() == self::ORACLE_PLATFORM;
-        }
-        return $r;
+        return ($this->getDriver()) instanceof Oracle;
     }
 
 
@@ -297,28 +292,22 @@ class DataStore
      * Is SQLite platform
      *
      * @return bool
+     * @deprecated
      */
     public function isSqlite()
     {
-        static $r;
-        if (is_null($r)) {
-            $r = $this->driver->getPlatformName() == self::SQLITE_PLATFORM;
-        }
-        return $r;
+        return ($this->getDriver()) instanceof SQLite;
     }
 
     /**
      * Is postgres platform
      *
      * @return bool
+     * @deprecated
      */
     public function isPostgres()
     {
-        static $r;
-        if (is_null($r)) {
-            $r = $this->driver->getPlatformName() == self::POSTGRESQL_PLATFORM;
-        }
-        return $r;
+        return ($this->getDriver()) instanceof PostgreSQL;
     }
 
     /**
