@@ -102,6 +102,11 @@ abstract class BaseElement extends Element
      */
     public function handleHttpRequest(Request $request)
     {
+        $r = new \ReflectionMethod($this, 'httpAction');
+        if ($r->getDeclaringClass() !== __CLASS__) {
+            return $this->httpAction($request->attributes->get('action'));
+        }
+
         @trigger_error('DEPRECATED: ' . get_class($this) . ' should not rely on BaseElement to handle Ajax requests, write your own implementation', E_USER_DEPRECATED);
         $requestData = $this->getRequestData();
         $action = $request->attributes->get('action');
@@ -134,9 +139,9 @@ abstract class BaseElement extends Element
      */
     public function httpAction($action)
     {
-        return $this->handleHttpRequest($this->container->get('request_stack')->getCurrentRequest());
+        $request = $this->container->get('request_stack')->getCurrentRequest();
+        return $this->handleHttpRequest($request);
     }
-
 
     /**
      * Prepare element by type
