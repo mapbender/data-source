@@ -46,9 +46,7 @@ class DataStore
     /** @var Filesystem */
     protected $filesystem;
 
-    /**
-     * @var Base $driver
-     */
+    /** @var Base */
     protected $driver;
     public    $events;
     protected $allowSave;
@@ -136,17 +134,14 @@ class DataStore
         $dataItem     = $this->get($id);
         $queryBuilder = $this->driver->getSelectQueryBuilder();
         $queryBuilder->andWhere($this->driver->getUniqueId() . " = " . $dataItem->getAttribute($this->getParentField()));
+        $queryBuilder->setMaxResults(1);
         $statement  = $queryBuilder->execute();
-        $rows       = array($statement->fetch());
-        $hasResults = count($rows) > 0;
-        $parent     = null;
-
-        if ($hasResults) {
-            $this->driver->prepareResults($rows);
-            $parent = $rows[0];
+        $rows = $this->driver->prepareResults($statement->fetchAll());
+        if ($rows) {
+            return $rows[0];
+        } else {
+            return null;
         }
-
-        return $parent;
     }
 
     /**
@@ -165,13 +160,7 @@ class DataStore
             $queryBuilder->andWhere($this->getParentField() . " = " . $parentId);
         }
         $statement  = $queryBuilder->execute();
-        $rows       = $statement->fetchAll();
-        $hasResults = count($rows) > 0;
-
-        // Cast array to DataItem array list
-        if ($hasResults) {
-            $this->driver->prepareResults($rows);
-        }
+        $rows = $this->driver->prepareResults($statement->fetchAll());
 
         if ($recursive) {
             /** @var DataItem $dataItem */

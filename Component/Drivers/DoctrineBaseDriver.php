@@ -243,7 +243,6 @@ class DoctrineBaseDriver extends BaseDriver implements Base
         $maxResults   = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
         $where        = isset($criteria['where']) ? $criteria['where'] : null;
         $queryBuilder = $this->getSelectQueryBuilder();
-        //        $returnType   = isset($criteria['returnType']) ? $criteria['returnType'] : null;
 
         // add filter (https://trac.wheregroup.com/cp/issues/3733)
         if (!empty($this->sqlFilter)) {
@@ -256,17 +255,11 @@ class DoctrineBaseDriver extends BaseDriver implements Base
         }
 
         $queryBuilder->setMaxResults($maxResults);
-        // $queryBuilder->setParameters($params);
         $statement  = $queryBuilder->execute();
         $rows       = $statement->fetchAll();
-        $hasResults = count($rows) > 0;
 
         // Cast array to DataItem array list
-        if ($hasResults) {
-            $this->prepareResults($rows);
-        }
-
-        return $rows;
+        return $this->prepareResults($rows);
     }
 
     /**
@@ -275,12 +268,13 @@ class DoctrineBaseDriver extends BaseDriver implements Base
      * @param array $rows - Data items to be casted
      * @return DataItem[]
      */
-    public function prepareResults(&$rows)
+    public function prepareResults($rows)
     {
-        foreach ($rows as $key => &$row) {
-            $row = $this->create($row);
+        $rowsOut = array();
+        foreach ($rows as $key => $row) {
+            $rowsOut[] = $this->create($row);
         }
-        return $rows;
+        return $rowsOut;
     }
 
 
@@ -419,8 +413,7 @@ class DoctrineBaseDriver extends BaseDriver implements Base
 
         $statement = $queryBuilder->execute();
         $rows      = $statement->fetchAll();
-        $this->prepareResults($rows);
-        return $rows;
+        return $this->prepareResults($rows);
     }
 
     /**

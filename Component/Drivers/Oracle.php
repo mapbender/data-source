@@ -19,7 +19,11 @@ class Oracle extends DoctrineBaseDriver implements Geographic
      */
     public static function transformColumnNames(&$rows)
     {
-        $columnNames = array_keys(current($rows));
+        if (!$rows) {
+            $columnNames = array();
+        } else {
+            $columnNames = array_keys(current($rows));
+        }
         foreach ($rows as &$row) {
             foreach ($columnNames as $name) {
                 $row[ strtolower($name) ] = &$row[ $name ];
@@ -34,11 +38,11 @@ class Oracle extends DoctrineBaseDriver implements Geographic
      * @param array $rows
      * @return DataItem[]
      */
-    public function prepareResults(&$rows)
+    public function prepareResults($rows)
     {
-        // Transform Oracle result column names from upper to lower case
-        self::transformColumnNames($rows);
-        return parent::prepareResults($rows);
+        $rowsOut = parent::prepareResults($rows);
+        self::transformColumnNames($rowsOut);
+        return $rowsOut;
     }
 
     /**
