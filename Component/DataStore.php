@@ -3,6 +3,7 @@ namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
+use Mapbender\CoreBundle\Component\UploadsManager;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
@@ -12,6 +13,7 @@ use Mapbender\DataSourceBundle\Component\Drivers\YAML;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
@@ -41,6 +43,8 @@ class DataStore
 
     /** @var ContainerInterface */
     protected $container;
+    /** @var Filesystem */
+    protected $filesystem;
 
     /**
      * @var Base $driver
@@ -63,8 +67,8 @@ class DataStore
      */
     public function __construct(ContainerInterface $container, $args = null)
     {
-        /** @var Connection $connection */
         $this->container = $container;
+        $this->filesystem = $container->get('filesystem');
         $type           = isset($args["type"]) ? $args["type"] : "doctrine";
         $connectionName = isset($args["connection"]) ? $args["connection"] : "default";
         $driver         = null;
@@ -518,5 +522,15 @@ class DataStore
         $criteria = $this->get($id)->getAttribute($internalFieldName);
 
         return $externalDriver->getByCriteria($criteria, $externalFieldName);
+    }
+
+    /**
+     * @return UploadsManager
+     */
+    protected function getUploadsManager()
+    {
+        /** @var UploadsManager $ulm */
+        $ulm = $this->container->get('mapbender.uploads_manager.service');
+        return $ulm;
     }
 }
