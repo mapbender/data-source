@@ -48,14 +48,6 @@ interface Base
     public function remove($args);
 
     /**
-     * Connect to the source
-     *
-     * @param $url
-     * @return mixed
-     */
-    public function connect($url);
-
-    /**
      * Is the driver connected an ready to interact?
      *
      * @return bool

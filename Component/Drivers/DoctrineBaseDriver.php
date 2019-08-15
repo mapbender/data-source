@@ -30,16 +30,10 @@ class DoctrineBaseDriver extends BaseDriver implements Base
      */
     protected $sqlFilter;
 
-    /**
-     * Open connection by name$settings
-     *
-     * @param $name
-     * @return $this
-     */
-    public function connect($name = "default")
+    public function __construct(Connection $connection, array $args = array())
     {
-        $this->connection = $this->container->get("doctrine.dbal.{$name}_connection");
-        return $this;
+        $this->connection = $connection;
+        parent::__construct($args);
     }
 
     /**

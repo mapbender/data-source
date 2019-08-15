@@ -71,7 +71,6 @@ class DataStore
         $this->filesystem = $container->get('filesystem');
         $type           = isset($args["type"]) ? $args["type"] : "doctrine";
         $connectionName = isset($args["connection"]) ? $args["connection"] : "default";
-        $driver         = null;
         $this->events   = isset($args["events"]) ? $args["events"] : array();
         $hasFields      = isset($args["fields"]) && is_array($args["fields"]);
 
@@ -97,38 +96,23 @@ class DataStore
         }
 
         /** @var Connection $connection */
-        switch ($type) {
-            default: // doctrine
-                $connection = $container->get("doctrine.dbal.{$connectionName}_connection");
-                switch ($connection->getDatabasePlatform()->getName()) {
-                    case self::SQLITE_PLATFORM;
-                        $driver = new SQLite($container, $args);
-                        break;
-                    case self::POSTGRESQL_PLATFORM;
-                        $driver = new PostgreSQL($container, $args);
-                        break;
-                    case self::ORACLE_PLATFORM;
-                        $driver = new Oracle($this->container, $args);
-                        break;
-                }
-                $driver->connect($connectionName);
+        $connection = $container->get("doctrine.dbal.{$connectionName}_connection");
+        switch ($connection->getDatabasePlatform()->getName()) {
+            case self::SQLITE_PLATFORM;
+                $this->driver = new SQLite($connection, $args);
+                break;
+            case self::POSTGRESQL_PLATFORM;
+                $this->driver = new PostgreSQL($connection, $args);
+                break;
+            case self::ORACLE_PLATFORM;
+                $this->driver = new Oracle($connection, $args);
                 break;
         }
-        $this->driver = $driver;
         if (!$hasFields) {
-            $driver->setFields($driver->getStoreFields());
+            $this->driver->setFields($this->driver->getStoreFields());
         } else {
-            $driver->setFields($args["fields"]);
+            $this->driver->setFields($args["fields"]);
         }
-    }
-
-    /**
-     * @param $url
-     * @return mixed
-     */
-    public function connect($url)
-    {
-        return $this->getDriver()->connect($url);
     }
 
     /**
