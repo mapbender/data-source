@@ -103,7 +103,7 @@ abstract class BaseElement extends Element
     public function handleHttpRequest(Request $request)
     {
         $r = new \ReflectionMethod($this, 'httpAction');
-        if ($r->getDeclaringClass() !== __CLASS__) {
+        if ($r->getDeclaringClass()->name !== __CLASS__) {
             return $this->httpAction($request->attributes->get('action'));
         }
 
