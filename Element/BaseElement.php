@@ -160,6 +160,10 @@ abstract class BaseElement extends Element
             $item["children"] = $this->prepareItems($item["children"]);
         }
 
+        if (isset($item["popupItems"])) {
+            $item["popupItems"] = $this->prepareItems($item["popupItems"]);
+        }
+
         switch ($item['type']) {
             case 'select':
                 if (isset($item['sql'])) {
