@@ -175,13 +175,12 @@ abstract class BaseElement extends Element
                     unset($item['connection']);
                     /** @var Connection $connection */
                     $connection = $this->container->get("doctrine.dbal.{$connectionName}_connection");
-                    $all        = $connection->fetchAll($sql);
-                    if (isset($item["asObject"]) && $item["asObject"] == true) {
-                        $options = $all;
-                    } else {
-                        foreach ($all as $option) {
-                            $options[] = array(reset($option), end($option));
-                        }
+                    foreach ($connection->fetchAll($sql) as $row) {
+                        // legacy fun time: use first and last column
+                        $option = array(reset($row), end($row));
+                        // sane: add entire rest of (associative) columns
+                        $option += $row;
+                        $options[] = $option;
                     }
                     $item["options"] = $options;
                 }
