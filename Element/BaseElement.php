@@ -178,18 +178,15 @@ abstract class BaseElement extends Element
      */
     protected function prepareSelectItem($item)
     {
-        if (isset($item['sql'])) {
-            $item = $this->prepareSqlSelectItem($item);
+        if (!empty($item['dataStore'])) {
+            return $this->prepareDataStoreSelectItem($item);
+        } elseif (!empty($item['service'])) {
+            return $this->prepareServiceSelectItem($item);
+        } elseif (!empty($item['sql'])) {
+            return $this->prepareSqlSelectItem($item);
+        } else {
+            return $item;
         }
-
-        if (isset($item['service'])) {
-            $item = $this->prepareServiceSelectItem($item);
-        }
-
-        if (isset($item['dataStore'])) {
-            $item = $this->prepareDataStoreSelectItem($item);
-        }
-        return $item;
     }
 
     /**
