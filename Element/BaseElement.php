@@ -43,6 +43,9 @@ abstract class BaseElement extends Element
      * Subject to translation.
      *
      * @return string
+     * @todo: remove method, require child implementation.
+     *        This will break digitizer >=1.1.50, <=1.1.71.
+     *        Safe in any version: data-manager, query-builder, search
      */
     public static function getClassTitle()
     {
@@ -54,6 +57,9 @@ abstract class BaseElement extends Element
      * Subject to translation.
      *
      * @return string
+     * @todo: remove method, require child implementation.
+     *        This will break digitizer >=1.1.50, <=1.1.71.
+     *        Safe in any version: data-manager, query-builder, search
      */
     public static function getClassDescription()
     {
@@ -67,6 +73,10 @@ abstract class BaseElement extends Element
      * @return string
      * @deprecated every Element component should return its widget constructor name explicitly
      *  unless it wants to inherit a parent value.
+     * @todo: remove method, require child implementation.
+     *        This will break digitizer >=1.1.50, <=1.1.71.
+     *        This will break search >=bfab127, <=96d917a.
+     *        Safe in any version: data-manager, query-builder
      */
     public function getWidgetName()
     {
@@ -106,7 +116,27 @@ abstract class BaseElement extends Element
         if ($r->getDeclaringClass()->name !== __CLASS__) {
             return $this->httpAction($request->attributes->get('action'));
         }
+        return $this->handleHttpRequestMagically($request);
+    }
 
+    /**
+     * Magically invoke action method with implicit data merging and some Zumba json.
+     * Action method names are reversed words from action, split at dashes, uc'ed, and
+     * appended with "Action".
+     *
+     * Example: if action == "feature/get", invokes method getFeatureAction.
+     *   If getFeatureAction returns a Response, return it as is
+     *   If getFeatureAction returns an array, run it through Zumba JsonSerializer and wrap it in a Response
+     *   If getFeatureAction returns anything else, we cross fingers and hope for controller
+     *   handling.
+     * @param Request $request
+     * @return Response
+     * @deprecated you really don't want any of this to happen; write a handleHttpRequest
+     *         method with a big switch / case handling each supported Ajax action explicitly
+     * @internal
+     */
+    private function handleHttpRequestMagically(Request $request)
+    {
         @trigger_error('DEPRECATED: ' . get_class($this) . ' should not rely on BaseElement to handle Ajax requests, write your own implementation', E_USER_DEPRECATED);
         $requestData = $this->getRequestData();
         $action = $request->attributes->get('action');
@@ -128,12 +158,6 @@ abstract class BaseElement extends Element
     }
 
     /**
-     * Handles requests (API)
-     *
-     * Get request "action" variable and run defined action method.
-     *
-     * Example: if $action="feature/get", then convert name
-     *          and run $this->getFeatureAction($request);
      *
      * @inheritdoc
      * @deprecated
@@ -442,6 +466,10 @@ abstract class BaseElement extends Element
      * Bare-bones reimplementation of deprecated upstream method.
      *
      * @return string fully qualified class name
+     * @todo: remove method, require child implementation. This will break
+     *      digitizer >= 1.1.50, <= 1.1.71
+     *      search < d61945be4183b6ed208f322c2e3e775f2b45fd9b
+     *      safe in all versions: data-manager, query-builder
      */
     public static function getType()
     {
@@ -476,6 +504,11 @@ abstract class BaseElement extends Element
      * Bare-bones reimplementation of deprecated upstream method.
      *
      * @return string twig-style template resource reference
+     * @todo: remove method, require child implementation. This will break
+     *      query-builder < 1.0.3
+     *      digitizer >= 1.1.50, <= 1.1.71
+     *      search < d61945be4183b6ed208f322c2e3e775f2b45fd9b
+     *      safe in all versions: data-manager
      */
     public static function getFormTemplate()
     {
@@ -488,6 +521,11 @@ abstract class BaseElement extends Element
      *
      * @param string $suffix '.html.twig' (default) or '.json.twig'
      * @return string twig-style template resource reference
+     * @todo: remove method, require child implementation. This will break
+     *      query-builder < 1.0.2
+     *      digitizer >= 1.1.50, <= 1.1.71
+     *      data-manager < 1.0.6.2
+     *      search <= 86e8fd24b910bcbd5093e207d2afb12cedff8bd4
      */
     public function getFrontendTemplatePath($suffix = '.html.twig')
     {
