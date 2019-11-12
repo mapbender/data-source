@@ -234,9 +234,12 @@ abstract class BaseElement extends Element
      * @return mixed[]
      * @todo on release: update since
      * @since post-0.1.14
+     * @deprecated for being untestable and unmaintainable; override prepareSelectItem for
+     *    project-specific customization
      */
     protected function prepareServiceSelectItem($item)
     {
+        @trigger_error("Taking deprecated 'service' path to generate select item options. Extend prepareSelectItem to customize your project instead. Item: " . print_r($item, true), E_USER_DEPRECATED);
         $serviceInfo = $item['service'];
         if (empty($serviceInfo['serviceName'])) {
             throw new \RuntimeException("Invalid 'service' select item configuration, missing required serviceName. Item: " . print_r($item, true));
