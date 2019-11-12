@@ -191,8 +191,12 @@ abstract class BaseElement extends Element
             $options = array();
             foreach ($item['options'] as $value => $label) {
                 $options[] = array(
-                    $value,
-                    $label,
+                    // Force object emission to bypass vis-ui's "isValuePack" path
+                    // use fancy underscores to reinforce key
+                    // order, in case json encoding / json parsing
+                    // performs any sorting
+                    '___value' => $value,
+                    '__label' => $label,
                 );
             }
             return $options;
@@ -253,8 +257,17 @@ abstract class BaseElement extends Element
         // is taken from the first column, and the displayed label
         // from the _last_ column.
         return array(
-            reset($row),
-            end($row),
+            // Force object emission to bypass vis-ui's "isValuePack" path
+            // use fancy underscores to reinforce key
+            // order, in case json encoding / json parsing
+            // performs any sorting
+            '___value' => reset($row),
+            '__label' => end($row),
+            // emit entire associative row array as well, minus nonserializable
+            // resources (e.g. certain Oracle types)
+            'properties' => array_filter($row, function($column) {
+                return !is_resource($column);
+            }),
         );
     }
 
