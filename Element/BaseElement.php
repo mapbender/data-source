@@ -171,6 +171,26 @@ abstract class BaseElement extends Element
     }
 
     /**
+     * Reformat statically defined select item options for vis-ui
+     * consumption.
+     *
+     * @param mixed[] $item
+     * @return array
+     * @todo on release: update since
+     * @since post-0.1.14
+     */
+    protected function formatStaticSelectItemOptions($item)
+    {
+        if (empty($item['options'])) {
+            return array();
+        } elseif (!is_array($item['options'])) {
+            throw new \RuntimeException("Invalid type " . gettype($item['options']) . " in select item options. Expected array. Item: " . print_r($item, true));
+        } else {
+            return $item['options'];
+        }
+    }
+
+    /**
      * @param mixed[] $item
      * @return mixed[]
      * @todo on release: update since
@@ -200,8 +220,33 @@ abstract class BaseElement extends Element
         } elseif (!empty($item['sql'])) {
             return $this->prepareSqlSelectItem($item);
         } else {
+            $item['options'] = $this->formatStaticSelectItemOptions($item);
             return $item;
         }
+    }
+
+    /**
+     * Reformat single select option loaded from 'sql' path for
+     * vis-ui consumption.
+     *
+     * @param array $row
+     * @param mixed[] $selectItem
+     * @return mixed[]
+     * @todo on release: update since
+     * @since post-0.1.14
+     */
+    protected function formatSqlSelectItemOption($row, $selectItem)
+    {
+        // Legacy quirk: reset / end allows using a single-column
+        // select where each option's submit value is the same as its
+        // label.
+        // When processing a multi-column row, the submit value
+        // is taken from the first column, and the displayed label
+        // from the _last_ column.
+        return array(
+            reset($row),
+            end($row),
+        );
     }
 
     /**
@@ -215,17 +260,14 @@ abstract class BaseElement extends Element
         $connectionName = isset($item['connection']) ? $item['connection'] : 'default';
         $sql = $item['sql'];
         /** @todo; mix and match of static options and sql options is broken; either use a format where it works for both, or complain / throw */
-        $options = isset($item["options"]) ? $item["options"] : array();
+        $item['options'] = $this->formatStaticSelectItemOptions($item);
 
         unset($item['sql']);
         unset($item['connection']);
-        /** @var Connection $connection */
-        $connection = $this->container->get("doctrine.dbal.{$connectionName}_connection");
-        $all = $connection->fetchAll($sql);
-        foreach ($all as $option) {
-            $options[] = array(reset($option), end($option));
+        $connection = $this->getDbalConnectionByName($connectionName);
+        foreach ($connection->fetchAll($sql) as $row) {
+            $item['options'][] = $this->formatSqlSelectItemOption($row, $item);
         }
-        $item['options'] = $options;
         return $item;
     }
 
@@ -288,6 +330,20 @@ abstract class BaseElement extends Element
         /** @var DataStoreService $service */
         $service = $this->container->get('data.source');
         return $service;
+    }
+
+    /**
+     * @param string $name
+     * @return Connection
+     * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
+     * @todo on release: update since
+     * @since post-0.1.14
+     */
+    protected function getDbalConnectionByName($name)
+    {
+        /** @var Connection $connection */
+        $connection = $this->container->get("doctrine.dbal.{$name}_connection");
+        return $connection;
     }
 
     /**
