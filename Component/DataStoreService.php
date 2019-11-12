@@ -4,16 +4,11 @@ namespace Mapbender\DataSourceBundle\Component;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Features service handles feature types
- *
  * @author    Andriy Oblivantsev <eslider@gmail.com>
- * @package   Mapbender\CoreBundle\Component
  */
 class DataStoreService
 {
-    /**
-     * @var DataStore[] feature types
-     */
+    /** @var DataStore[] */
     protected $storeList = array();
     /** @var ContainerInterface */
     protected $container;
@@ -33,16 +28,35 @@ class DataStoreService
     /**
      * Get store by name
      *
-     * @param $name String data store name
-     * @return DataStore|null
+     * @param string $name
+     * @return DataStore
      */
     public function get($name)
     {
-        if (!isset($this->storeList[ $name ])) {
+        return $this->getDataStoreByName($name);
+    }
+
+    /**
+     * @param string $name
+     * @return DataStore
+     */
+    public function getDataStoreByName($name)
+    {
+        if (!isset($this->storeList[$name])) {
             $configs = $this->getDataStoreDeclarations();
-            $this->storeList[ $name ] = new DataStore($this->container, $configs[ $name ]);
+            $this->storeList[$name] = $this->dataStoreFactory($configs[$name]);
         }
-        return $this->storeList[ $name ];
+        return $this->storeList[$name];
+    }
+
+    /**
+     * @param mixed[] $config
+     * @return DataStore
+     */
+    public function dataStoreFactory(array $config)
+    {
+        // @todo: stop injecting full container into DataStore
+        return new DataStore($this->container, $config);
     }
 
     /**
@@ -63,4 +77,5 @@ class DataStoreService
         $paramKey = $this->declarationPath;
         return $this->container->getParameter($paramKey);
     }
+
 }

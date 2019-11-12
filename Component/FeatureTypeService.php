@@ -9,14 +9,13 @@ use Symfony\Component\Yaml\Yaml;
  *
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  * @copyright 18.03.2015 by WhereGroup GmbH & Co. KG
- * @package   Mapbender\CoreBundle\Component
- *
- * @property FeatureType[] $storeList
  */
 class FeatureTypeService extends DataStoreService
 {
     /** @var mixed */
     protected $declarations;
+    /** @var FeatureType[] */
+    protected $featureTypes;
 
     /**
      * @param ContainerInterface $container
@@ -30,19 +29,38 @@ class FeatureTypeService extends DataStoreService
     /**
      * Get feature type by name
      *
-     * @param $id
+     * @param string $name
      * @return FeatureType
      */
-    public function get($id)
+    public function get($name)
     {
-        if (empty($this->storeList[$id])) {
+        return $this->getFeatureTypeByName($name);
+    }
+
+    /**
+     * @param string $name
+     * @return FeatureType
+     */
+    public function getFeatureTypeByName($name)
+    {
+        if (empty($this->featureTypes[$name])) {
             $declarations = $this->getFeatureTypeDeclarations();
-            if (empty($declarations[$id])) {
-                throw new \RuntimeException("No FeatureType with id " . var_export($id, true));
+            if (empty($declarations[$name])) {
+                throw new \RuntimeException("No FeatureType with id " . var_export($name, true));
             }
-            $this->storeList[$id] = new FeatureType($this->container, $declarations[$id]);
+            $this->featureTypes[$name] = $this->featureTypeFactory($declarations[$name]);
         }
-        return $this->storeList[$id];
+        return $this->featureTypes[$name];
+    }
+
+    /**
+     * @param mixed[] $config
+     * @return FeatureType
+     */
+    public function featureTypeFactory(array $config)
+    {
+        // @todo: stop injecting full container into FeatureType
+        return new FeatureType($this->container, $config);
     }
 
     /**
@@ -53,11 +71,11 @@ class FeatureTypeService extends DataStoreService
     public function search()
     {
         foreach ($this->getFeatureTypeDeclarations() as $id => $declaration) {
-            if (empty($this->storeList[$id])) {
-                $this->storeList[$id] = new FeatureType($this->container, $declaration);
+            if (empty($this->featureTypes[$id])) {
+                $this->featureTypes[$id] = $this->featureTypeFactory($declaration);
             }
         }
-        return $this->storeList;
+        return $this->featureTypes;
     }
 
     /**
