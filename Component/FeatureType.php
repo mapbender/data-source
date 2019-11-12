@@ -141,7 +141,7 @@ class FeatureType extends DataStore
      */
     public function setFields(array $fields)
     {
-        return $this->driver->setFields($fields);
+        return $this->getDriver()->setFields($fields);
     }
 
     /**
@@ -389,18 +389,20 @@ class FeatureType extends DataStore
      * Get unique ID
      *
      * @return mixed unique ID
+     * @todo: this information belongs HERE, not in the driver
      */
     public function getUniqueId()
     {
-        return $this->driver->getUniqueId();
+        return $this->getDriver()->getUniqueId();
     }
 
     /**
      * @return string
+     * @todo: this information belongs here, not in the driver
      */
     public function getTableName()
     {
-        return $this->driver->getTableName();
+        return $this->getDriver()->getTableName();
     }
 
     /**
@@ -413,6 +415,7 @@ class FeatureType extends DataStore
 
     /**
      * @return array
+     * @todo: this information belongs here, not in the driver
      */
     public function getFields()
     {
@@ -425,12 +428,14 @@ class FeatureType extends DataStore
      * @param Feature[] $rows
      * @param null      $srid
      * @return Feature[]
+     * @todo: this logic belongs in the driver, not here
      */
     public function prepareResults(&$rows, $srid = null)
     {
+        $driver = $this->getDriver();
         $hasSrid = $srid != null;
 
-        if ($this->driver instanceof Oracle) {
+        if ($driver instanceof Oracle) {
             Oracle::transformColumnNames($rows);
         }
 
@@ -452,7 +457,7 @@ class FeatureType extends DataStore
      */
     public function getSelectQueryBuilder($srid = null)
     {
-        $driver             = $this->driver;
+        $driver = $this->getDriver();
         $geomFieldCondition = $driver->getGeomAttributeAsWkt($this->geomField, $srid ? $srid : $this->getSrid());
         $queryBuilder       = $driver->getSelectQueryBuilder(array($geomFieldCondition));
         return $queryBuilder;
@@ -486,7 +491,7 @@ class FeatureType extends DataStore
      */
     public function getSrid()
     {
-        $driver = $this->driver;
+        $driver = $this->getDriver();
         if (!$this->srid  && $driver instanceof Geographic) {
             /** @var PostgreSQL|Geographic $driver */
             $this->srid = $driver->findGeometryFieldSrid($this->getTableName(), $this->geomField);
@@ -540,6 +545,7 @@ class FeatureType extends DataStore
      * @param int    $dimensions
      * @return bool
      * @throws \Doctrine\DBAL\DBALException
+     * @deprecated remove in 0.2.0; this isn't a schema manager utility, find a DBA
      */
     public function addGeometryColumn($tableName,
         $type,

@@ -48,6 +48,7 @@ abstract class BaseDriver
 
     /**
      * @param int $uniqueId
+     * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function setUniqueId($uniqueId)
     {
@@ -56,6 +57,7 @@ abstract class BaseDriver
 
     /**
      * @return array
+     * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function getFields()
     {
@@ -65,6 +67,7 @@ abstract class BaseDriver
     /**
      * @param array $fields
      * @return array
+     * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function setFields(array $fields)
     {
@@ -75,6 +78,7 @@ abstract class BaseDriver
      * Get fields defined by store
      *
      * @return array
+     * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function getStoreFields()
     {
@@ -85,6 +89,7 @@ abstract class BaseDriver
      * Get unique ID field name
      *
      * @return mixed unique ID
+     * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function getUniqueId()
     {
@@ -120,14 +125,6 @@ abstract class BaseDriver
     public function getConnection()
     {
         return $this->connection;
-    }
-
-    /**
-     * @return int
-     */
-    public function getLastInsertId()
-    {
-        return 0;
     }
 
     /**

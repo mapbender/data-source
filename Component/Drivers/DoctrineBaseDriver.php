@@ -402,7 +402,7 @@ class DoctrineBaseDriver extends BaseDriver implements Base
      *
      * @param $criteria
      * @param $fieldName
-     * @return \Mapbender\DataSourceBundle\Entity\DataItem[]
+     * @return DataItem[]
      */
     public function getByCriteria($criteria, $fieldName)
     {

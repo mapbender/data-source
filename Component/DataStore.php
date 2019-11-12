@@ -2,7 +2,6 @@
 namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Statement;
 use Mapbender\CoreBundle\Component\UploadsManager;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
@@ -130,13 +129,13 @@ class DataStore
      */
     public function getParent($id)
     {
-        /** @var Statement $statement */
-        $dataItem     = $this->get($id);
-        $queryBuilder = $this->driver->getSelectQueryBuilder();
-        $queryBuilder->andWhere($this->driver->getUniqueId() . " = " . $dataItem->getAttribute($this->getParentField()));
+        $driver = $this->getDriver();
+        $dataItem = $this->get($id);
+        $queryBuilder = $driver->getSelectQueryBuilder();
+        $queryBuilder->andWhere($driver->getUniqueId() . " = " . $dataItem->getAttribute($this->getParentField()));
         $queryBuilder->setMaxResults(1);
         $statement  = $queryBuilder->execute();
-        $rows = $this->driver->prepareResults($statement->fetchAll());
+        $rows = $driver->prepareResults($statement->fetchAll());
         if ($rows) {
             return $rows[0];
         } else {
@@ -153,14 +152,15 @@ class DataStore
      */
     public function getTree($parentId = null, $recursive = true)
     {
-        $queryBuilder = $this->driver->getSelectQueryBuilder();
+        $driver = $this->getDriver();
+        $queryBuilder = $driver->getSelectQueryBuilder();
         if ($parentId === null) {
             $queryBuilder->andWhere($this->getParentField() . " IS NULL");
         } else {
             $queryBuilder->andWhere($this->getParentField() . " = " . $parentId);
         }
         $statement  = $queryBuilder->execute();
-        $rows = $this->driver->prepareResults($statement->fetchAll());
+        $rows = $driver->prepareResults($statement->fetchAll());
 
         if ($recursive) {
             /** @var DataItem $dataItem */
@@ -180,7 +180,7 @@ class DataStore
      */
     public function create($data)
     {
-        return $this->driver->create($data);
+        return $this->getDriver()->create($data);
     }
 
     /**
@@ -334,7 +334,7 @@ class DataStore
      */
     public function get($args)
     {
-        return $this->driver->get($args);
+        return $this->getDriver()->get($args);
     }
 
     /**
@@ -415,7 +415,7 @@ class DataStore
 
     /**
      * @param mixed $mapping
-     * @return DataStore
+     * @return $this
      */
     public function setMapping($mapping)
     {
