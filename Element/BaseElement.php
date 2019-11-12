@@ -118,6 +118,7 @@ abstract class BaseElement extends Element
         $result     = $this->{$methodName}($requestData);
 
         if (is_array($result)) {
+            /** @todo: remove Zumba serializer; use JsonResponse, like the rest of the world */
             $serializer = new JsonSerializer();
             $responseBody = $serializer->serialize($result);
             $result     = new Response($responseBody, 200, array('Content-Type' => 'application/json'));
@@ -146,8 +147,8 @@ abstract class BaseElement extends Element
     /**
      * Prepare element by type
      *
-     * @param $item
-     * @return mixed
+     * @param mixed[] $item
+     * @return mixed[]
      * @internal param $type
      */
     protected function prepareItem($item)
@@ -172,12 +173,15 @@ abstract class BaseElement extends Element
     /**
      * @param mixed[] $item
      * @return mixed[]
+     * @todo on release: update since
+     * @since post-0.1.14
      */
     protected function prepareSelect($item)
     {
         if (isset($item['sql'])) {
             $connectionName = isset($item['connection']) ? $item['connection'] : 'default';
             $sql            = $item['sql'];
+            /** @todo; mix and match of static options and sql options is broken; either use a format where it works for both, or complain / throw */
             $options        = isset($item["options"]) ? $item["options"] : array();
 
             unset($item['sql']);
