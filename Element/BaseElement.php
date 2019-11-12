@@ -178,6 +178,21 @@ abstract class BaseElement extends Element
      */
     protected function prepareSelectItem($item)
     {
+        $paths = array(
+            'dataStore' => null,
+            'service' => null,
+            'sql' => null,
+        );
+        $configuredPaths = array_keys(array_intersect_key($paths, array_filter($item)));
+        if (count($configuredPaths) > 1) {
+            $message
+                = 'Select item has option configurations for ' . implode(', ', $configuredPaths) . '.'
+                . ' Executing only ' . $configuredPaths[0] . ' path.'
+            ;
+            // NOTE: E_USER_DEPRECATED is the only error level currently guaranteed to end up in logs
+            @trigger_error("WARNING: {$message}", E_USER_DEPRECATED);
+        }
+
         if (!empty($item['dataStore'])) {
             return $this->prepareDataStoreSelectItem($item);
         } elseif (!empty($item['service'])) {
