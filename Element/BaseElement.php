@@ -163,7 +163,7 @@ abstract class BaseElement extends Element
 
         switch ($item['type']) {
             case 'select':
-                return $this->prepareSelect($item);
+                return $this->prepareSelectItem($item);
             default:
                 return $item;
 
@@ -176,48 +176,84 @@ abstract class BaseElement extends Element
      * @todo on release: update since
      * @since post-0.1.14
      */
-    protected function prepareSelect($item)
+    protected function prepareSelectItem($item)
     {
         if (isset($item['sql'])) {
-            $connectionName = isset($item['connection']) ? $item['connection'] : 'default';
-            $sql            = $item['sql'];
-            /** @todo; mix and match of static options and sql options is broken; either use a format where it works for both, or complain / throw */
-            $options        = isset($item["options"]) ? $item["options"] : array();
-
-            unset($item['sql']);
-            unset($item['connection']);
-            /** @var Connection $connection */
-            $connection = $this->container->get("doctrine.dbal.{$connectionName}_connection");
-            $all        = $connection->fetchAll($sql);
-            foreach ($all as $option) {
-                $options[] = array(reset($option), end($option));
-            }
-            $item["options"] = $options;
+            $item = $this->prepareSqlSelectItem($item);
         }
 
         if (isset($item['service'])) {
-            $serviceInfo = $item['service'];
-            $serviceName = isset($serviceInfo['serviceName']) ? $serviceInfo['serviceName'] : 'default';
-            $method      = isset($serviceInfo['method']) ? $serviceInfo['method'] : 'get';
-            $args        = isset($serviceInfo['args']) ? $item['args'] : '';
-            $service     = $this->container->get($serviceName);
-            $options     = $service->$method($args);
-
-            $item['options'] = $options;
+            $item = $this->prepareServiceSelectItem($item);
         }
 
         if (isset($item['dataStore'])) {
-            $dataStoreInfo = $item['dataStore'];
-            $dataStore = $this->getDataStoreService()->get($dataStoreInfo['id']);
-            $options       = array();
-            foreach ($dataStore->search() as $dataItem) {
-                $options[$dataItem->getId()] = $dataItem->getAttribute($dataStoreInfo["text"]);
-            }
-            if (isset($item['dataStore']['popupItems'])) {
-                $item['dataStore']['popupItems'] = $this->prepareItems($item['dataStore']['popupItems']);
-            }
-            $item['options'] = $options;
+            $item = $this->prepareDataStoreSelectItem($item);
         }
+        return $item;
+    }
+
+    /**
+     * @param mixed[] $item
+     * @return mixed[]
+     * @todo on release: update since
+     * @since post-0.1.14
+     */
+    protected function prepareSqlSelectItem($item)
+    {
+        $connectionName = isset($item['connection']) ? $item['connection'] : 'default';
+        $sql = $item['sql'];
+        /** @todo; mix and match of static options and sql options is broken; either use a format where it works for both, or complain / throw */
+        $options = isset($item["options"]) ? $item["options"] : array();
+
+        unset($item['sql']);
+        unset($item['connection']);
+        /** @var Connection $connection */
+        $connection = $this->container->get("doctrine.dbal.{$connectionName}_connection");
+        $all = $connection->fetchAll($sql);
+        foreach ($all as $option) {
+            $options[] = array(reset($option), end($option));
+        }
+        $item['options'] = $options;
+        return $item;
+    }
+
+    /**
+     * @param mixed[] $item
+     * @return mixed[]
+     * @todo on release: update since
+     * @since post-0.1.14
+     */
+    protected function prepareServiceSelectItem($item)
+    {
+        $serviceInfo = $item['service'];
+        $serviceName = isset($serviceInfo['serviceName']) ? $serviceInfo['serviceName'] : 'default';
+        $method = isset($serviceInfo['method']) ? $serviceInfo['method'] : 'get';
+        $args = isset($serviceInfo['args']) ? $item['args'] : '';
+        $service = $this->container->get($serviceName);
+        $options = $service->$method($args);
+
+        $item['options'] = $options;
+        return $item;
+    }
+
+    /**
+     * @param mixed[] $item
+     * @return mixed[]
+     * @todo on release: update since
+     * @since post-0.1.14
+     */
+    protected function prepareDataStoreSelectItem($item)
+    {
+        $dataStoreInfo = $item['dataStore'];
+        $dataStore = $this->getDataStoreService()->get($dataStoreInfo['id']);
+        $options = array();
+        foreach ($dataStore->search() as $dataItem) {
+            $options[$dataItem->getId()] = $dataItem->getAttribute($dataStoreInfo["text"]);
+        }
+        if (isset($item['dataStore']['popupItems'])) {
+            $item['dataStore']['popupItems'] = $this->prepareItems($item['dataStore']['popupItems']);
+        }
+        $item['options'] = $options;
         return $item;
     }
 
