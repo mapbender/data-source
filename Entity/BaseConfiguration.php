@@ -2,8 +2,6 @@
 namespace Mapbender\DataSourceBundle\Entity;
 
 /**
- * Class BaseConfiguration
- *
  * @package Mapbender\DataSourceBundle\Entity
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */

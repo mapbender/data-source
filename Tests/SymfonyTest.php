@@ -6,8 +6,6 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\Container;
 
 /**
- * Class SymfonyTest
- *
  * @package Mapbender\DataSourceBundle\Tests
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */

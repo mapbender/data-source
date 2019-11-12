@@ -10,8 +10,6 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
 
 /**
- * Class PostgreSQL
- *
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
@@ -24,10 +22,6 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
      * @param array|DataItem $item
      * @param bool $cleanData Clean data before insert?
      * @return DataItem
-     * @internal param string $idFieldName
-     * @internal param array|DataItem $rawData
-     * @internal param string $idField
-     * @internal param array|DataItem $item
      */
     public function insert($item, $cleanData = true)
     {

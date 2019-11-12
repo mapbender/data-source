@@ -7,8 +7,6 @@ use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 
 /**
- * Class BaseXmlLoaderExtension
- *
  * @package Mapbender\DataSourceBundle\Extension
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
@@ -30,11 +28,7 @@ class BaseXmlLoaderExtension extends Extension
      * Loads a specific configuration.
      *
      * @param array            $configs
-     * @param ContainerBuilder $container A ContainerBuilder instance
-     *
-     * @internal param array $config An array of configuration values
-     * @api
-     * @return string
+     * @param ContainerBuilder $container
      */
     public function load(array $configs, ContainerBuilder $container)
     {

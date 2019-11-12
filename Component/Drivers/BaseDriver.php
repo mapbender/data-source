@@ -5,8 +5,6 @@ use Doctrine\DBAL\Connection;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
- * Class BaseDriver
- *
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */

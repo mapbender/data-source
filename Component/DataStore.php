@@ -17,11 +17,6 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
- * Class DataSource
- *
- * Data source manager.
- *
- * @package Mapbender\DataSourceBundle
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
 class DataStore

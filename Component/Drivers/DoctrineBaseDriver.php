@@ -8,8 +8,6 @@ use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
- * Class DoctrineBaseDriver
- *
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
@@ -316,7 +314,6 @@ class DoctrineBaseDriver extends BaseDriver implements Base
      * @param array|DataItem $item
      * @param bool           $cleanData
      * @return DataItem
-     * @internal param string $idFieldName
      */
     public function insert($item, $cleanData = true)
     {

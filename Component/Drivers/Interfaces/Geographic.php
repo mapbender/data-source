@@ -1,17 +1,12 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component\Drivers\Interfaces;
 
-/**
- * Interface Geographic
- *
- * @package Mapbender\DataSourceBundle\Component\Drivers
- */
 interface Geographic
 {
     /**
      * Add geometry column
      *
-     * @param        $tableName
+     * @param string $tableName
      * @param        $type
      * @param        $srid
      * @param string $geomFieldName
@@ -29,17 +24,16 @@ interface Geographic
     /**
      * Get table geometry type
      *
-     * @param        $tableName
+     * @param string $tableName
      * @param string $schema
      * @return mixed
      */
     public function getTableGeomType($tableName, $schema = null);
 
     /**
-     * @param      $ewkt
+     * @param string $ewkt
      * @param null $srid
      * @return mixed
-     * @internal param $wkt
      */
     public function transformEwkt($ewkt, $srid = null);
 
@@ -70,7 +64,6 @@ interface Geographic
      * @param  string $tableName
      * @param  string $geomFieldName
      * @return string SQL
-     * @internal param $this
      */
     public function findGeometryFieldSrid($tableName, $geomFieldName);
 }

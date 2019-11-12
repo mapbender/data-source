@@ -4,9 +4,6 @@ namespace Mapbender\DataSourceBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Class DataSource
- *
- * @package   Mapbender\CoreBundle\Entity
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  */
 class DataItem

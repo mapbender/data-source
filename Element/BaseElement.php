@@ -149,7 +149,6 @@ abstract class BaseElement extends Element
      *
      * @param mixed[] $item
      * @return mixed[]
-     * @internal param $type
      */
     protected function prepareItem($item)
     {

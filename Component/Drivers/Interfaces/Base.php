@@ -10,7 +10,6 @@ interface Base
      *
      * @param mixed $id
      * @return array
-     * @internal param string $fieldName
      */
     public function get($id);
 

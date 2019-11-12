@@ -5,8 +5,6 @@ use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
- * Class PostgreSQL
- *
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
@@ -81,13 +79,13 @@ class Oracle extends DoctrineBaseDriver implements Geographic
     }
 
     /**
-     * @param      $ewkt
+     * @param string $ewkt
      * @param null $srid
      * @return mixed
-     * @internal param $wkt
      */
     public function transformEwkt($ewkt, $srid = null)
     {
+        // @todo: use param binding for injection safety
         return $this->getConnection()->fetchColumn(
             "SELECT 
               SDO_CS.TRANSFORM(

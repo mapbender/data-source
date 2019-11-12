@@ -1,11 +1,6 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component\Drivers\Interfaces;
 
-/**
- * Interface Manageble
- *
- * @package Mapbender\DataSourceBundle\Component\Drivers
- */
 interface Manageble
 {
     /**

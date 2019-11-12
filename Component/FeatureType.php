@@ -22,7 +22,6 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  * with spatial abilities like Oracle or PostgreSQL.
  *
  *
- * @package   Mapbender\CoreBundle\Entity
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  * @copyright 2015 by WhereGroup GmbH & Co. KG
  * @link      https://github.com/mapbender/mapbender-digitizer
@@ -264,12 +263,9 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Update
-     *
      * @param $featureData
      * @return Feature
      * @throws \Exception
-     * @internal param array $criteria
      */
     public function update($featureData)
     {
@@ -709,7 +705,6 @@ class FeatureType extends DataStore
      *
      * @param null $fieldName Field
      * @return string[]
-     * @internal param string $extension File extension
      */
     public function genFilePath($fieldName = null)
     {
@@ -858,12 +853,8 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Export by ID's
-     *
      * @param array $rows
      * @return array
-     * @internal param array $features
-     * @internal param array $ids
      */
     public function export(array &$rows)
     {

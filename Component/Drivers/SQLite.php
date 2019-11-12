@@ -2,8 +2,6 @@
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 /**
- * Class SQLite
- *
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */

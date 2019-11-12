@@ -4,9 +4,6 @@ namespace Mapbender\DataSourceBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Class Feature
- *
- * @package   Mapbender\CoreBundle\Entity
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  */
 class Feature extends DataItem

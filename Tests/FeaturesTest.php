@@ -8,9 +8,6 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\Container;
 
 /**
- * Class FeaturesTest
- *
- * @package   Mapbender\DigitizerBundle\Tests
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  * @copyright 2015 by WhereGroup GmbH & Co. KG
  */

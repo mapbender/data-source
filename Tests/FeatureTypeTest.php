@@ -6,9 +6,6 @@ use Mapbender\DataSourceBundle\Component\FeatureType;
 use Mapbender\DataSourceBundle\Entity\Feature;
 
 /**
- * Class FeatureTypeTest
- *
- * @package Mapbender\DigitizerBundle\Tests
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
 class FeatureTypeTest extends SymfonyTest
