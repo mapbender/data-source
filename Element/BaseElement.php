@@ -162,6 +162,19 @@ abstract class BaseElement extends Element
 
         switch ($item['type']) {
             case 'select':
+                return $this->prepareSelect($item);
+            default:
+                return $item;
+
+        }
+    }
+
+    /**
+     * @param mixed[] $item
+     * @return mixed[]
+     */
+    protected function prepareSelect($item)
+    {
                 if (isset($item['sql'])) {
                     $connectionName = isset($item['connection']) ? $item['connection'] : 'default';
                     $sql            = $item['sql'];
@@ -203,8 +216,6 @@ abstract class BaseElement extends Element
                     }
                     $item['options'] = $options;
                 }
-                break;
-        }
         return $item;
     }
 
