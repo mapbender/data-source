@@ -536,26 +536,9 @@ abstract class BaseElement extends Element
      * @param array $arr
      * @return bool
      */
-    protected static function isAssoc(&$arr)
+    protected static function isAssoc($arr)
     {
         return array_keys($arr) !== range(0, count($arr) - 1);
-    }
-
-    public function getAssets()
-    {
-        return $this->listAssets();
-    }
-
-    public static function listAssets()
-    {
-        return array(
-            'js'  => array(
-                '/bundles/mapbenderdatasource/mapbender.element.datasource.base.js',
-            ),
-            'css' => array(
-                '/bundles/mapbendercore/sass/element/htmlelement.scss',
-            ),
-        );
     }
 
     public function getFrontendTemplateVars()
