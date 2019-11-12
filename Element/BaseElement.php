@@ -238,7 +238,11 @@ abstract class BaseElement extends Element
     protected function prepareServiceSelectItem($item)
     {
         $serviceInfo = $item['service'];
-        $serviceName = isset($serviceInfo['serviceName']) ? $serviceInfo['serviceName'] : 'default';
+        if (empty($serviceInfo['serviceName'])) {
+            throw new \RuntimeException("Invalid 'service' select item configuration, missing required serviceName. Item: " . print_r($item, true));
+        }
+
+        $serviceName = $serviceInfo['serviceName'];
         $method = isset($serviceInfo['method']) ? $serviceInfo['method'] : 'get';
         $args = isset($serviceInfo['args']) ? $item['args'] : '';
         $service = $this->container->get($serviceName);
