@@ -204,9 +204,7 @@ abstract class BaseElement extends Element
 
         if (isset($item['dataStore'])) {
             $dataStoreInfo = $item['dataStore'];
-            /** @var DataStoreService $dataStoreService */
-            $dataStoreService = $this->container->get('data.source');
-            $dataStore = $dataStoreService->get($dataStoreInfo["id"]);
+            $dataStore = $this->getDataStoreService()->get($dataStoreInfo['id']);
             $options       = array();
             foreach ($dataStore->search() as $dataItem) {
                 $options[$dataItem->getId()] = $dataItem->getAttribute($dataStoreInfo["text"]);
@@ -217,6 +215,20 @@ abstract class BaseElement extends Element
             $item['options'] = $options;
         }
         return $item;
+    }
+
+    /**
+     * Override point for child classes
+     *
+     * @return DataStoreService
+     * @todo on release: update since
+     * @since post-0.1.14
+     */
+    protected function getDataStoreService()
+    {
+        /** @var DataStoreService $service */
+        $service = $this->container->get('data.source');
+        return $service;
     }
 
     /**
