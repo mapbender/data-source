@@ -491,7 +491,7 @@ class FeatureType extends DataStore
     public function toFeatureCollection($rows)
     {
         foreach ($rows as $k => $feature) {
-            $rows[ $k ] = $feature->toGeoJson(true);
+            $rows[$k] = $feature->toGeoJson();
         }
         return array("type"     => "FeatureCollection",
                      "features" => $rows);

@@ -133,18 +133,17 @@ class Feature extends DataItem
     /**
      * Get GeoJSON
      *
-     * @param bool $decodeGeometry
      * @return array in GeoJSON format
-     * @throws \exception
+     * @throws \Exception
      */
-    public function toGeoJson( $decodeGeometry = true)
+    public function toGeoJson()
     {
         $wkt = $this->getGeom();
-        if($wkt){
-            $wkt = \geoPHP::load($wkt, 'wkt')->out('json');
-            if($decodeGeometry){
-                $wkt = json_decode($wkt, true);
-            }
+        if ($wkt) {
+            /**
+             * Encode to array format; @see \GeoJSON::write
+             */
+            $wkt = \geoPHP::load($wkt, 'wkt')->out('json', true);
         }
 
         return array('type'       => 'Feature',
