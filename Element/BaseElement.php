@@ -121,8 +121,7 @@ abstract class BaseElement extends BaseElementLegacy
      *
      * @param mixed[] $item
      * @return array
-     * @todo on release: update since
-     * @since post-0.1.14
+     * @since 0.1.15
      */
     protected function formatStaticSelectItemOptions($item)
     {
@@ -144,8 +143,7 @@ abstract class BaseElement extends BaseElementLegacy
     /**
      * @param mixed[] $item
      * @return mixed[]
-     * @todo on release: update since
-     * @since post-0.1.14
+     * @since 0.1.15
      */
     protected function prepareSelectItem($item)
     {
@@ -183,8 +181,7 @@ abstract class BaseElement extends BaseElementLegacy
      * @param array $row
      * @param mixed[] $selectItem
      * @return mixed[]
-     * @todo on release: update since
-     * @since post-0.1.14
+     * @since 0.1.15
      */
     protected function formatSqlSelectItemOption($row, $selectItem)
     {
@@ -202,8 +199,7 @@ abstract class BaseElement extends BaseElementLegacy
     /**
      * @param mixed[] $item
      * @return mixed[]
-     * @todo on release: update since
-     * @since post-0.1.14
+     * @since 0.1.15
      */
     protected function prepareSqlSelectItem($item)
     {
@@ -223,8 +219,7 @@ abstract class BaseElement extends BaseElementLegacy
     /**
      * @param mixed[] $item
      * @return mixed[]
-     * @todo on release: update since
-     * @since post-0.1.14
+     * @since 0.1.15
      * @deprecated for being untestable and unmaintainable; override prepareSelectItem for
      *    project-specific customization
      */
@@ -249,8 +244,7 @@ abstract class BaseElement extends BaseElementLegacy
     /**
      * @param mixed[] $item
      * @return mixed[]
-     * @todo on release: update since
-     * @since post-0.1.14
+     * @since 0.1.15
      */
     protected function prepareDataStoreSelectItem($item)
     {
@@ -271,8 +265,7 @@ abstract class BaseElement extends BaseElementLegacy
      * Override point for child classes
      *
      * @return DataStoreService
-     * @todo on release: update since
-     * @since post-0.1.14
+     * @since 0.1.15
      */
     protected function getDataStoreService()
     {
@@ -285,8 +278,7 @@ abstract class BaseElement extends BaseElementLegacy
      * @param string $name
      * @return Connection
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
-     * @todo on release: update since
-     * @since post-0.1.14
+     * @since 0.1.15
      */
     protected function getDbalConnectionByName($name)
     {
