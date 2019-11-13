@@ -93,14 +93,12 @@ class FeatureType extends DataStore
      */
     protected $allowUpdate;
 
-    /**
-     * @var array Initial arguments
-     */
-    protected $_args = array();
+    /** @var array|null */
+    protected $exportFields;
 
     /**
      * @param ContainerInterface $container
-     * @param null               $args
+     * @param array|null $args
      */
     public function __construct(ContainerInterface $container, $args = null)
     {
@@ -114,8 +112,14 @@ class FeatureType extends DataStore
             unset($fields[ array_search($args["geomField"], $fields, false) ]);
             $this->setFields($fields);
         }
-
-        $this->_args = $args;
+        if ($args && !empty($args['export'])) {
+            if (!is_array($args['export'])) {
+                throw new \InvalidArgumentException("Unexpected type " . gettype($args['export']) . " for 'export'. Expected array.");
+            }
+            if (!empty($args['export']['fields'])) {
+                $this->exportFields = $args['export']['fields'];
+            }
+        }
     }
 
     /**
@@ -844,37 +848,49 @@ class FeatureType extends DataStore
     /**
      * Get feature type configuration by key name
      *
-     * @param string $key Key name
-     * @return array|mixed|null
+     * @param string $key only allowed value is 'export'
+     * @return array|null
+     * @deprecated remove in 0.2.0; you can't create a FeatureType without already having
+     *     access to its configuration
+     * @throws \InvalidArgumentException
      */
     public function getConfiguration($key = null)
     {
-        return isset($this->_args[ $key ]) ? $this->_args[ $key ] : null;
+        if ($key !== 'export') {
+            throw new \InvalidArgumentException("Invalid getConfiguration call with key " . print_r($key, true));
+        }
+        if ($this->exportFields) {
+            return array(
+                'fields' => $this->exportFields,
+            );
+        } else {
+            return null;
+        }
     }
 
     /**
      * @param array $rows
      * @return array
+     * @todo: eliminate eval
+     * No known callers
      */
-    public function export(array &$rows)
+    public function export(array $rows)
     {
-        $config     = $this->getConfiguration('export');
-        $fieldNames = isset($config['fields']) ? $config['fields'] : null;
-        $result     = array();
+        $fieldNames = $this->exportFields;
 
         if ($fieldNames) {
-            foreach ($rows as &$row) {
+            $result = array();
+            foreach ($rows as $row) {
                 $exportRow = array();
                 foreach ($fieldNames as $fieldName => $fieldCode) {
-                    $exportRow[ $fieldName ] = $this->evaluateField($row, $fieldCode);
+                    $exportRow[$fieldName] = $this->evaluateField($row, $fieldCode);
                 }
                 $result[] = $exportRow;
             }
+            return $result;
         } else {
-            $result = &$rows;
+            return $rows;
         }
-
-        return $result;
     }
 
     /**
@@ -882,7 +898,7 @@ class FeatureType extends DataStore
      * @param $code
      * @return null
      */
-    private function evaluateField(&$row, $code)
+    private function evaluateField($row, $code)
     {
         $result = null;
         extract($row);
