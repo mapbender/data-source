@@ -61,37 +61,11 @@ class DataStore
     {
         $this->container = $container;
         $this->filesystem = $container->get('filesystem');
-        $type           = isset($args["type"]) ? $args["type"] : "doctrine";
-        $connectionName = isset($args["connection"]) ? $args["connection"] : "default";
+        $this->connectionType = isset($args["type"]) ? $args["type"] : "doctrine";
+        $this->connectionName = isset($args["connection"]) ? $args["connection"] : "default";
         $this->events   = isset($args["events"]) ? $args["events"] : array();
-        $hasFields      = isset($args["fields"]) && is_array($args["fields"]);
-
-        $this->connectionName = $connectionName;
-        $this->connectionType = $type;
-
-        if ($hasFields && isset($args["parentField"])) {
-            $args["fields"][] = $args["parentField"];
-        }
         $this->configure($args ?: array());
-
-        /** @var Connection $connection */
-        $connection = $container->get("doctrine.dbal.{$connectionName}_connection");
-        switch ($connection->getDatabasePlatform()->getName()) {
-            case self::SQLITE_PLATFORM;
-                $this->driver = new SQLite($connection, $args);
-                break;
-            case self::POSTGRESQL_PLATFORM;
-                $this->driver = new PostgreSQL($connection, $args);
-                break;
-            case self::ORACLE_PLATFORM;
-                $this->driver = new Oracle($connection, $args);
-                break;
-        }
-        if (!$hasFields) {
-            $this->driver->setFields($this->driver->getStoreFields());
-        } else {
-            $this->driver->setFields($args["fields"]);
-        }
+        $this->driver = $this->driverFactory($args ?: array());
     }
 
     protected function configure(array $args)
@@ -104,6 +78,51 @@ class DataStore
                 $this->$keyMethod($value);
             }
         }
+    }
+
+    /**
+     * @param array $args
+     * @return Base|DoctrineBaseDriver
+     * @throws \Doctrine\DBAL\DBALException
+     * @throws \RuntimeException on incompatible platform
+     */
+    protected function driverFactory(array $args)
+    {
+        $hasFields = isset($args["fields"]) && is_array($args["fields"]);
+
+        if ($hasFields && isset($args["parentField"])) {
+            $args["fields"][] = $args["parentField"];
+        }
+
+        /** @var Connection $connection */
+        $connection = $this->container->get("doctrine.dbal.{$this->connectionName}_connection");
+        $platformName = $connection->getDatabasePlatform()->getName();
+        switch ($connection->getDatabasePlatform()->getName()) {
+            case self::SQLITE_PLATFORM;
+                $driver = new SQLite($connection, $args);
+                break;
+            case self::POSTGRESQL_PLATFORM;
+                $driver = new PostgreSQL($connection, $args);
+                break;
+            case self::ORACLE_PLATFORM;
+                $driver = new Oracle($connection, $args);
+                break;
+            default:
+                throw new \RuntimeException("Unsupported DBAL platform " . print_r($platformName, true));
+        }
+        if (!empty($args['fields'])) {
+            if (!is_array($args['fields'])) {
+                throw new \InvalidArgumentException("Unexpected type " . gettype($args['fields']) . " for 'fields'. Expected array.");
+            }
+            $fields = $args['fields'];
+            if (!empty($args['parentField']) && !in_array($args['parentField'], $fields)) {
+                $fields[] = $args['parentField'];
+            }
+            $driver->setFields($fields);
+        } else {
+            $driver->setFields($driver->getStoreFields());
+        }
+        return $driver;
     }
 
     /**
