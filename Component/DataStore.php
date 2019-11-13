@@ -113,7 +113,7 @@ class DataStore
      */
     public function getById($id)
     {
-        return $this->getDriver()->get($id);
+        return $this->getDriver()->getById($id);
     }
 
     /**
