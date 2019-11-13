@@ -4,14 +4,13 @@ namespace Mapbender\DataSourceBundle\Component\Drivers;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Statement;
-use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class DoctrineBaseDriver extends BaseDriver implements Base
+class DoctrineBaseDriver extends BaseDriver
 {
     const MAX_RESULTS = 100;
 

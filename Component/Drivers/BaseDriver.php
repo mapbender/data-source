@@ -2,13 +2,14 @@
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Doctrine\DBAL\Connection;
+use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-abstract class BaseDriver
+abstract class BaseDriver implements Base
 {
     /**
      * @var array Field to select from the table
@@ -70,17 +71,6 @@ abstract class BaseDriver
     public function setFields(array $fields)
     {
         return $this->fields = $fields;
-    }
-
-    /**
-     * Get fields defined by store
-     *
-     * @return array
-     * @todo: this information belongs in the DataStore or FeatureType, not here
-     */
-    public function getStoreFields()
-    {
-        return $this->getFields();
     }
 
     /**
