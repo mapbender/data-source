@@ -312,14 +312,11 @@ class DataStore
      */
     public function getTypes()
     {
-        $list            = array();
-        $reflectionClass = new \ReflectionClass(__CLASS__);
-        foreach ($reflectionClass->getConstants() as $k => $v) {
-            if (strrpos($k, "_PLATFORM") > 0) {
-                $list[] = $v;
-            }
-        }
-        return $list;
+        return array(
+            self::POSTGRESQL_PLATFORM,
+            self::ORACLE_PLATFORM,
+            self::SQLITE_PLATFORM,
+        );
     }
 
     /**
