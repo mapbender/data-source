@@ -39,6 +39,7 @@ class DataStoreService
     /**
      * @param string $name
      * @return DataStore
+     * @since 0.1.15
      */
     public function getDataStoreByName($name)
     {
@@ -52,6 +53,7 @@ class DataStoreService
     /**
      * @param mixed[] $config
      * @return DataStore
+     * @since 0.1.15
      */
     public function dataStoreFactory(array $config)
     {
@@ -61,6 +63,7 @@ class DataStoreService
 
     /**
      * @return array
+     * @deprecated remove in 0.2.0; you can't really do anything with the return value anyway
      */
     public function listDrivers()
     {

@@ -17,7 +17,7 @@ abstract class BaseElement extends BaseElementLegacy
     /**
      * Prepare elements recursive.
      *
-     * @param $items
+     * @param mixed[] $items
      * @return array
      */
     public function prepareItems($items)
@@ -94,6 +94,7 @@ abstract class BaseElement extends BaseElementLegacy
      * @param array $allProperties will be placed in a 'properties' subarray
      * @return array
      * @todo: this is vis-ui specific and doesn't really belong here
+     * @since 0.1.15
      */
     protected function formatSelectItemOption($value, $label, array $selectItem, array $allProperties = array())
     {

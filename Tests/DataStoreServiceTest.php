@@ -15,6 +15,7 @@ class DataStoreServiceTest extends SymfonyTest
 {
     public function testFields()
     {
+        // @todo: use a mock!
         if (!$configuration = $this->getConfiguration()) {
             self::markTestSkipped("No test declaration found");
             return;
@@ -28,6 +29,7 @@ class DataStoreServiceTest extends SymfonyTest
 
     public function testTree()
     {
+        // @todo: use a mock!
         if (!$configuration = $this->getConfiguration()) {
             self::markTestSkipped("No test declaration found");
             return;
@@ -42,6 +44,7 @@ class DataStoreServiceTest extends SymfonyTest
 
     public function testDriver()
     {
+        // @todo: use a mock!
         if(!$this->getConfiguration()){
             self::markTestSkipped("No dataStore test declaration found");
             return;

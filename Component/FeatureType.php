@@ -2,7 +2,6 @@
 namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\DBAL\Statement;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
@@ -244,10 +243,13 @@ class FeatureType extends DataStore
 
 
     /**
+     * Returns transformed geometry in NATIVE FORMAT (WKB or resource).
+     *
      * @param string $ewkt EWKT geometry
      * @param null|int $srid SRID
      * @return bool|string
      * @throws \Exception
+     * @todo: if an ewkt goes in, an ewkt should come out; native format is pretty useless outside of insert / update usage
      */
     public function transformEwkt($ewkt, $srid = null)
     {
@@ -263,13 +265,12 @@ class FeatureType extends DataStore
     }
 
     /**
-     * @param $featureData
+     * @param mixed $featureData
      * @return Feature
      * @throws \Exception
      */
     public function update($featureData)
     {
-        /** @var Feature $feature */
         $feature                       = $this->create($featureData);
         $data                          = $this->cleanFeatureData($feature->toArray());
         $connection                    = $this->getConnection();
@@ -315,8 +316,6 @@ class FeatureType extends DataStore
      */
     public function search(array $criteria = array())
     {
-        /** @var Statement $statement */
-        /** @var Feature $feature */
         $maxResults      = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
         $intersect       = isset($criteria['intersectGeometry']) ? $criteria['intersectGeometry'] : null;
         $returnType      = isset($criteria['returnType']) ? $criteria['returnType'] : null;
@@ -361,9 +360,6 @@ class FeatureType extends DataStore
         }
 
         $queryBuilder->setMaxResults($maxResults);
-
-        // $queryBuilder->setParameters($params);
-        // $sql = $queryBuilder->getSQL();
 
         $statement  = $queryBuilder->execute();
         $rows       = $statement->fetchAll();
@@ -453,7 +449,7 @@ class FeatureType extends DataStore
     /**
      * Cast feature by $args
      *
-     * @param $args
+     * @param mixed $args
      * @return Feature
      */
     public function create($args)
@@ -494,7 +490,6 @@ class FeatureType extends DataStore
      */
     public function toFeatureCollection($rows)
     {
-        /** @var Feature $feature */
         foreach ($rows as $k => $feature) {
             $rows[ $k ] = $feature->toGeoJson(true);
         }
@@ -586,7 +581,7 @@ class FeatureType extends DataStore
      * https://trac.wheregroup.com/cp/issues/3733
      *
      * @see $this->search()
-     * @param $sqlFilter
+     * @param string $sqlFilter
      */
     protected function setFilter($sqlFilter)
     {
@@ -732,7 +727,7 @@ class FeatureType extends DataStore
     }
 
     /**
-     * @param $fileInfo
+     * @param array[] $fileInfo
      * @internal param $fileInfos
      */
     public function setFiles($fileInfo)
@@ -741,7 +736,7 @@ class FeatureType extends DataStore
     }
 
     /**
-     * @return array
+     * @return array[]
      */
     public function getFileInfo()
     {
@@ -749,7 +744,7 @@ class FeatureType extends DataStore
     }
 
     /**
-     * @param        $tableName
+     * @param string $tableName
      * @param string $schema
      * @return mixed|null
      */
@@ -767,8 +762,9 @@ class FeatureType extends DataStore
     /**
      * Detect (E)WKT geometry type
      *
-     * @param $wkt
+     * @param string $wkt
      * @return string
+     * @todo: remove in 0.2.0; only accessed by unit tests. Move implementation to Utility.
      */
     public static function getWktType($wkt)
     {
@@ -881,9 +877,10 @@ class FeatureType extends DataStore
     }
 
     /**
-     * @param $row
-     * @param $code
-     * @return null
+     * @param mixed[] $row
+     * @param string $code
+     * @return mixed
+     * @todo: stop using eval already
      */
     private function evaluateField($row, $code)
     {

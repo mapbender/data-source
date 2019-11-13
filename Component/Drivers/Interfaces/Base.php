@@ -18,6 +18,7 @@ interface Base
      *
      * @param mixed $id ID
      * @return DataItem
+     * @todo: the implementation belongs in the DataStore / FeatureType, not here
      */
     public function getById($id);
 
@@ -26,6 +27,7 @@ interface Base
      *
      * @param mixed $args
      * @return DataItem
+     * @todo: the implementation belongs in the DataStore / FeatureType, not here
      */
     public function create($args);
 
@@ -41,8 +43,8 @@ interface Base
     /**
      * Remove by args
      *
-     * @param $args
-     * @return mixed
+     * @param DataItem|array|int $args
+     * @return integer
      */
     public function remove($args);
 
@@ -57,6 +59,7 @@ interface Base
      * Has permission to read?
      *
      * @return bool
+     * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function canRead();
 
@@ -64,6 +67,7 @@ interface Base
      * Has permission to write?
      *
      * @return bool
+     * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function canWrite();
 

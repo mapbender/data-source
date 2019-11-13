@@ -69,6 +69,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
      * @param int $dimensions
      * @return bool
      * @throws \Doctrine\DBAL\DBALException
+     * @deprecated remove in 0.2.0 this is DBA work
      */
     public function addGeometryColumn($tableName,
                                       $type,
@@ -89,11 +90,12 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     }
 
     /**
-     * @param        $name
+     * @param string $name
      * @param string $idColumn
      * @param bool $dropBeforeCreate
-     * @return bool
+     * @return int
      * @throws \Doctrine\DBAL\DBALException
+     * @deprecated remove in 0.2.0 this is DBA work
      */
     public function createTable($name, $idColumn = 'id', $dropBeforeCreate = false)
     {
@@ -109,9 +111,10 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     }
 
     /**
-     * @param $name
+     * @param string $name
      * @return int
      * @throws \Doctrine\DBAL\DBALException
+     * @deprecated remove in 0.2.0 this is DBA work
      */
     public function dropTable($name)
     {
@@ -166,16 +169,17 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     }
 
     /**
-     * Get nearest node to given geometry
+     * Get id of geometry in given table nearest to given ewkt
      *
-     * Important: <-> operator works not well!!
-     *
-     * @param        $waysVerticesTableName
-     * @param        $waysGeomFieldName
-     * @param string $ewkt EWKT
-     * @param null $transformTo
+     * @param string $waysVerticesTableName
+     * @param string $waysGeomFieldName
+     * @param string $ewkt
+     * @param null|int $transformTo optional srid
      * @param string $idKey
-     * @return int Node ID
+     * @return mixed id column value
+     * @todo: this has nothing to do with routing
+     * @todo: support returning more than just the id
+     * @todo: this implementation is super slow on non-trivial datasets
      */
     public function getNodeFromGeom($waysVerticesTableName, $waysGeomFieldName, $ewkt, $transformTo = null, $idKey = "id")
     {
@@ -200,11 +204,11 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     /**
      * Route between nodes
      *
-     * @param      $waysTableName
-     * @param      $waysGeomFieldName
+     * @param string $waysTableName
+     * @param string $waysGeomFieldName
      * @param int $startNodeId
      * @param int $endNodeId
-     * @param      $srid
+     * @param mixed $srid completely ignored @todo: either use this argument or remove it
      * @param bool $directedGraph directed graph
      * @param bool $hasReverseCost Has reverse cost, only can be true, if  directed graph=true
      * @return DataItem[]
@@ -251,19 +255,19 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     }
 
     /**
-     * @return array
+     * @param string $databaseName
+     * @return string[]
      */
     public function listSchemas($databaseName)
     {
-
         return $this->fetchList("SELECT DISTINCT table_schema FROM information_schema.tables");
     }
 
     /**
      * Get database table names
      *
-     * @param $schemaName
-     * @return array
+     * @param string $schemaName
+     * @return string[]
      */
     public function listTables($schemaName)
     {
@@ -272,10 +276,14 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     }
 
     /**
-     * @param      $ewkt
-     * @param null $srid
+     * Returns transformed geometry in NATIVE FORMAT (WKB).
+     *
+     * @param string $ewkt
+     * @param int|null $srid
      * @return mixed
      * @internal param $wkt
+     * @todo: null srid makes no sense, should throw an error
+     * @todo: if an ewkt goes in, an ewkt should come out; native format is pretty useless outside of insert / update usage
      */
     public function transformEwkt($ewkt, $srid = null)
     {

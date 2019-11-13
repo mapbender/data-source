@@ -40,6 +40,7 @@ class FeatureTypeService extends DataStoreService
     /**
      * @param string $name
      * @return FeatureType
+     * @since 0.1.15
      */
     public function getFeatureTypeByName($name)
     {
@@ -56,6 +57,7 @@ class FeatureTypeService extends DataStoreService
     /**
      * @param mixed[] $config
      * @return FeatureType
+     * @since 0.1.15
      */
     public function featureTypeFactory(array $config)
     {

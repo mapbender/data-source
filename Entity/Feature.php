@@ -1,8 +1,6 @@
 <?php
 namespace Mapbender\DataSourceBundle\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-
 /**
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  */
@@ -28,36 +26,23 @@ class Feature extends DataItem
         Feature::TYPE_MULTIPOINT
     );
 
-    /**
-     * Geometries as WKT
-     *
-     * @ORM\Column(name="geom", type="text", nullable=true)
-     */
+     /* @var string|null in wkt format */
     protected $geom;
 
-    /**
-     * Geometry SRID
-     *
-     * @ORM\Column(name="srid", type="text", nullable=true)
-     */
+    /** @var integer|null */
     protected $srid;
 
-    /**
-     * GEOM field name
-     *
-     * @ORM\Column(name="geomFieldName", type="text", nullable=true)
-     */
+    /** @var string|null */
     protected $geomField;
 
     /**
      * Geometry type.
-     *
-     * @ORM\Column(name="type", type="text", nullable=true)
+     * @var string|null
      */
     protected $type;
 
     /**
-     * @param $geom
+     * @param string|null $geom
      * @return $this
      */
     public function setGeom($geom)
@@ -67,7 +52,8 @@ class Feature extends DataItem
     }
 
     /**
-     * @return mixed
+     * Get geometry as WKT.
+     * @return string|null
      */
     public function getGeom()
     {
@@ -75,7 +61,7 @@ class Feature extends DataItem
     }
 
     /**
-     * @return mixed
+     * @return integer|null
      */
     public function getSrid()
     {
@@ -83,7 +69,7 @@ class Feature extends DataItem
     }
 
     /**
-     * @param mixed $srid
+     * @param integer $srid
      */
     public function setSrid($srid)
     {
@@ -91,7 +77,7 @@ class Feature extends DataItem
     }
 
     /**
-     *  has SRID?
+     * @return bool
      */
     public function hasSrid()
     {
@@ -188,7 +174,6 @@ class Feature extends DataItem
         $data = $this->getAttributes();
 
         if ($this->hasGeom()) {
-            //$wkb = \geoPHP::load($feature->getGeom(), 'wkt')->out('wkb');
             if ($this->getSrid()) {
                 $data[$this->geomField] = "SRID=" . $this->getSrid() . ";" . $this->getGeom();
             } else {

@@ -42,7 +42,7 @@ class DoctrineBaseDriver extends BaseDriver
     /**
      * Get by ID, array or object
      *
-     * @param $args
+     * @param mixed $args
      * @return DataItem
      */
     public function get($args)
@@ -142,9 +142,9 @@ class DoctrineBaseDriver extends BaseDriver
 
 
     /**
-     * Executes statement and fetch list as array
+     * Fetches single-column SQL result set.
      *
-     * @param $statement
+     * @param string $statement
      * @return array
      */
     public function fetchList($statement)
@@ -167,7 +167,7 @@ class DoctrineBaseDriver extends BaseDriver
     /**
      * Set table name
      *
-     * @param $name
+     * @param string $name
      * @return $this
      * @todo: this information belongs in the DataStore or FeatureType, not here
      */
@@ -289,7 +289,7 @@ class DoctrineBaseDriver extends BaseDriver
      * https://trac.wheregroup.com/cp/issues/3733
      *
      * @see $this->search()
-     * @param $sqlFilter
+     * @param string $sqlFilter
      * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function setFilter($sqlFilter)
@@ -308,7 +308,7 @@ class DoctrineBaseDriver extends BaseDriver
     /**
      * Get data item by id
      *
-     * @param $id
+     * @param integer|string $id
      * @return DataItem
      */
     public function getById($id)
@@ -394,8 +394,8 @@ class DoctrineBaseDriver extends BaseDriver
     /**
      * Remove data item
      *
-     * @param  DataItem|array|int $arg
-     * @return bool
+     * @param DataItem|array|int $arg
+     * @return integer
      */
     public function remove($arg)
     {
@@ -406,8 +406,8 @@ class DoctrineBaseDriver extends BaseDriver
     /**
      * List objects by criteria
      *
-     * @param $criteria
-     * @param $fieldName
+     * @param string|integer $criteria
+     * @param string $fieldName
      * @return DataItem[]
      */
     public function getByCriteria($criteria, $fieldName)

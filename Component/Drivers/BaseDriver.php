@@ -86,6 +86,7 @@ abstract class BaseDriver implements Base
      *
      * @param mixed $args
      * @return DataItem
+     * @todo: the implementation belongs in the DataStore / FeatureType, not here
      */
     public function create($args)
     {
@@ -115,8 +116,9 @@ abstract class BaseDriver implements Base
     /**
      * Detect (E)WKT geometry type
      *
-     * @param $wkt
+     * @param string $wkt
      * @return string
+     * @todo 0.2.0 move to utility collection
      */
     public static function getWktType($wkt)
     {

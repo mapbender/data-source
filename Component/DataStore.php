@@ -127,8 +127,9 @@ class DataStore
     }
 
     /**
-     * @param $id
+     * @param integer|string $id
      * @return DataItem
+     * @todo: the implementation belongs here, not in the driver
      */
     public function getById($id)
     {
@@ -147,7 +148,7 @@ class DataStore
     /**
      * Get parent by child ID
      *
-     * @param $id
+     * @param integer|string $id
      * @return DataItem|null
      */
     public function getParent($id)
@@ -198,8 +199,9 @@ class DataStore
     /**
      * Convert array to DataItem object
      *
-     * @param $data
+     * @param mixed $data
      * @return DataItem
+     * @todo: the implementation belongs here, not in the driver
      */
     public function create($data)
     {
@@ -379,13 +381,13 @@ class DataStore
     }
 
     /**
-     * @param       $code
+     * @param string $code
      * @param array $args
      * @throws \Exception
+     * @todo: stop using eval already
      */
     public function secureEval($code, array $args = array())
     {
-        //extract($args);
         /** @var AuthorizationCheckerInterface $context */
         $context    = $this->container->get("security.authorization_checker");
         /** @var TokenStorageInterface $tokenStorage */
@@ -468,9 +470,10 @@ class DataStore
     /**
      * Get related objects through mapping
      *
-     * @param $mappingId
-     * @param $id
+     * @param string $mappingId
+     * @param integer|string $id
      * @return DataItem[]
+     * @todo: figure out who uses this
      */
     public function getTroughMapping($mappingId, $id)
     {

@@ -13,33 +13,35 @@ interface Manageble
     /**
      * Get database schema names
      *
-     * @param $dataBaseName
-     * @return array
+     * @param string $dataBaseName
+     * @return string[]
      */
     public function listSchemas($dataBaseName);
 
     /**
      * Get database table names
      *
-     * @param $schemaName
-     * @return array
+     * @param string $schemaName
+     * @return string[]
      */
     public function listTables($schemaName);
 
     /**
-     * @param        $name
+     * @param string $name
      * @param string $idColumn
      * @param bool   $dropBeforeCreate
-     * @return bool
+     * @return int
      * @throws \Doctrine\DBAL\DBALException
+     * @deprecated remove in 0.2.0 this is DBA work
      */
     public function createTable($name, $idColumn = 'id', $dropBeforeCreate = false);
 
 
     /**
-     * @param $name
+     * @param string $name
      * @return int
      * @throws \Doctrine\DBAL\DBALException
+     * @deprecated remove in 0.2.0 this is DBA work
      */
     public function dropTable($name);
 

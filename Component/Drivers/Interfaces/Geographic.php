@@ -7,12 +7,13 @@ interface Geographic
      * Add geometry column
      *
      * @param string $tableName
-     * @param        $type
-     * @param        $srid
+     * @param string $type
+     * @param string $srid
      * @param string $geomFieldName
      * @param string $schemaName
      * @param int    $dimensions
      * @return mixed
+     * @deprecated remove in 0.2.0 this is DBA work
      */
     public function addGeometryColumn($tableName,
         $type,
@@ -31,9 +32,13 @@ interface Geographic
     public function getTableGeomType($tableName, $schema = null);
 
     /**
+     * Returns transformed geometry in NATIVE FORMAT (WKB or resource).
+     *
      * @param string $ewkt
-     * @param null $srid
+     * @param int|null $srid
      * @return mixed
+     * @todo: null srid makes no sense, should throw an error
+     * @todo: if an ewkt goes in, an ewkt should come out; native format is pretty useless outside of insert / update usage
      */
     public function transformEwkt($ewkt, $srid = null);
 

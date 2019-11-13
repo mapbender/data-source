@@ -1,39 +1,21 @@
 <?php
 namespace Mapbender\DataSourceBundle\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-
 /**
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  */
 class DataItem
 {
-    /**
-     * @ORM\Id
-     * @ORM\Column(type="integer")
-     * @ORM\GeneratedValue
-     */
+    /** @var integer */
     protected $id;
 
-    /**
-     * Meta data
-     *
-     * @ORM\Column(type="json_array")
-     */
+    /** @var mixed[] */
     protected $attributes = array();
 
-    /**
-     * Meta data unique field key name
-     *
-     * @var string
-     */
+    /** @var string */
     protected $uniqueIdField;
 
-    /**
-     * DataItem children
-     *
-     * @var  DataItem[]
-     */
+    /** @var DataItem[]|null */
     protected $children;
 
     /**
@@ -137,9 +119,9 @@ class DataItem
     }
 
     /**
-     * Get attributes (parameters)
+     * Get attributes
      *
-     * @return mixed
+     * @return mixed[]
      */
     public function getAttributes()
     {
@@ -148,7 +130,8 @@ class DataItem
     }
 
     /**
-     * @param $name
+     * @param string $name
+     * @return mixed
      */
     public function getAttribute($name){
         $attributes = $this->getAttributes();
@@ -168,8 +151,8 @@ class DataItem
     /**
      * Set attribute
      *
-     * @param $key
-     * @param $value
+     * @param string $key
+     * @param mixed $value
      */
     public function setAttribute($key, $value)
     {
@@ -185,7 +168,7 @@ class DataItem
     }
 
     /**
-     * @return DataItem[]
+     * @return DataItem[]|null
      */
     public function getChildren()
     {

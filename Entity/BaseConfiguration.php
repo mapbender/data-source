@@ -4,6 +4,11 @@ namespace Mapbender\DataSourceBundle\Entity;
 /**
  * @package Mapbender\DataSourceBundle\Entity
  * @author  Andriy Oblivantsev <eslider@gmail.com>
+ * @deprecated this is nothing more than an array with defaults, so just use an array and defaults
+ * @todo: remove. Removal will break
+ *     query-builder < 1.0.4
+ *     data-manager <= a726e7668f33fb1b79aaaa7161b3f6603d663153 (unresolved)
+ *
  */
 class BaseConfiguration
 {
@@ -22,7 +27,7 @@ class BaseConfiguration
     /**
      * Fill object with values from $args
      *
-     * @param $args
+     * @param array $args
      */
     public function fill($args)
     {
