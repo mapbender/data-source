@@ -97,9 +97,7 @@ class FeatureType extends DataStore
 
     protected function configure(array $args)
     {
-        parent::configure(array_diff_key($args, array_flip(array(
-            'fields',   // avoid calling setFields during construction
-        ))));
+        parent::configure($args);
         if (!empty($args['export'])) {
             if (!is_array($args['export'])) {
                 throw new \InvalidArgumentException("Unexpected type " . gettype($args['export']) . " for 'export'. Expected array.");
@@ -143,15 +141,6 @@ class FeatureType extends DataStore
     public function setSrid($srid)
     {
         $this->srid = $srid;
-    }
-
-    /**
-     * @param array $fields
-     * @return array
-     */
-    public function setFields(array $fields)
-    {
-        return $this->getDriver()->setFields($fields);
     }
 
     /**
@@ -418,15 +407,6 @@ class FeatureType extends DataStore
     public function getGeomField()
     {
         return $this->geomField;
-    }
-
-    /**
-     * @return array
-     * @todo: this information belongs here, not in the driver
-     */
-    public function getFields()
-    {
-        return $this->getDriver()->getFields();
     }
 
     /**

@@ -136,6 +136,15 @@ class DataStore
     }
 
     /**
+     * @return array
+     * @todo: this information belongs here, not in the driver
+     */
+    public function getFields()
+    {
+        return $this->getDriver()->getFields();
+    }
+
+    /**
      * Get parent by child ID
      *
      * @param $id
