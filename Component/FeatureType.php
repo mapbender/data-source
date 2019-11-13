@@ -112,7 +112,14 @@ class FeatureType extends DataStore
             unset($fields[ array_search($args["geomField"], $fields, false) ]);
             $this->setFields($fields);
         }
-        if ($args && !empty($args['export'])) {
+    }
+
+    protected function configure(array $args)
+    {
+        parent::configure(array_diff_key($args, array_flip(array(
+            'fields',   // avoid calling setFields during construction
+        ))));
+        if (!empty($args['export'])) {
             if (!is_array($args['export'])) {
                 throw new \InvalidArgumentException("Unexpected type " . gettype($args['export']) . " for 'export'. Expected array.");
             }

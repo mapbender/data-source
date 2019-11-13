@@ -72,20 +72,7 @@ class DataStore
         if ($hasFields && isset($args["parentField"])) {
             $args["fields"][] = $args["parentField"];
         }
-
-        // init $methods by $args
-        if (is_array($args)) {
-            $methods = get_class_methods(get_class($this));
-            foreach ($args as $key => $value) {
-                $keyMethod = "set" . ucwords($key);
-                if($key == "fields"){
-                    continue;
-                }
-                if (in_array($keyMethod, $methods)) {
-                    $this->$keyMethod($value);
-                }
-            }
-        }
+        $this->configure($args ?: array());
 
         /** @var Connection $connection */
         $connection = $container->get("doctrine.dbal.{$connectionName}_connection");
@@ -104,6 +91,18 @@ class DataStore
             $this->driver->setFields($this->driver->getStoreFields());
         } else {
             $this->driver->setFields($args["fields"]);
+        }
+    }
+
+    protected function configure(array $args)
+    {
+        // @todo: drop magic setter invocations
+        $methods = get_class_methods(get_class($this));
+        foreach ($args as $key => $value) {
+            $keyMethod = "set" . ucwords($key);
+            if (in_array($keyMethod, $methods)) {
+                $this->$keyMethod($value);
+            }
         }
     }
 
