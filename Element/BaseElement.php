@@ -87,6 +87,35 @@ abstract class BaseElement extends BaseElementLegacy
     }
 
     /**
+     * Reformat single select item option for vis-ui consumption.
+     * @param string $value
+     * @param string $label
+     * @param mixed[] $selectItem
+     * @param array $allProperties will be placed in a 'properties' subarray
+     * @return array
+     * @todo: this is vis-ui specific and doesn't really belong here
+     */
+    protected function formatSelectItemOption($value, $label, array $selectItem, array $allProperties = array())
+    {
+        $option = array(
+            // Force object emission to bypass vis-ui's "isValuePack" path
+            // use fancy underscores to reinforce key
+            // order, in case json encoding / json parsing
+            // performs any sorting
+            '___value' => $value,
+            '__label' => $label,
+        );
+        if ($allProperties) {
+            // emit entire associative row array as well, minus nonserializable
+            // resources (e.g. certain Oracle types)
+            $option['properties'] = array_filter($allProperties, function($column) {
+                return !is_resource($column);
+            });
+        }
+        return $option;
+    }
+
+    /**
      * Reformat statically defined select item options for vis-ui
      * consumption.
      *
@@ -106,14 +135,7 @@ abstract class BaseElement extends BaseElementLegacy
             // SQL path, so mix and match works.
             $options = array();
             foreach ($item['options'] as $value => $label) {
-                $options[] = array(
-                    // Force object emission to bypass vis-ui's "isValuePack" path
-                    // use fancy underscores to reinforce key
-                    // order, in case json encoding / json parsing
-                    // performs any sorting
-                    '___value' => $value,
-                    '__label' => $label,
-                );
+                $options[] = $this->formatSelectItemOption($value, $label, $item);
             }
             return $options;
         }
@@ -172,19 +194,9 @@ abstract class BaseElement extends BaseElementLegacy
         // When processing a multi-column row, the submit value
         // is taken from the first column, and the displayed label
         // from the _last_ column.
-        return array(
-            // Force object emission to bypass vis-ui's "isValuePack" path
-            // use fancy underscores to reinforce key
-            // order, in case json encoding / json parsing
-            // performs any sorting
-            '___value' => reset($row),
-            '__label' => end($row),
-            // emit entire associative row array as well, minus nonserializable
-            // resources (e.g. certain Oracle types)
-            'properties' => array_filter($row, function($column) {
-                return !is_resource($column);
-            }),
-        );
+        $value = reset($row);
+        $label = end($row);
+        return $this->formatSelectItemOption($value, $label, $selectItem, $row);
     }
 
     /**
