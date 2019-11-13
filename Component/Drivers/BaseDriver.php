@@ -16,9 +16,7 @@ abstract class BaseDriver implements Base
      */
     protected $fields = array();
 
-    /**
-     * @var mixed Unique id field name
-     */
+    /** @var string */
     protected $uniqueId = 'id';
 
     /**
@@ -33,15 +31,11 @@ abstract class BaseDriver implements Base
      */
     public function __construct(array $args = array())
     {
-        // init $methods by $args
-        if (is_array($args)) {
-            $methods = get_class_methods(get_class($this));
-            foreach ($args as $key => $value) {
-                $keyMethod = "set" . ucwords($key);
-                if (in_array($keyMethod, $methods)) {
-                    $this->$keyMethod($value);
-                }
-            }
+        if (!empty($args['uniqueId'])) {
+            $this->setUniqueId($args['uniqueId']);
+        }
+        if (!empty($args['fields'])) {
+            $this->setFields($args['fields']);
         }
     }
 
@@ -51,6 +45,9 @@ abstract class BaseDriver implements Base
      */
     public function setUniqueId($uniqueId)
     {
+        if (!is_string($uniqueId)) {
+            throw new \InvalidArgumentException("Unexpected type " . gettype($uniqueId) . ". Expected string.");
+        }
         $this->uniqueId = $uniqueId;
     }
 

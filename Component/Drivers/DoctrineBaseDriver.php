@@ -31,6 +31,12 @@ class DoctrineBaseDriver extends BaseDriver
     {
         $this->connection = $connection;
         parent::__construct($args);
+        if (!empty($args['table'])) {
+            $this->setTable($args['table']);
+        }
+        if (!empty($args['filter'])) {
+            $this->setFilter($args['filter']);
+        }
     }
 
     /**
@@ -101,20 +107,22 @@ class DoctrineBaseDriver extends BaseDriver
      * Has permission to read?
      *
      * @return bool
+     * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function canRead()
     {
-        return $this->isReady(); // TODO: implement user access check
+        return $this->isReady();
     }
 
     /**
      * Has permission to write?
      *
      * @return bool
+     * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function canWrite()
     {
-        return $this->isReady(); // TODO: implement user access check
+        return $this->isReady();
     }
 
     /**
@@ -161,6 +169,7 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @param $name
      * @return $this
+     * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function setTable($name)
     {
@@ -281,6 +290,7 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @see $this->search()
      * @param $sqlFilter
+     * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function setFilter($sqlFilter)
     {
