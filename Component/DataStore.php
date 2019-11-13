@@ -55,9 +55,9 @@ class DataStore
 
     /**
      * @param ContainerInterface $container
-     * @param null               $args
+     * @param array|null $args
      */
-    public function __construct(ContainerInterface $container, $args = null)
+    public function __construct(ContainerInterface $container, $args = array())
     {
         $this->container = $container;
         $this->filesystem = $container->get('filesystem');
@@ -65,6 +65,7 @@ class DataStore
         $this->connectionName = isset($args["connection"]) ? $args["connection"] : "default";
         $this->events   = isset($args["events"]) ? $args["events"] : array();
         $this->configure($args ?: array());
+        // @todo: lazy-init driver on first getDriver invocation
         $this->driver = $this->driverFactory($args ?: array());
     }
 

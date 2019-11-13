@@ -9,7 +9,6 @@ use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -96,24 +95,6 @@ class FeatureType extends DataStore
     /** @var array|null */
     protected $exportFields;
 
-    /**
-     * @param ContainerInterface $container
-     * @param array|null $args
-     */
-    public function __construct(ContainerInterface $container, $args = null)
-    {
-        $hasFields = isset($args["fields"]) && is_array($args["fields"]);
-
-        parent::__construct($container, $args);
-
-        // if no fields defined, but geomField, find it all and remove geo field from the list
-        if (!$hasFields && isset($args["geomField"])) {
-            $fields = $this->getDriver()->getStoreFields();
-            unset($fields[ array_search($args["geomField"], $fields, false) ]);
-            $this->setFields($fields);
-        }
-    }
-
     protected function configure(array $args)
     {
         parent::configure(array_diff_key($args, array_flip(array(
@@ -127,6 +108,25 @@ class FeatureType extends DataStore
                 $this->exportFields = $args['export']['fields'];
             }
         }
+    }
+
+    /**
+     * @param array $args
+     * @return Drivers\DoctrineBaseDriver|Drivers\Interfaces\Base
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    protected function driverFactory(array $args)
+    {
+        $driver = parent::driverFactory($args);
+        // filter geometry field from select fields, unless explicitly configured
+        $geomField = $this->geomField;
+        if (empty($args['fields']) || !in_array($geomField, $args['fields'])) {
+            $filteredFields = array_filter($driver->getFields(), function($fieldName) use ($geomField) {
+                return $fieldName != $geomField;
+            });
+            $driver->setFields($filteredFields);
+        }
+        return $driver;
     }
 
     /**
