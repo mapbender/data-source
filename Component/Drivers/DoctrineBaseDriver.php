@@ -3,7 +3,6 @@ namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\DBAL\Statement;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
@@ -244,8 +243,6 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function search(array $criteria = array())
     {
-
-        /** @var Statement $statement */
         $maxResults   = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
         $where        = isset($criteria['where']) ? $criteria['where'] : null;
         $queryBuilder = $this->getSelectQueryBuilder();
@@ -377,7 +374,6 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function update($dataItem)
     {
-        /** @var DataItem $dataItem */
         $dataItem   = $this->create($dataItem);
         $data       = $this->cleanData($dataItem->toArray());
         $connection = $this->getConnection();
@@ -412,7 +408,6 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function getByCriteria($criteria, $fieldName)
     {
-        /** @var Statement $statement */
         $queryBuilder = $this->getSelectQueryBuilder();
         $queryBuilder->where($fieldName . " = :criteria");
         $queryBuilder->setParameter('criteria', $criteria);
@@ -430,26 +425,5 @@ class DoctrineBaseDriver extends BaseDriver
     public function getLastInsertId()
     {
         return $this->getConnection()->lastInsertId();
-    }
-
-    /**
-     * Extract ordered type list from two associate key lists of data and types.
-     *
-     * @param array $data
-     * @param array $types
-     *
-     * @return array
-     */
-    protected function extractTypeValues(array $data, array $types)
-    {
-        $typeValues = array();
-
-        foreach ($data as $k => $_) {
-            $typeValues[] = isset($types[$k])
-                ? $types[$k]
-                : \PDO::PARAM_STR;
-        }
-
-        return $typeValues;
     }
 }

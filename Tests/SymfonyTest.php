@@ -93,17 +93,4 @@ class SymfonyTest extends WebTestCase
         $parameter     = $this->getParameter("test/" . $caller["class"] . "/" . $methodName);
         return $parameter;
     }
-
-    /**
-     * Get calss configuration if available
-     *
-     * @return mixed|null
-     */
-    public function getClassConfiguration()
-    {
-        $trace     = debug_backtrace();
-        $caller    = $trace[1];
-        $parameter = $this->getParameter("test/" . $caller["class"]);
-        return $parameter;
-    }
 }
