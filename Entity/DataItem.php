@@ -6,9 +6,6 @@ namespace Mapbender\DataSourceBundle\Entity;
  */
 class DataItem
 {
-    /** @var integer */
-    protected $id;
-
     /** @var mixed[] */
     protected $attributes = array();
 
@@ -44,13 +41,10 @@ class DataItem
             }
         }
 
-        // set ID
-        if (isset($args[$uniqueIdField])) {
-            $this->setId($args[$uniqueIdField]);
-            unset($args[$uniqueIdField]);
+        if (!array_key_exists($this->uniqueIdField, $args)) {
+            // ensure getId works
+            $args[$this->uniqueIdField] = null;
         }
-
-        // set attributes
         $this->setAttributes($args);
     }
 
@@ -65,26 +59,25 @@ class DataItem
     }
 
     /**
-     * Return array
-     *
-     * @return mixed
+     * @return array
      */
     public function toArray()
     {
         $data = $this->getAttributes();
 
+        // @todo: Emit everything, including id
+        //        The only reason this might break anything is if some JavaScript code
+        //        checks for a populated id via .hasOwnProperty instead of using simple
+        //        boolean coersion.
         if (!$this->hasId()) {
             unset($data[$this->uniqueIdField]);
-        } else {
-            $data[$this->uniqueIdField] = $this->getId();
         }
 
-        if($children = $this->getChildren()){
-           $_children = array();
-            foreach($children as $child){
-               $_children[] = $child->toArray();
-           }
-            $data["children"] = &$_children;
+        if ($children = $this->getChildren()) {
+            $data['children'] = array();
+            foreach ($children as $child) {
+                $data['children'][] = $child->toArray();
+            }
         }
 
         return $data;
@@ -95,18 +88,18 @@ class DataItem
      */
     public function setId($id)
     {
-        $this->id = $id;
         $this->attributes[$this->uniqueIdField] = $id;
     }
 
     /**
-     * Is id set
+     * Is id not null
      *
      * @return bool
+     * @deprecated use getId and coerce to boolean
      */
     public function hasId()
     {
-        return !is_null($this->id);
+        return !is_null($this->getId());
     }
 
     /**
@@ -116,7 +109,7 @@ class DataItem
      */
     public function getId()
     {
-        return $this->id;
+        return $this->attributes[$this->uniqueIdField];
     }
 
     /**
@@ -126,7 +119,6 @@ class DataItem
      */
     public function getAttributes()
     {
-        $this->attributes[$this->uniqueIdField] = $this->getId();
         return $this->attributes;
     }
 
