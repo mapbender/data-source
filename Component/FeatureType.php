@@ -320,44 +320,37 @@ class FeatureType extends DataStore
         $intersect       = isset($criteria['intersectGeometry']) ? $criteria['intersectGeometry'] : null;
         $returnType      = isset($criteria['returnType']) ? $criteria['returnType'] : null;
         $srid            = isset($criteria['srid']) ? $criteria['srid'] : $this->getSrid();
-        $where           = isset($criteria['where']) ? $criteria['where'] : null;
         $queryBuilder    = $this->getSelectQueryBuilder($srid);
         $connection      = $queryBuilder->getConnection();
-        $whereConditions = array();
 
         // add GEOM where condition
         if ($intersect) {
             $geometry          = BaseDriver::roundGeometry($intersect, 2);
-            $whereConditions[] = $this->getDriver()->getIntersectCondition($geometry, $this->geomField, $srid, $this->getSrid());
+            $queryBuilder->andWhere($this->getDriver()->getIntersectCondition($geometry, $this->geomField, $srid, $this->getSrid()));
         }
 
         // add filter (https://trac.wheregroup.com/cp/issues/3733)
         if (!empty($this->sqlFilter)) {
-            /** @var TokenStorageInterface $tokenStorage */
-            $tokenStorage = $this->container->get("security.token_storage");
-            $userName = $tokenStorage->getToken()->getUsername();
-            $sqlFilter         = strtr($this->sqlFilter, array(
-                ':userName' => $userName,
-            ));
-            $whereConditions[] = $sqlFilter;
-
+            if (preg_match('#:userName([^_\w\d]|$)#', $this->sqlFilter)) {
+                /** @var TokenStorageInterface $tokenStorage */
+                $tokenStorage = $this->container->get("security.token_storage");
+                $queryBuilder->setParameter(':userName', $tokenStorage->getToken()->getUsername());
+            }
+            $queryBuilder->andWhere($this->sqlFilter);
         }
 
         // add second filter (https://trac.wheregroup.com/cp/issues/4643)
-        if ($where) {
-            $whereConditions[] = $where;
+        if (!empty($criteria['where'])) {
+            $queryBuilder->andWhere($criteria['where']);
         }
 
         if (isset($criteria["source"]) && isset($criteria["distance"])) {
-            $whereConditions[] = "ST_DWithin(t." . $this->getGeomField() . ","
+            $queryBuilder->andWhere("ST_DWithin(t." . $this->getGeomField() . ","
                 . $connection->quote($criteria["source"])
-                . "," . $criteria['distance'] . ')';
+                . ', :distance)');
+            $queryBuilder->setParameter(':distance', $criteria['distance']);
         }
 
-
-        if (count($whereConditions)) {
-            $queryBuilder->where(join(" AND ", $whereConditions));
-        }
 
         $queryBuilder->setMaxResults($maxResults);
 
@@ -585,6 +578,15 @@ class FeatureType extends DataStore
      */
     protected function setFilter($sqlFilter)
     {
+        if ($sqlFilter) {
+            // unquote quoted parameter references
+            // we use parameter binding
+            $filtered = preg_replace('#([\\\'"])(:[\w\d_]+)(\\1)#', '\\2', $sqlFilter);
+            if ($filtered !== $sqlFilter) {
+                @trigger_error("DEPRECATED: DO NOT quote parameter references in sql filter configuration", E_USER_DEPRECATED);
+            }
+            $sqlFilter = $filtered;
+        }
         $this->sqlFilter = $sqlFilter;
     }
 
