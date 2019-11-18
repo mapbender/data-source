@@ -9,7 +9,7 @@ use Symfony\Component\DependencyInjection\Container;
  * @package Mapbender\DataSourceBundle\Tests
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class SymfonyTest extends WebTestCase
+abstract class SymfonyTest extends WebTestCase
 {
 
     /** @var Client */
