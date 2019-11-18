@@ -21,26 +21,27 @@ class DataItem
     /**
      * @param mixed  $args string|array|null Optional JSON string or array
      * @param string $uniqueIdField ID field name
-     * @param bool   $fill array|null Fill array
      */
-    public function __construct($args = null, $uniqueIdField = 'id', $fill = false)
+    public function __construct($args = array(), $uniqueIdField = 'id')
     {
         $this->uniqueIdField = $uniqueIdField;
 
-        // decode JSON
-        if (is_string($args)) {
-            $args = json_decode($args, true);
-        }
-
-        // Is JSON DataSource array?
-        if ($fill && is_array($args) && isset($args['attributes'])) {
-            $attributes = $args["attributes"];
-
-            if (isset($args['id'])) {
-                $attributes[$uniqueIdField] = $args['id'];
+        if (!is_array($args)) {
+            @trigger_error('DEPRECATED: initializing ' . get_class($this) . ' with type ' . gettype($args) . ' $args is is deprecated. Pass an array.', E_USER_DEPRECATED);
+            if (is_string($args)) {
+                $newArgs = json_decode($args, true);
+                if ($newArgs === null && $args !== json_encode('null')) {
+                    throw new \InvalidArgumentException("Json decode failure for " . print_r($args, true));
+                }
+                if ($newArgs === null) {
+                    $args = array();
+                } else {
+                    $args = $newArgs;
+                }
+                if (!is_array($args)) {
+                    throw new \InvalidArgumentException('Invalid $args type ' . gettype($args) . ' post-decode. Expected array.');
+                }
             }
-
-            $args = $attributes;
         }
 
         // set ID
