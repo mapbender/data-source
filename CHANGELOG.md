@@ -1,6 +1,9 @@
 ## 0.1.16??
-- Escape `:userName` and `:distance` properly in FeatureType::search
-- Extract `FeatureType::addCustomSearchCritera` method for customization support
+- Support `:userName` filter binding also in DataStore::search (previously only in FeatureType::search)
+- Escape `:userName` properly in FeatureType::search and DataStore::search
+- Escape `:distance` in FeatureType::search (now a bound param)
+- Extract FeatureType / DataStore method `addCustomSearchCritera` method for customization support
+- `getUniqueId` and `getTablename` methods are now also available on DataStore object (previously only FeatureType)
 - Deprecate DataItem construction with a (jsonish) string
 - Make tests with missing prerequisites fail instead of skip
 

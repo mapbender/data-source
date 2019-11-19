@@ -364,26 +364,6 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Get unique ID
-     *
-     * @return mixed unique ID
-     * @todo: this information belongs HERE, not in the driver
-     */
-    public function getUniqueId()
-    {
-        return $this->getDriver()->getUniqueId();
-    }
-
-    /**
-     * @return string
-     * @todo: this information belongs here, not in the driver
-     */
-    public function getTableName()
-    {
-        return $this->getDriver()->getTableName();
-    }
-
-    /**
      * @return string
      */
     public function getGeomField()

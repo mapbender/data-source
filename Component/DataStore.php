@@ -305,6 +305,26 @@ class DataStore
     }
 
     /**
+     * Get unique ID field name
+     *
+     * @return string
+     * @todo: this information belongs HERE, not in the driver
+     */
+    public function getUniqueId()
+    {
+        return $this->getDriver()->getUniqueId();
+    }
+
+    /**
+     * @return string
+     * @todo: this information belongs here, not in the driver
+     */
+    public function getTableName()
+    {
+        return $this->getDriver()->getTableName();
+    }
+
+    /**
      * Add custom (non-Doctrineish) criteria to passed query builder.
      * Override hook for customization
      *

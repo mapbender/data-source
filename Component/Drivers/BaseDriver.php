@@ -73,7 +73,7 @@ abstract class BaseDriver implements Base
     /**
      * Get unique ID field name
      *
-     * @return mixed unique ID
+     * @return string
      * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function getUniqueId()
