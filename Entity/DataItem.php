@@ -49,16 +49,6 @@ class DataItem
     }
 
     /**
-     * Return string
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        return json_encode($this);
-    }
-
-    /**
      * @return array
      */
     public function toArray()
