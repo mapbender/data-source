@@ -141,7 +141,7 @@ class FeatureType extends DataStore
      *
      * @param int $id
      * @param int $srid SRID
-     * @return Feature
+     * @return Feature|false
      */
     public function getById($id, $srid = null)
     {
@@ -150,8 +150,8 @@ class FeatureType extends DataStore
             ->setParameter('id', $id)
             ->execute()
             ->fetchAll();
-        $this->prepareResults($rows, $srid);
-        return reset($rows);
+        $features = $this->prepareResults($rows, $srid);
+        return reset($features);
     }
 
     /**
@@ -306,7 +306,8 @@ class FeatureType extends DataStore
      * Search feature by criteria
      *
      * @param array $criteria
-     * @return Feature[]
+     * @return Feature[]|array
+     * @todo: methods should not have parametric return types
      */
     public function search(array $criteria = array())
     {
@@ -322,13 +323,13 @@ class FeatureType extends DataStore
 
         $statement  = $queryBuilder->execute();
         $rows = $statement->fetchAll();
-        $rows = $this->prepareResults($rows, $srid);
+        $features = $this->prepareResults($rows, $srid);
 
         if ($returnType == "FeatureCollection") {
-            $rows = $this->toFeatureCollection($rows);
+            return $this->toFeatureCollection($features);
+        } else {
+            return $features;
         }
-
-        return $rows;
     }
 
     /**
@@ -393,11 +394,9 @@ class FeatureType extends DataStore
     /**
      * Convert results to Feature objects
      *
-     * @param Feature[] $rows
+     * @param array[] $rows
      * @param null      $srid
      * @return Feature[]
-     * @todo: this logic belongs in the driver, not here
-     * @todo: resolve reference abuse, callers should use the return value
      */
     public function prepareResults(&$rows, $srid = null)
     {
@@ -405,6 +404,9 @@ class FeatureType extends DataStore
         $hasSrid = $srid != null;
 
         if ($driver instanceof Oracle) {
+            // @todo: this logic belongs in the driver, not here
+            // @todo: this behaviour may cause more trouble than it solves. There should be an option
+            //        to disable it.
             Oracle::transformColumnNames($rows);
         }
 
@@ -470,18 +472,21 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Convert Features[] to FeatureCollection
+     * Convert Features to FeatureCollection
      *
-     * @param Feature[] $rows
+     * @param Feature[] $features
      * @return array FeatureCollection
      */
-    public function toFeatureCollection($rows)
+    public function toFeatureCollection($features)
     {
-        foreach ($rows as $k => $feature) {
-            $rows[$k] = $feature->toGeoJson();
+        $collection = array(
+            'type' => 'FeatureCollection',
+            'features' => array(),
+        );
+        foreach ($features as $feature) {
+            $collection['features'][] = $feature->toGeoJson();
         }
-        return array("type"     => "FeatureCollection",
-                     "features" => $rows);
+        return $collection;
     }
 
     /**
@@ -786,8 +791,9 @@ class FeatureType extends DataStore
      * Get by ID list
      *
      * @param mixed[] $ids
-     * @param bool $prepareResults
-     * @return array[][]
+     * @param bool $prepareResults to return Feature objects instead of associative row arrays
+     * @return array[]|Feature[]
+     * @todo: methods should not have parametric return types
      */
     public function getByIds($ids, $prepareResults = true)
     {
@@ -797,10 +803,10 @@ class FeatureType extends DataStore
         $rows = $queryBuilder->where($condition)->execute()->fetchAll();
 
         if ($prepareResults) {
-            $this->prepareResults($rows);
+            return $this->prepareResults($rows);
+        } else {
+            return $rows;
         }
-
-        return $rows;
     }
 
     /**
