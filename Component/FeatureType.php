@@ -209,7 +209,7 @@ class FeatureType extends DataStore
     public function insert($featureData)
     {
         $feature                       = $this->create($featureData);
-        $data                          = $this->cleanFeatureData($feature->toArray());
+        $data = $feature->toArray();
         $driver                        = $this->getDriver();
         $lastId                        = null;
         $data[ $this->getGeomField() ] = $this->transformEwkt($data[ $this->getGeomField() ], $this->getSrid());
@@ -266,7 +266,7 @@ class FeatureType extends DataStore
     public function update($featureData)
     {
         $feature                       = $this->create($featureData);
-        $data                          = $this->cleanFeatureData($feature->toArray());
+        $data = $feature->toArray();
         $connection                    = $this->getConnection();
         $data[ $this->getGeomField() ] = $this->transformEwkt($data[ $this->getGeomField() ]);
         unset($data[ $this->getUniqueId() ]);
@@ -465,25 +465,6 @@ class FeatureType extends DataStore
             $collection['features'][] = $feature->toGeoJson();
         }
         return $collection;
-    }
-
-    /**
-     * Clean data this can't be saved into db table from data array
-     *
-     * @param array $data
-     * @return array
-     */
-    private function cleanFeatureData($data)
-    {
-        $fields = array_merge($this->getFields(), array($this->getUniqueId(), $this->getGeomField()));
-
-        // clean data from feature
-        foreach ($data as $fieldName => $value) {
-            if (isset($fields[ $fieldName ])) {
-                unset($data[ $fieldName ]);
-            }
-        }
-        return $data;
     }
 
     /**
