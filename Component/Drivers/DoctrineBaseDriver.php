@@ -274,8 +274,8 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @param array $rows - Data items to be casted
      * @return DataItem[]
-     * @deprecated this belongs in DataStore, not here
-     * @todo: move this method to DataStore, removing it here
+     * @deprecated DataStore is responsible for DataItem creation, and already handles this
+     * @todo: remove this method
      */
     public function prepareResults($rows)
     {

@@ -162,7 +162,7 @@ class DataStore
         $queryBuilder->andWhere($driver->getUniqueId() . " = " . $dataItem->getAttribute($this->getParentField()));
         $queryBuilder->setMaxResults(1);
         $statement  = $queryBuilder->execute();
-        $rows = $driver->prepareResults($statement->fetchAll());
+        $rows = $this->prepareResults($statement->fetchAll());
         if ($rows) {
             return $rows[0];
         } else {
@@ -187,7 +187,7 @@ class DataStore
             $queryBuilder->andWhere($this->getParentField() . " = " . $parentId);
         }
         $statement  = $queryBuilder->execute();
-        $rows = $driver->prepareResults($statement->fetchAll());
+        $rows = $this->prepareResults($statement->fetchAll());
 
         if ($recursive) {
             /** @var DataItem $dataItem */
@@ -291,8 +291,7 @@ class DataStore
         $maxResults = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : DoctrineBaseDriver::MAX_RESULTS;
         $queryBuilder->setMaxResults($maxResults);
         $statement  = $queryBuilder->execute();
-        $rows       = $statement->fetchAll();
-        $results = $this->getDriver()->prepareResults($rows);
+        $results = $this->prepareResults($statement->fetchAll());
 
         if (isset($this->events[ self::EVENT_ON_AFTER_SEARCH ])) {
             $this->secureEval($this->events[ self::EVENT_ON_AFTER_SEARCH ], array(
@@ -348,6 +347,24 @@ class DataStore
         if (!empty($params['where'])) {
             $queryBuilder->andWhere($params['where']);
         }
+    }
+
+    /**
+     * Convert database rows to DataItem objects
+     *
+     * @param array[] $rows
+     * @return DataItem[]
+     */
+    public function prepareResults($rows)
+    {
+        $uniqueId = $this->getUniqueId();
+        $items = array();
+        foreach ($rows as $key => $row) {
+            $item = new DataItem(array(), $uniqueId);
+            $item->setAttributes($row);
+            $items[] = $item;
+        }
+        return $items;
     }
 
     /**
