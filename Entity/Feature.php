@@ -173,16 +173,10 @@ class Feature extends DataItem
      */
     public function toArray()
     {
-        $data = $this->getAttributes();
+        $data = parent::toArray();
 
         if ($this->hasGeom() && $this->getSrid()) {
             $data[$this->geomField] = "SRID=" . $this->getSrid() . ";" . $this->getGeom();
-        }
-
-        if (!$this->hasId()) {
-            unset($data[$this->uniqueIdField]);
-        }else{
-            $data[$this->uniqueIdField] = $this->getId();
         }
 
         return $data;
