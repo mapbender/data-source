@@ -53,6 +53,8 @@ class DataStore
     protected $connectionType;
     protected $fields;
 
+    /** @var string SQL where filter */
+    protected $sqlFilter;
 
     /**
      * @param ContainerInterface $container
@@ -404,6 +406,29 @@ class DataStore
     public function getConnection()
     {
         return $this->getDriver()->getConnection();
+    }
+
+    /** @noinspection PhpUnused */
+    /**
+     * Set permanent SQL filter used by $this->search()
+     * https://trac.wheregroup.com/cp/issues/3733
+     *
+     * @see $this->search()
+     * @param string $sqlFilter
+     * NOTE: magic setter invocation; expected config value comes with key 'filter'
+     */
+    protected function setFilter($sqlFilter)
+    {
+        if ($sqlFilter) {
+            // unquote quoted parameter references
+            // we use parameter binding
+            $filtered = preg_replace('#([\\\'"])(:[\w\d_]+)(\\1)#', '\\2', $sqlFilter);
+            if ($filtered !== $sqlFilter) {
+                @trigger_error("DEPRECATED: DO NOT quote parameter references in sql filter configuration", E_USER_DEPRECATED);
+            }
+            $sqlFilter = $filtered;
+        }
+        $this->sqlFilter = $sqlFilter;
     }
 
     /**

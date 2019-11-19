@@ -56,11 +56,6 @@ class FeatureType extends DataStore
     protected $srid = null;
 
     /**
-     * @var string SQL where filter
-     */
-    protected $sqlFilter;
-
-    /**
      * @var array file info list
      */
     protected $filesInfo = array();
@@ -576,27 +571,6 @@ class FeatureType extends DataStore
     public function setWaysVerticesTableName($waysVerticesTableName)
     {
         $this->waysVerticesTableName = $waysVerticesTableName;
-    }
-
-    /**
-     * Set FeatureType permanent SQL filter used by $this->search()
-     * https://trac.wheregroup.com/cp/issues/3733
-     *
-     * @see $this->search()
-     * @param string $sqlFilter
-     */
-    protected function setFilter($sqlFilter)
-    {
-        if ($sqlFilter) {
-            // unquote quoted parameter references
-            // we use parameter binding
-            $filtered = preg_replace('#([\\\'"])(:[\w\d_]+)(\\1)#', '\\2', $sqlFilter);
-            if ($filtered !== $sqlFilter) {
-                @trigger_error("DEPRECATED: DO NOT quote parameter references in sql filter configuration", E_USER_DEPRECATED);
-            }
-            $sqlFilter = $filtered;
-        }
-        $this->sqlFilter = $sqlFilter;
     }
 
     /**
