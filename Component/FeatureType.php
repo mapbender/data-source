@@ -317,19 +317,41 @@ class FeatureType extends DataStore
     public function search(array $criteria = array())
     {
         $maxResults      = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
-        $intersect       = isset($criteria['intersectGeometry']) ? $criteria['intersectGeometry'] : null;
         $returnType      = isset($criteria['returnType']) ? $criteria['returnType'] : null;
         $srid            = isset($criteria['srid']) ? $criteria['srid'] : $this->getSrid();
         $queryBuilder    = $this->getSelectQueryBuilder($srid);
-        $connection      = $queryBuilder->getConnection();
 
-        // add GEOM where condition
-        if ($intersect) {
-            $geometry          = BaseDriver::roundGeometry($intersect, 2);
-            $queryBuilder->andWhere($this->getDriver()->getIntersectCondition($geometry, $this->geomField, $srid, $this->getSrid()));
+        $this->addCustomSearchCritera($queryBuilder, $criteria);
+
+        $queryBuilder->setMaxResults($maxResults);
+
+        $statement  = $queryBuilder->execute();
+        $rows = $statement->fetchAll();
+        $rows = $this->prepareResults($rows, $srid);
+
+        if ($returnType == "FeatureCollection") {
+            $rows = $this->toFeatureCollection($rows);
         }
 
-        // add filter (https://trac.wheregroup.com/cp/issues/3733)
+        return $rows;
+    }
+
+    /**
+     * Add custom (non-Doctrineish) criteria to passed query builder.
+     * Override hook for customization
+     *
+     * @param QueryBuilder $queryBuilder
+     * @param array $params
+     */
+    protected function addCustomSearchCritera(QueryBuilder $queryBuilder, array $params)
+    {
+        // add bounding geometry condition
+        if (!empty($params['intersect'])) {
+            $geometry = BaseDriver::roundGeometry($params['intersect'], 2);
+            $queryBuilder->andWhere($this->getDriver()->getIntersectCondition($geometry, $this->geomField, $srid, $this->getSrid()));
+        }
+        // add filter (dead link https://trac.wheregroup.com/cp/issues/3733)
+        // @todo: specify and document
         if (!empty($this->sqlFilter)) {
             if (preg_match('#:userName([^_\w\d]|$)#', $this->sqlFilter)) {
                 /** @var TokenStorageInterface $tokenStorage */
@@ -338,36 +360,20 @@ class FeatureType extends DataStore
             }
             $queryBuilder->andWhere($this->sqlFilter);
         }
-
-        // add second filter (https://trac.wheregroup.com/cp/issues/4643)
-        if (!empty($criteria['where'])) {
-            $queryBuilder->andWhere($criteria['where']);
+        // add second filter (dead link https://trac.wheregroup.com/cp/issues/4643)
+        // @ŧodo: specify and document
+        if (!empty($params['where'])) {
+            $queryBuilder->andWhere($params['where']);
         }
-
-        if (isset($criteria["source"]) && isset($criteria["distance"])) {
+        // Add condition for maximum distance to given wkt 'source'
+        // @todo: specify and document
+        if (isset($params["source"]) && isset($params["distance"])) {
+            // @todo: quote column identifer
             $queryBuilder->andWhere("ST_DWithin(t." . $this->getGeomField() . ","
-                . $connection->quote($criteria["source"])
+                . $queryBuilder->getConnection()->quote($params["source"])
                 . ', :distance)');
-            $queryBuilder->setParameter(':distance', $criteria['distance']);
+            $queryBuilder->setParameter(':distance', $params['distance']);
         }
-
-
-        $queryBuilder->setMaxResults($maxResults);
-
-        $statement  = $queryBuilder->execute();
-        $rows       = $statement->fetchAll();
-        $hasResults = count($rows) > 0;
-
-        // Convert to Feature object
-        if ($hasResults) {
-            $this->prepareResults($rows, $srid);
-        }
-
-        if ($returnType == "FeatureCollection") {
-            $rows = $this->toFeatureCollection($rows);
-        }
-
-        return $rows;
     }
 
     /**
@@ -405,6 +411,7 @@ class FeatureType extends DataStore
      * @param null      $srid
      * @return Feature[]
      * @todo: this logic belongs in the driver, not here
+     * @todo: resolve reference abuse, callers should use the return value
      */
     public function prepareResults(&$rows, $srid = null)
     {
