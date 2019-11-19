@@ -175,12 +175,8 @@ class Feature extends DataItem
     {
         $data = $this->getAttributes();
 
-        if ($this->hasGeom()) {
-            if ($this->getSrid()) {
-                $data[$this->geomField] = "SRID=" . $this->getSrid() . ";" . $this->getGeom();
-            } else {
-                $data[$this->geomField] = $this->srid . ";" . $this->getGeom();
-            }
+        if ($this->hasGeom() && $this->getSrid()) {
+            $data[$this->geomField] = "SRID=" . $this->getSrid() . ";" . $this->getGeom();
         }
 
         if (!$this->hasId()) {
