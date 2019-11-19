@@ -66,19 +66,48 @@ class DataStore
         $this->filesystem = $container->get('filesystem');
         $this->connectionType = isset($args["type"]) ? $args["type"] : "doctrine";
         $this->connectionName = isset($args["connection"]) ? $args["connection"] : "default";
-        $this->events   = isset($args["events"]) ? $args["events"] : array();
-        $this->configure($args ?: array());
+        $this->events = isset($args["events"]) ? $args["events"] : array();
+        $args = $this->lcfirstKeys($args ?: array());
+        $this->configure($args);
         // @todo: lazy-init driver on first getDriver invocation
-        $this->driver = $this->driverFactory($args ?: array());
+        $this->driver = $this->driverFactory($args);
     }
 
     protected function configure(array $args)
+    {
+        if (array_key_exists('filter', $args)) {
+            $this->setFilter($args['filter']);
+        }
+        if (array_key_exists('mapping', $args)) {
+            $this->setMapping($args['mapping']);
+        }
+        if (array_key_exists('parentField', $args)) {
+            $this->setParentField($args['parentField']);
+        }
+        $unhandledArgs = array_diff_key($args, array_flip(array(
+            'mapping',
+            'parentField',
+            'filter',
+        )));
+        if ($unhandledArgs) {
+            $this->configureMagic($unhandledArgs);
+        }
+    }
+
+    /**
+     * Handle remaining constructor arguments via magic setter inflection
+     *
+     * @param mixed[] $args
+     * @deprecated remove in 0.2.0
+     */
+    private function configureMagic($args)
     {
         // @todo: drop magic setter invocations
         $methods = get_class_methods(get_class($this));
         foreach ($args as $key => $value) {
             $keyMethod = "set" . ucwords($key);
             if (in_array($keyMethod, $methods)) {
+                @trigger_error("DEPRECATED: magic setter inflection in " . get_class($this) . " initialization, will be removed in 0.2.0. Override confiugure to explicitly handle all relevant values.", E_USER_DEPRECATED);
                 $this->$keyMethod($value);
             }
         }
@@ -626,5 +655,25 @@ class DataStore
         /** @var UploadsManager $ulm */
         $ulm = $this->container->get('mapbender.uploads_manager.service');
         return $ulm;
+    }
+
+    /**
+     * Lower-cases the first letter in each key of given array. This is for BC
+     * with magic setter inflection where each key is run through ucwords. E.g. a
+     * config value 'Fields' would invoke the same setter as 'fields'.
+     * Method emits a deprecation warning when this occurs.
+     *
+     * @param mixed[] $args
+     * @return mixed[]
+     * @deprecated remove in 0.2.0 along with magic argument handling
+     */
+    private function lcfirstKeys(array $args)
+    {
+        $argsOut = array_combine(array_map('\lcfirst', array_keys($args)), array_values($args));
+        $modifiedKeys = array_diff(array_keys($args), array_keys($argsOut));
+        if ($modifiedKeys) {
+            @trigger_error("DEPRECATED: passed miscapitalized config key(s) " . implode(', ', $modifiedKeys) . ' to ' . get_class($this) . '. This will be an error in 0.2.0', E_USER_DEPRECATED);
+        }
+        return $argsOut;
     }
 }

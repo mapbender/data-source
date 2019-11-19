@@ -90,7 +90,24 @@ class FeatureType extends DataStore
 
     protected function configure(array $args)
     {
-        parent::configure($args);
+        if (array_key_exists('geomField', $args)) {
+            $this->setGeomField($args['geomField']);
+        }
+        if (array_key_exists('srid', $args)) {
+            $this->setSrid($args['srid']);
+        }
+        if (array_key_exists('waysTableName', $args)) {
+            $this->setWaysTableName($args['waysTableName']);
+        }
+        if (array_key_exists('waysGeomFieldName', $args)) {
+            $this->setWaysGeomFieldName($args['waysGeomFieldName']);
+        }
+        if (array_key_exists('waysVerticesTableName', $args)) {
+            $this->setWaysVerticesTableName($args['waysVerticesTableName']);
+        }
+        if (array_key_exists('files', $args)) {
+            $this->setFiles($args['files']);
+        }
         if (!empty($args['export'])) {
             if (!is_array($args['export'])) {
                 throw new \InvalidArgumentException("Unexpected type " . gettype($args['export']) . " for 'export'. Expected array.");
@@ -99,6 +116,16 @@ class FeatureType extends DataStore
                 $this->exportFields = $args['export']['fields'];
             }
         }
+        $remaining = array_diff_key($args, array_flip(array(
+            'geomField',
+            'srid',
+            'waysTableName',
+            'waysGeomFieldName',
+            'waysVerticesTableName',
+            'files',
+        )));
+
+        parent::configure($remaining);
     }
 
     /**
