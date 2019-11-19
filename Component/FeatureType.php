@@ -381,7 +381,7 @@ class FeatureType extends DataStore
     public function prepareResults($rows, $srid = null)
     {
         $driver = $this->getDriver();
-        $hasSrid = $srid != null;
+        $srid = $srid ?: $this->getSrid();
 
         if ($driver instanceof Oracle) {
             // @todo: this logic belongs in the driver, not here
@@ -391,10 +391,7 @@ class FeatureType extends DataStore
         }
         $features = array();
         foreach ($rows as $key => $row) {
-            $feature = $this->create($row);
-            if ($hasSrid) {
-                $feature->setSrid($srid);
-            }
+            $feature = new Feature($row, $srid, $this->getUniqueId(), $this->getGeomField());
             $features[] = $feature;
         }
         return $features;
@@ -423,17 +420,18 @@ class FeatureType extends DataStore
      */
     public function create($args)
     {
-        $feature = null;
         if (is_object($args)) {
             if ($args instanceof Feature) {
-                $feature = $args;
+                return $args;
             } else {
-                $args = get_object_vars($args);
+                return new Feature(get_object_vars($args), $this->getSrid(), $this->getUniqueId(), $this->getGeomField());
             }
         } elseif (is_numeric($args)) {
-            $args = array($this->getUniqueId() => intval($args));
+            $feature = new Feature(array(), $this->getSrid(), $this->getUniqueId(), $this->getGeomField());
+            $feature->setId($args);
+            return $feature;
         }
-        return $feature && $feature instanceof Feature ? $feature : new Feature($args, $this->getSrid(), $this->getUniqueId(), $this->getGeomField());
+        return new Feature($args, $this->getSrid(), $this->getUniqueId(), $this->getGeomField());
     }
 
     /**
