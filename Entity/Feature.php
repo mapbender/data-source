@@ -157,9 +157,12 @@ class Feature extends DataItem
      * Return GeoJSON string
      *
      * @return string
+     * @deprecated too much magic; if you want GeoJSON, call toGeoJson and json_encode explicitly
+     * @todo: remove method
      */
     public function __toString()
     {
+        @trigger_error("Magic Feature::__toString invocation is deprecated and will be removed in 0.2.0; call toGeoJson and perfom json_encode explicitly", E_USER_DEPRECATED);
         return json_encode($this->toGeoJson());
     }
 

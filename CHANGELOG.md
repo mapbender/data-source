@@ -5,6 +5,7 @@
 - Extract FeatureType / DataStore method `addCustomSearchCritera` method for customization support
 - `getUniqueId` and `getTablename` methods are now also available on DataStore object (previously only FeatureType)
 - Deprecate DataItem construction with a (jsonish) string
+- Deprecate magic Feature::__toString invocation
 - Make tests with missing prerequisites fail instead of skip
 
 ## 0.1.15

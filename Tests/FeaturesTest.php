@@ -115,7 +115,7 @@ class FeaturesTest extends WebTestCase
     {
         $feature = $this->getRandomFeature();
         self::$featureType->getSrid();
-        $json     = $feature . "";
+        $json = json_encode($feature->toGeoJson());
         self::$featureType->create($json);
     }
 }
