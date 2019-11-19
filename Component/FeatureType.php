@@ -398,7 +398,7 @@ class FeatureType extends DataStore
      * @param null      $srid
      * @return Feature[]
      */
-    public function prepareResults(&$rows, $srid = null)
+    public function prepareResults($rows, $srid = null)
     {
         $driver = $this->getDriver();
         $hasSrid = $srid != null;
@@ -409,15 +409,15 @@ class FeatureType extends DataStore
             //        to disable it.
             Oracle::transformColumnNames($rows);
         }
-
-        foreach ($rows as $key => &$row) {
-            $row = $this->create($row);
+        $features = array();
+        foreach ($rows as $key => $row) {
+            $feature = $this->create($row);
             if ($hasSrid) {
-                $row->setSrid($srid);
+                $feature->setSrid($srid);
             }
+            $features[] = $feature;
         }
-
-        return $rows;
+        return $features;
     }
 
     /**
