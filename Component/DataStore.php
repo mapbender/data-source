@@ -2,6 +2,7 @@
 namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Mapbender\CoreBundle\Component\UploadsManager;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
@@ -291,6 +292,17 @@ class DataStore
         }
 
         return $results;
+    }
+
+    /**
+     * Get query builder prepared to select from the source table
+     *
+     * @return QueryBuilder
+     * @todo: add select fields here, not in driver
+     */
+    public function getSelectQueryBuilder()
+    {
+        return $this->getDriver()->getSelectQueryBuilder();
     }
 
     /**

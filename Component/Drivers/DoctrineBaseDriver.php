@@ -215,6 +215,7 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @param array $fields
      * @return QueryBuilder
+     * @todo: driver shouldn't know or care about field names that aren't passed in
      */
     public function getSelectQueryBuilder(array $fields = array())
     {

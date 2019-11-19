@@ -442,7 +442,8 @@ class FeatureType extends DataStore
     {
         $driver = $this->getDriver();
         $geomFieldCondition = $driver->getGeomAttributeAsWkt($this->geomField, $srid ? $srid : $this->getSrid());
-        $queryBuilder       = $driver->getSelectQueryBuilder(array($geomFieldCondition));
+        $queryBuilder = parent::getSelectQueryBuilder();
+        $queryBuilder->addSelect($geomFieldCondition);
         return $queryBuilder;
     }
 
