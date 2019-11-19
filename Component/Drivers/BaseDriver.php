@@ -86,6 +86,7 @@ abstract class BaseDriver implements Base
      *
      * @param mixed $args
      * @return DataItem
+     * @deprecated
      * @todo: the implementation belongs in the DataStore / FeatureType, not here
      */
     public function create($args)

@@ -281,8 +281,22 @@ class DataStore
                 'criteria' => &$criteria
             ));
         }
+        $queryBuilder = $this->getSelectQueryBuilder();
+        // @todo: support unlimited selects
+        $maxResults = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : BaseDriver::MAX_RESULTS;
 
-        $results = $this->getDriver()->search($criteria);
+        if ($sqlFilter = $this->getSqlFilter()) {
+            $queryBuilder->andWhere($sqlFilter);
+        }
+
+        // add second filter (https://trac.wheregroup.com/cp/issues/4643)
+        if (!empty($criteria['where'])) {
+            $queryBuilder->andWhere($criteria['where']);
+        }
+        $queryBuilder->setMaxResults($maxResults);
+        $statement  = $queryBuilder->execute();
+        $rows       = $statement->fetchAll();
+        $results = $this->getDriver()->prepareResults($rows);
 
         if (isset($this->events[ self::EVENT_ON_AFTER_SEARCH ])) {
             $this->secureEval($this->events[ self::EVENT_ON_AFTER_SEARCH ], array(
@@ -530,5 +544,14 @@ class DataStore
         /** @var UploadsManager $ulm */
         $ulm = $this->container->get('mapbender.uploads_manager.service');
         return $ulm;
+    }
+
+    /**
+     * @return string|null
+     * @internal
+     */
+    protected function getSqlFilter()
+    {
+        return $this->getDriver()->getSqlFilter();
     }
 }

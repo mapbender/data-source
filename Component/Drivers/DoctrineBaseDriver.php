@@ -241,6 +241,8 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @param array $criteria
      * @return DataItem[]
+     * @deprecated this method's body has been baked into DataStore::search, where it belongs
+     * @todo: remove this method
      */
     public function search(array $criteria = array())
     {
@@ -271,6 +273,8 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @param array $rows - Data items to be casted
      * @return DataItem[]
+     * @deprecated this belongs in DataStore, not here
+     * @todo: move this method to DataStore, removing it here
      */
     public function prepareResults($rows)
     {
@@ -426,5 +430,15 @@ class DoctrineBaseDriver extends BaseDriver
     public function getLastInsertId()
     {
         return $this->getConnection()->lastInsertId();
+    }
+
+    /**
+     * @return string|null
+     * @deprecated filter information doesn't belong here
+     * @internal
+     */
+    public function getSqlFilter()
+    {
+        return $this->sqlFilter;
     }
 }

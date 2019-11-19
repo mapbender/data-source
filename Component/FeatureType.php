@@ -316,6 +316,7 @@ class FeatureType extends DataStore
      */
     public function search(array $criteria = array())
     {
+        // @todo: support unlimited selects
         $maxResults      = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
         $returnType      = isset($criteria['returnType']) ? $criteria['returnType'] : null;
         $srid            = isset($criteria['srid']) ? $criteria['srid'] : $this->getSrid();
@@ -898,5 +899,17 @@ class FeatureType extends DataStore
         extract($row);
         eval('$result = ' . $code . ';');
         return $result;
+    }
+
+    /**
+     * @return string|null
+     * @internal
+     * @todo: sqlFilter belongs in DataStore; current DataStore implementation delegates to driver
+     *        Resolve driver delegation in DataStore::getSqlFilter, then push this method down,
+     *        along with the setter and the attribute
+     */
+    protected function getSqlFilter()
+    {
+        return $this->sqlFilter;
     }
 }
