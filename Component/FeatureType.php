@@ -10,7 +10,6 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
  * Class FeatureType handles Feature objects.
@@ -341,25 +340,16 @@ class FeatureType extends DataStore
      */
     protected function addCustomSearchCritera(QueryBuilder $queryBuilder, array $params)
     {
+        parent::addCustomSearchCritera($queryBuilder, $params);
         // add bounding geometry condition
         if (!empty($params['intersect'])) {
             $geometry = BaseDriver::roundGeometry($params['intersect'], 2);
-            $queryBuilder->andWhere($this->getDriver()->getIntersectCondition($geometry, $this->geomField, $srid, $this->getSrid()));
-        }
-        // add filter (dead link https://trac.wheregroup.com/cp/issues/3733)
-        // @todo: specify and document
-        if (!empty($this->sqlFilter)) {
-            if (preg_match('#:userName([^_\w\d]|$)#', $this->sqlFilter)) {
-                /** @var TokenStorageInterface $tokenStorage */
-                $tokenStorage = $this->container->get("security.token_storage");
-                $queryBuilder->setParameter(':userName', $tokenStorage->getToken()->getUsername());
+            if (!empty($params['srid'])) {
+                $sridFrom = $params['srid'];
+            } else {
+                $sridFrom = $this->getSrid();
             }
-            $queryBuilder->andWhere($this->sqlFilter);
-        }
-        // add second filter (dead link https://trac.wheregroup.com/cp/issues/4643)
-        // @ŧodo: specify and document
-        if (!empty($params['where'])) {
-            $queryBuilder->andWhere($params['where']);
+            $queryBuilder->andWhere($this->getDriver()->getIntersectCondition($geometry, $this->geomField, $sridFrom, $this->getSrid()));
         }
         // Add condition for maximum distance to given wkt 'source'
         // @todo: specify and document

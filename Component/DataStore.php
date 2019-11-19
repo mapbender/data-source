@@ -284,17 +284,11 @@ class DataStore
             ));
         }
         $queryBuilder = $this->getSelectQueryBuilder();
+
+        $this->addCustomSearchCritera($queryBuilder, $criteria);
+
         // @todo: support unlimited selects
-        $maxResults = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : BaseDriver::MAX_RESULTS;
-
-        if ($this->sqlFilter) {
-            $queryBuilder->andWhere($this->sqlFilter);
-        }
-
-        // add second filter (https://trac.wheregroup.com/cp/issues/4643)
-        if (!empty($criteria['where'])) {
-            $queryBuilder->andWhere($criteria['where']);
-        }
+        $maxResults = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : DoctrineBaseDriver::MAX_RESULTS;
         $queryBuilder->setMaxResults($maxResults);
         $statement  = $queryBuilder->execute();
         $rows       = $statement->fetchAll();
@@ -308,6 +302,32 @@ class DataStore
         }
 
         return $results;
+    }
+
+    /**
+     * Add custom (non-Doctrineish) criteria to passed query builder.
+     * Override hook for customization
+     *
+     * @param QueryBuilder $queryBuilder
+     * @param array $params
+     */
+    protected function addCustomSearchCritera(QueryBuilder $queryBuilder, array $params)
+    {
+        // add filter (dead link https://trac.wheregroup.com/cp/issues/3733)
+        // @todo: specify and document
+        if (!empty($this->sqlFilter)) {
+            if (preg_match('#:userName([^_\w\d]|$)#', $this->sqlFilter)) {
+                /** @var TokenStorageInterface $tokenStorage */
+                $tokenStorage = $this->container->get("security.token_storage");
+                $queryBuilder->setParameter(':userName', $tokenStorage->getToken()->getUsername());
+            }
+            $queryBuilder->andWhere($this->sqlFilter);
+        }
+        // add second filter (dead link https://trac.wheregroup.com/cp/issues/4643)
+        // @ŧodo: specify and document
+        if (!empty($params['where'])) {
+            $queryBuilder->andWhere($params['where']);
+        }
     }
 
     /**
