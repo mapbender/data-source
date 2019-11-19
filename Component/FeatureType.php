@@ -874,16 +874,4 @@ class FeatureType extends DataStore
         eval('$result = ' . $code . ';');
         return $result;
     }
-
-    /**
-     * @return string|null
-     * @internal
-     * @todo: sqlFilter belongs in DataStore; current DataStore implementation delegates to driver
-     *        Resolve driver delegation in DataStore::getSqlFilter, then push this method down,
-     *        along with the setter and the attribute
-     */
-    protected function getSqlFilter()
-    {
-        return $this->sqlFilter;
-    }
 }

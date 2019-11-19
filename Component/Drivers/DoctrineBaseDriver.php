@@ -23,6 +23,7 @@ class DoctrineBaseDriver extends BaseDriver
 
     /**
      * @var string SQL where filter
+     * @deprecated doesn't belong here
      */
     protected $sqlFilter;
 
@@ -292,6 +293,7 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @see $this->search()
      * @param string $sqlFilter
+     * @deprecated
      * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function setFilter($sqlFilter)
@@ -430,15 +432,5 @@ class DoctrineBaseDriver extends BaseDriver
     public function getLastInsertId()
     {
         return $this->getConnection()->lastInsertId();
-    }
-
-    /**
-     * @return string|null
-     * @deprecated filter information doesn't belong here
-     * @internal
-     */
-    public function getSqlFilter()
-    {
-        return $this->sqlFilter;
     }
 }

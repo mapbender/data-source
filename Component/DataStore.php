@@ -287,8 +287,8 @@ class DataStore
         // @todo: support unlimited selects
         $maxResults = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : BaseDriver::MAX_RESULTS;
 
-        if ($sqlFilter = $this->getSqlFilter()) {
-            $queryBuilder->andWhere($sqlFilter);
+        if ($this->sqlFilter) {
+            $queryBuilder->andWhere($this->sqlFilter);
         }
 
         // add second filter (https://trac.wheregroup.com/cp/issues/4643)
@@ -569,14 +569,5 @@ class DataStore
         /** @var UploadsManager $ulm */
         $ulm = $this->container->get('mapbender.uploads_manager.service');
         return $ulm;
-    }
-
-    /**
-     * @return string|null
-     * @internal
-     */
-    protected function getSqlFilter()
-    {
-        return $this->getDriver()->getSqlFilter();
     }
 }
