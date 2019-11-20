@@ -2,6 +2,7 @@
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Doctrine\DBAL\Connection;
+use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
@@ -11,6 +12,13 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
  */
 abstract class BaseDriver implements Base
 {
+    /**
+     * Only used for inflecting misplaced methods
+     * @todo 0.2.0: remove attribute and all usages
+     * @var DataStore
+     */
+    protected $repository;
+
     /**
      * @var array Field to select from the table
      */
@@ -25,12 +33,14 @@ abstract class BaseDriver implements Base
     protected $connection;
 
     /**
-     * BaseDriver constructor.
+     * @param array $args
+     * @param DataStore $repository
      *
-     * @param array              $args
+     * @todo 0.2.0: remove repository binding and all methods requiring repository inflection
      */
-    public function __construct(array $args = array())
+    public function __construct(array $args, DataStore $repository)
     {
+        $this->repository = $repository;
         if (!empty($args['uniqueId'])) {
             $this->setUniqueId($args['uniqueId']);
         }
@@ -87,21 +97,11 @@ abstract class BaseDriver implements Base
      * @param mixed $args
      * @return DataItem
      * @deprecated
-     * @todo: the implementation belongs in the DataStore / FeatureType, not here
+     * @todo 0.2.0: remove method
      */
     public function create($args)
     {
-        $data = null;
-        if (is_object($args)) {
-            if ($args instanceof DataItem) {
-                $data = $args;
-            } else {
-                $args = get_object_vars($args);
-            }
-        } elseif (is_numeric($args)) {
-            $args = array($this->getUniqueId() => intval($args));
-        }
-        return $data ? $data : new DataItem($args, $this->getUniqueId());
+        return $this->repository->create($args);
     }
 
     /**

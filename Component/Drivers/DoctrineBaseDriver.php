@@ -3,6 +3,7 @@ namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
@@ -27,10 +28,10 @@ class DoctrineBaseDriver extends BaseDriver
      */
     protected $sqlFilter;
 
-    public function __construct(Connection $connection, array $args = array())
+    public function __construct(Connection $connection, array $args, DataStore $repository)
     {
         $this->connection = $connection;
-        parent::__construct($args);
+        parent::__construct($args, $repository);
         if (!empty($args['table'])) {
             $this->setTable($args['table']);
         }

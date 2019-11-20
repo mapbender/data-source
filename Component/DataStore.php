@@ -132,13 +132,13 @@ class DataStore
         $platformName = $connection->getDatabasePlatform()->getName();
         switch ($connection->getDatabasePlatform()->getName()) {
             case self::SQLITE_PLATFORM;
-                $driver = new SQLite($connection, $args);
+                $driver = new SQLite($connection, $args, $this);
                 break;
             case self::POSTGRESQL_PLATFORM;
-                $driver = new PostgreSQL($connection, $args);
+                $driver = new PostgreSQL($connection, $args, $this);
                 break;
             case self::ORACLE_PLATFORM;
-                $driver = new Oracle($connection, $args);
+                $driver = new Oracle($connection, $args, $this);
                 break;
             default:
                 throw new \RuntimeException("Unsupported DBAL platform " . print_r($platformName, true));
@@ -237,7 +237,19 @@ class DataStore
      */
     public function create($data)
     {
-        return $this->getDriver()->create($data);
+        if (is_object($data)) {
+            if ($data instanceof DataItem) {
+                return $data;
+            } else {
+                return new DataItem(get_object_vars($data), $this->getUniqueId());
+            }
+        } elseif (is_numeric($data)) {
+            $dataItem = new DataItem(array(), $this->getUniqueId());
+            $dataItem->setId(intval($data));
+            return $dataItem;
+        } else {
+            return new DataItem($data, $this->getUniqueId());
+        }
     }
 
     /**

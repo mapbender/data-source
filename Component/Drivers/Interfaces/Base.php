@@ -27,7 +27,7 @@ interface Base
      *
      * @param mixed $args
      * @return DataItem
-     * @todo: the implementation belongs in the DataStore / FeatureType, not here
+     * @todo 0.2.0: remove method
      */
     public function create($args);
 
