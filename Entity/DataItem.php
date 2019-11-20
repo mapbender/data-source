@@ -122,7 +122,7 @@ class DataItem
     }
 
     /**
-     * Merge attributes
+     * ADD attributes
      *
      * @param mixed $attributes
      */

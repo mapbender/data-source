@@ -121,12 +121,6 @@ class Feature extends DataItem
             $args = $properties;
         }
 
-        // set GEOM
-        if (isset($args[$geomField])) {
-            $this->setGeom($args[$geomField]);
-            unset($args[$geomField]);
-        }
-
         parent::__construct($args, $uniqueIdField);
     }
 
@@ -180,6 +174,29 @@ class Feature extends DataItem
         }
 
         return $data;
+    }
+
+    /**
+     * ADD attributes
+     *
+     * @param mixed $attributes
+     */
+    public function setAttributes($attributes)
+    {
+        if (array_key_exists($this->geomField, $attributes)) {
+            $this->setGeom($attributes[$this->geomField]);
+            unset($attributes[$this->geomField]);
+        }
+        parent::setAttributes($attributes);
+    }
+
+    public function setAttribute($key, $value)
+    {
+        if ($key === $this->geomField) {
+            $this->setGeom($value);
+        } else {
+            parent::setAttribute($key, $value);
+        }
     }
 
     /**
