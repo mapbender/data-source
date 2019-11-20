@@ -59,6 +59,7 @@ class DataStore
     /**
      * @param ContainerInterface $container
      * @param array|null $args
+     * @todo: drop container injection; replace with owning DataStoreService / FeatureTypeService injection
      */
     public function __construct(ContainerInterface $container, $args = array())
     {
@@ -650,6 +651,11 @@ class DataStore
     public function getTroughMapping($mappingId, $id)
     {
         $config            = $this->mapping[ $mappingId ];
+        // This right here breaks Element-level customization
+        // The parent ~registry (using Doctrine lingo) should be known to
+        // each DataStore and FeatureType
+        // @todo: inject DataStoreService / FeatureTypeService into DataStore / FeatureType
+        //        objects
         /** @var DataStoreService $dataStoreService */
         $dataStoreService  = $this->container->get("data.source");
         $externalDataStore = $dataStoreService->get($config["externalDataStore"]);
