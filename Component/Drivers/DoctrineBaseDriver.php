@@ -217,25 +217,12 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @param array $fields
      * @return QueryBuilder
-     * @todo: driver shouldn't know or care about field names that aren't passed in
+     * @deprecated use implementation in DataStore / FeatureType
+     * @todo 0.2.0: remove this method
      */
     public function getSelectQueryBuilder(array $fields = array())
     {
-        $connection = $this->getConnection();
-        $qb         = $connection->createQueryBuilder();
-        $fields     = array_merge($this->getFields(), $fields);
-        $fields     = array_merge(array($this->getUniqueId()), $fields);
-
-        foreach ($fields as &$field) {
-            if (is_array($field)) {
-                $keyName    = current(array_keys($field));
-                $expression = current(array_values($field));
-                $field      = "$expression AS " . $this->connection->quoteIdentifier($keyName);
-            }
-        }
-
-        $queryBuilder = $qb->select($fields)->from($this->getTableName(), 't');
-        return $queryBuilder;
+        return $this->repository->getSelectQueryBuilder($fields);
     }
 
     /**
@@ -243,14 +230,14 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @param array $criteria
      * @return DataItem[]
-     * @deprecated this method's body has been baked into DataStore::search, where it belongs
-     * @todo: remove this method
+     * @deprecated this method's body has been baked into DataStore::search, where it belongs; FeatureType doesn't even use this
+     * @todo 0.2.0: remove this method
      */
     public function search(array $criteria = array())
     {
         $maxResults   = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
         $where        = isset($criteria['where']) ? $criteria['where'] : null;
-        $queryBuilder = $this->getSelectQueryBuilder();
+        $queryBuilder = $this->repository->getSelectQueryBuilder();
 
         // add filter (https://trac.wheregroup.com/cp/issues/3733)
         if (!empty($this->sqlFilter)) {
@@ -276,15 +263,11 @@ class DoctrineBaseDriver extends BaseDriver
      * @param array $rows - Data items to be casted
      * @return DataItem[]
      * @deprecated DataStore is responsible for DataItem creation, and already handles this
-     * @todo: remove this method
+     * @todo 0.2.0: remove this method
      */
     public function prepareResults($rows)
     {
-        $rowsOut = array();
-        foreach ($rows as $key => $row) {
-            $rowsOut[] = $this->create($row);
-        }
-        return $rowsOut;
+        return $this->repository->prepareResults($rows);
     }
 
 
@@ -416,7 +399,7 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function getByCriteria($criteria, $fieldName)
     {
-        $queryBuilder = $this->getSelectQueryBuilder();
+        $queryBuilder = $this->repository->getSelectQueryBuilder();
         $queryBuilder->where($fieldName . " = :criteria");
         $queryBuilder->setParameter('criteria', $criteria);
 

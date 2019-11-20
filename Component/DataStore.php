@@ -185,10 +185,9 @@ class DataStore
      */
     public function getParent($id)
     {
-        $driver = $this->getDriver();
         $dataItem = $this->get($id);
-        $queryBuilder = $driver->getSelectQueryBuilder();
-        $queryBuilder->andWhere($driver->getUniqueId() . " = " . $dataItem->getAttribute($this->getParentField()));
+        $queryBuilder = $this->getSelectQueryBuilder();
+        $queryBuilder->andWhere($this->getUniqueId() . " = " . $dataItem->getAttribute($this->getParentField()));
         $queryBuilder->setMaxResults(1);
         $statement  = $queryBuilder->execute();
         $rows = $this->prepareResults($statement->fetchAll());
@@ -208,8 +207,7 @@ class DataStore
      */
     public function getTree($parentId = null, $recursive = true)
     {
-        $driver = $this->getDriver();
-        $queryBuilder = $driver->getSelectQueryBuilder();
+        $queryBuilder = $this->getSelectQueryBuilder();
         if ($parentId === null) {
             $queryBuilder->andWhere($this->getParentField() . " IS NULL");
         } else {
@@ -411,12 +409,30 @@ class DataStore
     /**
      * Get query builder prepared to select from the source table
      *
+     * @param array $fields
      * @return QueryBuilder
-     * @todo: add select fields here, not in driver
      */
-    public function getSelectQueryBuilder()
+    public function getSelectQueryBuilder(array $fields = array())
     {
-        return $this->getDriver()->getSelectQueryBuilder();
+        $driver = $this->getDriver();
+        $connection = $driver->getConnection();
+        $qb = $connection->createQueryBuilder();
+        $qb->from($this->getTableName(), 't');
+        $fields = array_merge($this->getFields(), $fields);
+        $fields = array_merge(array($this->getUniqueId()), $fields);
+
+        foreach ($fields as $field) {
+            if (is_array($field)) {
+                // @todo: specify, document
+                $alias = current(array_keys($field));
+                $expression = current(array_values($field));
+                $qb->addSelect("$expression AS " . $connection->quoteIdentifier($alias));
+            } else {
+                $qb->addSelect($field);
+            }
+        }
+
+        return $qb;
     }
 
     /**

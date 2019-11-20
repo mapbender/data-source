@@ -35,6 +35,8 @@ class Oracle extends DoctrineBaseDriver implements Geographic
      *
      * @param array $rows
      * @return DataItem[]
+     * @deprecated DataStore is responsible for DataItem creation, and already handles this
+     * @todo 0.2.0: remove this method
      */
     public function prepareResults($rows)
     {
