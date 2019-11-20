@@ -1,5 +1,5 @@
 ## 0.1.16??
-- Respect configured `geomField` when initializing Feature with a json string
+- Fix Feature initialization from GeoJSON: respect configured `geomField`, apply optional non-standard embedded `srid` and `id` correctly
 - Support `:userName` filter binding also in DataStore::search (previously only in FeatureType::search)
 - Escape `:userName` properly in FeatureType::search and DataStore::search
 - Escape `:distance` in FeatureType::search (now a bound param)

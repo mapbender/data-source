@@ -47,7 +47,20 @@ class Feature extends DataItem
      */
     public function setGeom($geom)
     {
-        $this->geom = $geom;
+        if ($geom && is_string($geom) && !preg_match('#^\w#', $geom)) {
+            $decoded = json_decode($geom, true);
+            if ($decoded === null && $geom !== json_encode(null)) {
+                throw new \InvalidArgumentException("Json decode failure");
+            }
+            if ($decoded !== null && !is_array($decoded)) {
+                throw new \InvalidArgumentException("Invalid json geometry type " . gettype($decoded) . ", expected array.");
+            }
+            // Convert to WKT
+            // NOTE: geoPHP GeoJSON supports either strings or arrays as input. We don't.
+            $geom = \geoPHP::load($geom, 'json')->out('wkt');
+        }
+
+        $this->geom = $geom ?: null;
         return $this;
     }
 
@@ -89,39 +102,34 @@ class Feature extends DataItem
      * @param int $srid
      * @param string $uniqueIdField ID field name
      * @param string $geomField GEOM field name
+     * @todo: this constructor supports way too many formats. Drop a few, standardize on something.
      */
     public function __construct($args = null, $srid = null, $uniqueIdField = 'id', $geomField = "geom")
     {
         $this->geomField = $geomField;
-
-        // decode JSON
-        if (is_string($args)) {
-            $args = json_decode($args, true);
-            if (isset($args["geometry"])) {
-                $args[$geomField] = \geoPHP::load($args["geometry"], 'json')->out('wkt');
-            }
-        }
-
         $this->setSrid($srid);
-
-        // Is JSON feature array?
-        if (is_array($args) && isset($args["geometry"]) && isset($args['properties'])) {
-            $properties             = $args["properties"];
-            $geom                   = $args["geometry"];
-            $properties[$geomField] = $geom;
-
-            if (isset($args['id'])) {
-                $properties[$uniqueIdField] = $args['id'];
-            }
-
-            if (isset($args['srid'])) {
-                $this->setSrid($args['srid']);
-            }
-
-            $args = $properties;
-        }
-
         parent::__construct($args, $uniqueIdField);
+
+        // Unravel GeoJSON feature, with optional (nonstandard) 'id' and 'srid' fields
+        if (isset($this->attributes['geometry']) && isset($this->attributes['properties'])) {
+            if (isset($this->attributes['srid'])) {
+                $this->setSrid($this->attributes['srid']);
+            }
+            $this->setGeom($this->attributes['geometry']);
+
+            $newAttributes = $this->attributes['properties'];
+            if (isset($this->attributes['id'])) {
+                $newAttributes[$uniqueIdField] = $this->attributes['id'];
+            } elseif (is_array($args) && isset($args[$uniqueIdField])) {
+                $newAttributes[$uniqueIdField] = $args[$uniqueIdField];
+            } else {
+                // ensure we always have an id, so getId / hasId can function
+                $newAttributes[$uniqueIdField] = null;
+            }
+            // Rewrite attributes (NOTE setAttributes only ADDs attributes; clear first)
+            $this->attributes = array();
+            $this->setAttributes($newAttributes);
+        }
     }
 
     /**
