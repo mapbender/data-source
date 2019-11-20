@@ -1,4 +1,4 @@
-## 0.1.16?
+## 0.1.16
 - Fix Feature initialization from GeoJSON: respect configured `geomField`, apply optional non-standard embedded `srid` and `id` correctly
 - Fix broken data format in Oracle::prepareResults
 - Fix exception on table miss in DataStore::getById, return null instead
