@@ -7,6 +7,7 @@
 - Escape `:userName` properly in FeatureType::search and DataStore::search
 - Escape `:distance` in FeatureType::search (now a bound param)
 - Extract FeatureType / DataStore method `addCustomSearchCritera` method for customization support
+- Add DataStoreService::getDbalConnectionByName method
 - `getUniqueId` and `getTablename` methods are now also available on DataStore object (previously only FeatureType)
 - Deprecate DataItem construction with a (jsonish) string
 - Deprecate magic Feature::__toString invocation

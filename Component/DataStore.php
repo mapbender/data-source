@@ -11,6 +11,7 @@ use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Entity\DataItem;
+use Symfony\Bridge\Doctrine\RegistryInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Filesystem\Filesystem;
@@ -127,9 +128,8 @@ class DataStore
         if ($hasFields && isset($args["parentField"])) {
             $args["fields"][] = $args["parentField"];
         }
+        $connection = $this->getDbalConnectionByName($this->connectionName);
 
-        /** @var Connection $connection */
-        $connection = $this->container->get("doctrine.dbal.{$this->connectionName}_connection");
         $platformName = $connection->getDatabasePlatform()->getName();
         switch ($connection->getDatabasePlatform()->getName()) {
             case self::SQLITE_PLATFORM;
@@ -721,5 +721,21 @@ class DataStore
             @trigger_error("DEPRECATED: passed miscapitalized config key(s) " . implode(', ', $modifiedKeys) . ' to ' . get_class($this) . '. This will be an error in 0.2.0', E_USER_DEPRECATED);
         }
         return $argsOut;
+    }
+
+    /**
+     * @param string $name
+     * @return Connection
+     * @internal
+     * @todo: after injecting owning DataStoreService / FeatureType, remove this
+     *        method and delegate to equivalent (but public) owner method
+     */
+    protected function getDbalConnectionByName($name)
+    {
+        /** @var RegistryInterface $registry */
+        $registry = $this->container->get('doctrine');
+        /** @var Connection $connection */
+        $connection = $registry->getConnection($name);
+        return $connection;
     }
 }
