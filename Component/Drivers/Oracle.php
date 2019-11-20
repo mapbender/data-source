@@ -38,9 +38,8 @@ class Oracle extends DoctrineBaseDriver implements Geographic
      */
     public function prepareResults($rows)
     {
-        $rowsOut = parent::prepareResults($rows);
-        self::transformColumnNames($rowsOut);
-        return $rowsOut;
+        self::transformColumnNames($rows);
+        return parent::prepareResults($rows);
     }
 
     /**
