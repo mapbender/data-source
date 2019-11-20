@@ -98,7 +98,7 @@ class Feature extends DataItem
         if (is_string($args)) {
             $args = json_decode($args, true);
             if (isset($args["geometry"])) {
-                $args["geom"] = \geoPHP::load($args["geometry"], 'json')->out('wkt');
+                $args[$geomField] = \geoPHP::load($args["geometry"], 'json')->out('wkt');
             }
         }
 

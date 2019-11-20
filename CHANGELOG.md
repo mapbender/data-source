@@ -1,4 +1,5 @@
 ## 0.1.16??
+- Respect configured `geomField` when initializing Feature with a json string
 - Support `:userName` filter binding also in DataStore::search (previously only in FeatureType::search)
 - Escape `:userName` properly in FeatureType::search and DataStore::search
 - Escape `:distance` in FeatureType::search (now a bound param)
