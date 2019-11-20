@@ -50,7 +50,7 @@ class DoctrineBaseDriver extends BaseDriver
     {
         $dataItem = $this->create($args);
         if ($dataItem->hasId()) {
-            $dataItem = $this->getById($dataItem->getId());
+            $dataItem = $this->repository->getById($dataItem->getId());
         }
         return $dataItem;
     }
@@ -81,7 +81,7 @@ class DoctrineBaseDriver extends BaseDriver
             }
 
             // Get complete dataItem data
-            $result = $this->getById($dataItem->getId());
+            $result = $this->repository->getById($dataItem->getId());
 
         } catch (\Exception $e) {
             $result = array(
@@ -298,11 +298,12 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @param integer|string $id
      * @return DataItem
+     * @deprecated previously only used by / only works for DataStore (doesn't pass srid to FeatureType)
+     * @todo 0.2.0: remove this method
      */
     public function getById($id)
     {
-        $list = $this->getByCriteria($id, $this->getUniqueId());
-        return reset($list);
+        return $this->repository->getById($id);
     }
 
     /**
@@ -396,6 +397,8 @@ class DoctrineBaseDriver extends BaseDriver
      * @param string|integer $criteria
      * @param string $fieldName
      * @return DataItem[]
+     * @deprecated no remaining usages
+     * @todo 0.2.0: remove this method
      */
     public function getByCriteria($criteria, $fieldName)
     {

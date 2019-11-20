@@ -160,12 +160,19 @@ class DataStore
 
     /**
      * @param integer|string $id
-     * @return DataItem
-     * @todo: the implementation belongs here, not in the driver
+     * @return DataItem|null
      */
     public function getById($id)
     {
-        return $this->getDriver()->getById($id);
+        $qb = $this->getSelectQueryBuilder()->setMaxResults(1);
+        $qb->where($this->getUniqueId(), ':id');
+        $qb->setParameter(':id', $id);
+        $items = $this->prepareResults($qb->execute()->fetchAll());
+        if ($items) {
+            return $items[0];
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -672,7 +679,12 @@ class DataStore
 
         $criteria = $this->get($id)->getAttribute($internalFieldName);
 
-        return $externalDriver->getByCriteria($criteria, $externalFieldName);
+        $queryBuilder = $externalDataStore->getSelectQueryBuilder();
+        $queryBuilder->where($externalFieldName . " = :criteria");
+        $queryBuilder->setParameter('criteria', $criteria);
+
+        $statement = $queryBuilder->execute();
+        return $this->prepareResults($statement->fetchAll());
     }
 
     /**

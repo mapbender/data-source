@@ -168,17 +168,21 @@ class FeatureType extends DataStore
      *
      * @param int $id
      * @param int $srid SRID
-     * @return Feature|false
+     * @return Feature|null
      */
     public function getById($id, $srid = null)
     {
-        $rows = $this->getSelectQueryBuilder($srid)
+        $rows = $this->getSelectQueryBuilder($srid)->setMaxResults(1)
             ->where($this->getUniqueId() . " = :id")
             ->setParameter('id', $id)
             ->execute()
             ->fetchAll();
         $features = $this->prepareResults($rows, $srid);
-        return reset($features);
+        if ($features) {
+            return $features[0];
+        } else {
+            return null;
+        }
     }
 
     /**

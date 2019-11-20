@@ -18,7 +18,8 @@ interface Base
      *
      * @param mixed $id ID
      * @return DataItem
-     * @todo: the implementation belongs in the DataStore / FeatureType, not here
+     * @deprecated only used by / only works for DataStore (doesn't pass srid to FeatureType)
+     * @todo 0.2.0: remove this method
      */
     public function getById($id);
 
