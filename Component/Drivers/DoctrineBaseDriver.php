@@ -22,21 +22,12 @@ class DoctrineBaseDriver extends BaseDriver
      */
     protected $tableName;
 
-    /**
-     * @var string SQL where filter
-     * @deprecated doesn't belong here
-     */
-    protected $sqlFilter;
-
     public function __construct(Connection $connection, array $args, DataStore $repository)
     {
         $this->connection = $connection;
         parent::__construct($args, $repository);
         if (!empty($args['table'])) {
             $this->setTable($args['table']);
-        }
-        if (!empty($args['filter'])) {
-            $this->setFilter($args['filter']);
         }
     }
 
@@ -222,6 +213,7 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function getSelectQueryBuilder(array $fields = array())
     {
+        @trigger_error("DEPRECATED: " . get_class($this) . '::getSelectQueryBuilder does nothing but delegate to DataStore / FeatureType::getSelectQueryBuilder and will be removed in 0.2.0', E_USER_DEPRECATED);
         return $this->repository->getSelectQueryBuilder($fields);
     }
 
@@ -235,26 +227,8 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function search(array $criteria = array())
     {
-        $maxResults   = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
-        $where        = isset($criteria['where']) ? $criteria['where'] : null;
-        $queryBuilder = $this->repository->getSelectQueryBuilder();
-
-        // add filter (https://trac.wheregroup.com/cp/issues/3733)
-        if (!empty($this->sqlFilter)) {
-            $queryBuilder->andWhere($this->sqlFilter);
-        }
-
-        // add second filter (https://trac.wheregroup.com/cp/issues/4643)
-        if ($where) {
-            $queryBuilder->andWhere($where);
-        }
-
-        $queryBuilder->setMaxResults($maxResults);
-        $statement  = $queryBuilder->execute();
-        $rows       = $statement->fetchAll();
-
-        // Cast array to DataItem array list
-        return $this->prepareResults($rows);
+        @trigger_error("DEPRECATED: " . get_class($this) . '::search does nothing but delegate to DataStore / FeatureType::search and will be removed in 0.2.0', E_USER_DEPRECATED);
+        return $this->repository->search($criteria);
     }
 
     /**
@@ -267,22 +241,19 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function prepareResults($rows)
     {
+        @trigger_error("DEPRECATED: " . get_class($this) . '::search does nothing but delegate to DataStore / FeatureType::prepareResults and will be removed in 0.2.0', E_USER_DEPRECATED);
         return $this->repository->prepareResults($rows);
     }
 
-
     /**
-     * Set permanent SQL filter used by $this->search()
-     * https://trac.wheregroup.com/cp/issues/3733
+     * Does absolutely nothing
      *
-     * @see $this->search()
-     * @param string $sqlFilter
-     * @deprecated
-     * @todo: this information belongs in the DataStore or FeatureType, not here
+     * @deprecated does nothing
+     * @todo 0.2.0: remove this method
      */
-    public function setFilter($sqlFilter)
+    public function setFilter()
     {
-        $this->sqlFilter = $sqlFilter;
+        @trigger_error("DEPRECATED: " . get_class($this) . '::setFilter does nothing and will be removed in 0.2.0', E_USER_DEPRECATED);
     }
 
     /**
@@ -303,6 +274,7 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function getById($id)
     {
+        @trigger_error("DEPRECATED: " . get_class($this) . '::getById does nothing but delegate to DataStore / FeatureType::getById and will be removed in 0.2.0', E_USER_DEPRECATED);
         return $this->repository->getById($id);
     }
 
