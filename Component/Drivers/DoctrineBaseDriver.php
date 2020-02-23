@@ -51,7 +51,7 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @param mixed $data
      * @param bool  $autoUpdate update instead of insert if ID given
-     * @return mixed
+     * @return DataItem
      * @throws \Exception
      */
     public function save($data, $autoUpdate = true)
@@ -62,26 +62,16 @@ class DoctrineBaseDriver extends BaseDriver
 
         $dataItem = $this->create($data);
 
-        try {
-            // Insert if no ID given
-            if (!$autoUpdate || !$dataItem->hasId()) {
-                $dataItem = $this->insert($dataItem);
-            } // Replace if has ID
-            else {
-                $dataItem = $this->update($dataItem);
-            }
-
-            // Get complete dataItem data
-            $result = $this->repository->getById($dataItem->getId());
-
-        } catch (\Exception $e) {
-            $result = array(
-                "exception" => $e,
-                "dataItem"  => $dataItem,
-                "data"      => $data
-            );
+        // Insert if no ID given
+        if (!$autoUpdate || !$dataItem->hasId()) {
+            $dataItem = $this->insert($dataItem);
+        } // Replace if has ID
+        else {
+            $dataItem = $this->update($dataItem);
         }
 
+        // Get complete dataItem data
+        $result = $this->repository->getById($dataItem->getId());
         return $result;
     }
 
