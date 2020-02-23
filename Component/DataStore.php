@@ -166,7 +166,7 @@ class DataStore
     public function getById($id)
     {
         $qb = $this->getSelectQueryBuilder()->setMaxResults(1);
-        $qb->where($this->getUniqueId(), ':id');
+        $qb->where($this->getUniqueId() . ' = :id');
         $qb->setParameter(':id', $id);
         $items = $this->prepareResults($qb->execute()->fetchAll());
         if ($items) {
