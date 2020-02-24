@@ -51,7 +51,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
             . ' (' . implode(', ', $keys) . ')'
             . ' VALUES '
             . ' (' . implode(', ', $values) . ')'
-            . ' RETURNING ' . $connection->quoteIdentifier($this->getUniqueId());
+            . ' RETURNING ' . $connection->quoteIdentifier($this->repository->getUniqueId());
 
         $id = $connection->fetchColumn($sql);
         $item->setId($id);
@@ -156,7 +156,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
         $id = $connection->lastInsertId();
         if ($id < 1) {
             $fullTableName = $this->tableName;
-            $fullUniqueIdName = $connection->quoteIdentifier($this->getUniqueId());
+            $fullUniqueIdName = $connection->quoteIdentifier($this->repository->getUniqueId());
             $sql = /** @lang PostgreSQL */
                 "SELECT $fullUniqueIdName 
                  FROM $fullTableName

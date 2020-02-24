@@ -85,6 +85,9 @@ abstract class BaseDriver implements Base
      *
      * @return string
      * @todo: this information belongs in the DataStore or FeatureType, not here
+     * @todo: 0.2.0: reverse DataStore => driver inflection direction and remove this method
+     * @deprecated
+     * @internal
      */
     public function getUniqueId()
     {

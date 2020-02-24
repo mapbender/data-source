@@ -38,7 +38,7 @@ class DataStoreServiceTest extends SymfonyTest
         $dataStore = new DataStore(parent::$container, $configuration);
         foreach ($dataStore->getTree() as $dataItem) {
             $this->assertTrue($dataItem->getAttribute($dataStore->getParentField()) == null);
-            $this->assertTrue($dataItem->getAttribute($dataStore->getDriver()->getUniqueId()) > 0);
+            $this->assertTrue($dataItem->getAttribute($dataStore->getUniqueId()) > 0);
         }
     }
 

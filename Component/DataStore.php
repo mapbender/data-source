@@ -570,7 +570,7 @@ class DataStore
         foreach ($tokenStorage->getToken()->getRoles() as $role) {
             $roles[] = $role->getRole();
         }
-        $idKey      = $this->getDriver()->getUniqueId();
+        $idKey = $this->getUniqueId();
         $connection = $this->getConnection();
 
         foreach ($args as $key => &$value) {

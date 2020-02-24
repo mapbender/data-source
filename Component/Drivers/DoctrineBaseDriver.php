@@ -300,7 +300,7 @@ class DoctrineBaseDriver extends BaseDriver
     protected function cleanData($data)
     {
         $originalFields = $this->getFields();
-        $uniqueId       = $this->getUniqueId();
+        $uniqueId = $this->repository->getUniqueId();
         $fields         = array_merge(
             $originalFields,
             array($uniqueId));
@@ -331,7 +331,7 @@ class DoctrineBaseDriver extends BaseDriver
         $dataItem   = $this->create($dataItem);
         $data       = $this->cleanData($dataItem->toArray());
         $connection = $this->getConnection();
-        unset($data[ $this->getUniqueId() ]);
+        unset($data[$this->repository->getUniqueId()]);
 
         if (empty($data)) {
             throw new \Exception("DataItem can't be updated without criteria");
