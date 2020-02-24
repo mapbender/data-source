@@ -1,8 +1,6 @@
 <?php
 namespace Mapbender\DataSourceBundle\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-
 /**
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  */
@@ -28,46 +26,47 @@ class Feature extends DataItem
         Feature::TYPE_MULTIPOINT
     );
 
-    /**
-     * Geometries as WKT
-     *
-     * @ORM\Column(name="geom", type="text", nullable=true)
-     */
+     /* @var string|null in wkt format */
     protected $geom;
 
-    /**
-     * Geometry SRID
-     *
-     * @ORM\Column(name="srid", type="text", nullable=true)
-     */
+    /** @var integer|null */
     protected $srid;
 
-    /**
-     * GEOM field name
-     *
-     * @ORM\Column(name="geomFieldName", type="text", nullable=true)
-     */
+    /** @var string|null */
     protected $geomField;
 
     /**
      * Geometry type.
-     *
-     * @ORM\Column(name="type", type="text", nullable=true)
+     * @var string|null
      */
     protected $type;
 
     /**
-     * @param $geom
+     * @param string|null $geom
      * @return $this
      */
     public function setGeom($geom)
     {
-        $this->geom = $geom;
+        if ($geom && is_string($geom) && !preg_match('#^\w#', $geom)) {
+            $decoded = json_decode($geom, true);
+            if ($decoded === null && $geom !== json_encode(null)) {
+                throw new \InvalidArgumentException("Json decode failure");
+            }
+            if ($decoded !== null && !is_array($decoded)) {
+                throw new \InvalidArgumentException("Invalid json geometry type " . gettype($decoded) . ", expected array.");
+            }
+            // Convert to WKT
+            // NOTE: geoPHP GeoJSON supports either strings or arrays as input. We don't.
+            $geom = \geoPHP::load($geom, 'json')->out('wkt');
+        }
+
+        $this->geom = $geom ?: null;
         return $this;
     }
 
     /**
-     * @return mixed
+     * Get geometry as WKT.
+     * @return string|null
      */
     public function getGeom()
     {
@@ -75,7 +74,7 @@ class Feature extends DataItem
     }
 
     /**
-     * @return mixed
+     * @return integer|null
      */
     public function getSrid()
     {
@@ -83,7 +82,7 @@ class Feature extends DataItem
     }
 
     /**
-     * @param mixed $srid
+     * @param integer $srid
      */
     public function setSrid($srid)
     {
@@ -91,7 +90,7 @@ class Feature extends DataItem
     }
 
     /**
-     *  has SRID?
+     * @return bool
      */
     public function hasSrid()
     {
@@ -103,62 +102,50 @@ class Feature extends DataItem
      * @param int $srid
      * @param string $uniqueIdField ID field name
      * @param string $geomField GEOM field name
+     * @todo: this constructor supports way too many formats. Drop a few, standardize on something.
      */
     public function __construct($args = null, $srid = null, $uniqueIdField = 'id', $geomField = "geom")
     {
         $this->geomField = $geomField;
-
-        // decode JSON
-        if (is_string($args)) {
-            $args = json_decode($args, true);
-            if (isset($args["geometry"])) {
-                $args["geom"] = \geoPHP::load($args["geometry"], 'json')->out('wkt');
-            }
-        }
-
         $this->setSrid($srid);
-
-        // Is JSON feature array?
-        if (is_array($args) && isset($args["geometry"]) && isset($args['properties'])) {
-            $properties             = $args["properties"];
-            $geom                   = $args["geometry"];
-            $properties[$geomField] = $geom;
-
-            if (isset($args['id'])) {
-                $properties[$uniqueIdField] = $args['id'];
-            }
-
-            if (isset($args['srid'])) {
-                $this->setSrid($args['srid']);
-            }
-
-            $args = $properties;
-        }
-
-        // set GEOM
-        if (isset($args[$geomField])) {
-            $this->setGeom($args[$geomField]);
-            unset($args[$geomField]);
-        }
-
         parent::__construct($args, $uniqueIdField);
+
+        // Unravel GeoJSON feature, with optional (nonstandard) 'id' and 'srid' fields
+        if (isset($this->attributes['geometry']) && isset($this->attributes['properties'])) {
+            if (isset($this->attributes['srid'])) {
+                $this->setSrid($this->attributes['srid']);
+            }
+            $this->setGeom($this->attributes['geometry']);
+
+            $newAttributes = $this->attributes['properties'];
+            if (isset($this->attributes['id'])) {
+                $newAttributes[$uniqueIdField] = $this->attributes['id'];
+            } elseif (is_array($args) && isset($args[$uniqueIdField])) {
+                $newAttributes[$uniqueIdField] = $args[$uniqueIdField];
+            } else {
+                // ensure we always have an id, so getId / hasId can function
+                $newAttributes[$uniqueIdField] = null;
+            }
+            // Rewrite attributes (NOTE setAttributes only ADDs attributes; clear first)
+            $this->attributes = array();
+            $this->setAttributes($newAttributes);
+        }
     }
 
     /**
      * Get GeoJSON
      *
-     * @param bool $decodeGeometry
      * @return array in GeoJSON format
-     * @throws \exception
+     * @throws \Exception
      */
-    public function toGeoJson( $decodeGeometry = true)
+    public function toGeoJson()
     {
         $wkt = $this->getGeom();
-        if($wkt){
-            $wkt = \geoPHP::load($wkt, 'wkt')->out('json');
-            if($decodeGeometry){
-                $wkt = json_decode($wkt, true);
-            }
+        if ($wkt) {
+            /**
+             * Encode to array format; @see \GeoJSON::write
+             */
+            $wkt = \geoPHP::load($wkt, 'wkt')->out('json', true);
         }
 
         return array('type'       => 'Feature',
@@ -172,9 +159,12 @@ class Feature extends DataItem
      * Return GeoJSON string
      *
      * @return string
+     * @deprecated too much magic; if you want GeoJSON, call toGeoJson and json_encode explicitly
+     * @todo: remove method
      */
     public function __toString()
     {
+        @trigger_error("Magic Feature::__toString invocation is deprecated and will be removed in 0.2.0; call toGeoJson and perfom json_encode explicitly", E_USER_DEPRECATED);
         return json_encode($this->toGeoJson());
     }
 
@@ -185,24 +175,36 @@ class Feature extends DataItem
      */
     public function toArray()
     {
-        $data = $this->getAttributes();
+        $data = parent::toArray();
 
-        if ($this->hasGeom()) {
-            //$wkb = \geoPHP::load($feature->getGeom(), 'wkt')->out('wkb');
-            if ($this->getSrid()) {
-                $data[$this->geomField] = "SRID=" . $this->getSrid() . ";" . $this->getGeom();
-            } else {
-                $data[$this->geomField] = $this->srid . ";" . $this->getGeom();
-            }
-        }
-
-        if (!$this->hasId()) {
-            unset($data[$this->uniqueIdField]);
-        }else{
-            $data[$this->uniqueIdField] = $this->getId();
+        if ($this->hasGeom() && $this->getSrid()) {
+            $data[$this->geomField] = "SRID=" . $this->getSrid() . ";" . $this->getGeom();
         }
 
         return $data;
+    }
+
+    /**
+     * ADD attributes
+     *
+     * @param mixed $attributes
+     */
+    public function setAttributes($attributes)
+    {
+        if (array_key_exists($this->geomField, $attributes)) {
+            $this->setGeom($attributes[$this->geomField]);
+            unset($attributes[$this->geomField]);
+        }
+        parent::setAttributes($attributes);
+    }
+
+    public function setAttribute($key, $value)
+    {
+        if ($key === $this->geomField) {
+            $this->setGeom($value);
+        } else {
+            parent::setAttribute($key, $value);
+        }
     }
 
     /**

@@ -1,107 +1,73 @@
 <?php
 namespace Mapbender\DataSourceBundle\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-
 /**
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  */
 class DataItem
 {
-    /**
-     * @ORM\Id
-     * @ORM\Column(type="integer")
-     * @ORM\GeneratedValue
-     */
-    protected $id;
-
-    /**
-     * Meta data
-     *
-     * @ORM\Column(type="json_array")
-     */
+    /** @var mixed[] */
     protected $attributes = array();
 
-    /**
-     * Meta data unique field key name
-     *
-     * @var string
-     */
+    /** @var string */
     protected $uniqueIdField;
 
-    /**
-     * DataItem children
-     *
-     * @var  DataItem[]
-     */
+    /** @var DataItem[]|null */
     protected $children;
 
     /**
      * @param mixed  $args string|array|null Optional JSON string or array
      * @param string $uniqueIdField ID field name
-     * @param bool   $fill array|null Fill array
      */
-    public function __construct($args = null, $uniqueIdField = 'id', $fill = false)
+    public function __construct($args = array(), $uniqueIdField = 'id')
     {
         $this->uniqueIdField = $uniqueIdField;
 
-        // decode JSON
-        if (is_string($args)) {
-            $args = json_decode($args, true);
-        }
-
-        // Is JSON DataSource array?
-        if ($fill && is_array($args) && isset($args['attributes'])) {
-            $attributes = $args["attributes"];
-
-            if (isset($args['id'])) {
-                $attributes[$uniqueIdField] = $args['id'];
+        if (!is_array($args)) {
+            @trigger_error('DEPRECATED: initializing ' . get_class($this) . ' with type ' . gettype($args) . ' $args is is deprecated. Pass an array.', E_USER_DEPRECATED);
+            if (is_string($args)) {
+                $newArgs = json_decode($args, true);
+                if ($newArgs === null && $args !== json_encode('null')) {
+                    throw new \InvalidArgumentException("Json decode failure for " . print_r($args, true));
+                }
+                if ($newArgs === null) {
+                    $args = array();
+                } else {
+                    $args = $newArgs;
+                }
+                if (!is_array($args)) {
+                    throw new \InvalidArgumentException('Invalid $args type ' . gettype($args) . ' post-decode. Expected array.');
+                }
             }
-
-            $args = $attributes;
         }
 
-        // set ID
-        if (isset($args[$uniqueIdField])) {
-            $this->setId($args[$uniqueIdField]);
-            unset($args[$uniqueIdField]);
+        if (!array_key_exists($this->uniqueIdField, $args)) {
+            // ensure getId works
+            $args[$this->uniqueIdField] = null;
         }
-
-        // set attributes
         $this->setAttributes($args);
     }
 
     /**
-     * Return string
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        return json_encode($this);
-    }
-
-    /**
-     * Return array
-     *
-     * @return mixed
+     * @return array
      */
     public function toArray()
     {
         $data = $this->getAttributes();
 
+        // @todo: Emit everything, including id
+        //        The only reason this might break anything is if some JavaScript code
+        //        checks for a populated id via .hasOwnProperty instead of using simple
+        //        boolean coersion.
         if (!$this->hasId()) {
             unset($data[$this->uniqueIdField]);
-        } else {
-            $data[$this->uniqueIdField] = $this->getId();
         }
 
-        if($children = $this->getChildren()){
-           $_children = array();
-            foreach($children as $child){
-               $_children[] = $child->toArray();
-           }
-            $data["children"] = &$_children;
+        if ($children = $this->getChildren()) {
+            $data['children'] = array();
+            foreach ($children as $child) {
+                $data['children'][] = $child->toArray();
+            }
         }
 
         return $data;
@@ -112,18 +78,18 @@ class DataItem
      */
     public function setId($id)
     {
-        $this->id = $id;
         $this->attributes[$this->uniqueIdField] = $id;
     }
 
     /**
-     * Is id set
+     * Is id not null
      *
      * @return bool
+     * @deprecated use getId and coerce to boolean
      */
     public function hasId()
     {
-        return !is_null($this->id);
+        return !is_null($this->getId());
     }
 
     /**
@@ -133,22 +99,22 @@ class DataItem
      */
     public function getId()
     {
-        return $this->id;
+        return $this->attributes[$this->uniqueIdField];
     }
 
     /**
-     * Get attributes (parameters)
+     * Get attributes
      *
-     * @return mixed
+     * @return mixed[]
      */
     public function getAttributes()
     {
-        $this->attributes[$this->uniqueIdField] = $this->getId();
         return $this->attributes;
     }
 
     /**
-     * @param $name
+     * @param string $name
+     * @return mixed
      */
     public function getAttribute($name){
         $attributes = $this->getAttributes();
@@ -156,7 +122,7 @@ class DataItem
     }
 
     /**
-     * Merge attributes
+     * ADD attributes
      *
      * @param mixed $attributes
      */
@@ -168,8 +134,8 @@ class DataItem
     /**
      * Set attribute
      *
-     * @param $key
-     * @param $value
+     * @param string $key
+     * @param mixed $value
      */
     public function setAttribute($key, $value)
     {
@@ -185,7 +151,7 @@ class DataItem
     }
 
     /**
-     * @return DataItem[]
+     * @return DataItem[]|null
      */
     public function getChildren()
     {

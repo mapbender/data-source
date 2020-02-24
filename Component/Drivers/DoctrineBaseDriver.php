@@ -3,7 +3,7 @@ namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\DBAL\Statement;
+use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
@@ -22,34 +22,26 @@ class DoctrineBaseDriver extends BaseDriver
      */
     protected $tableName;
 
-    /**
-     * @var string SQL where filter
-     */
-    protected $sqlFilter;
-
-    public function __construct(Connection $connection, array $args = array())
+    public function __construct(Connection $connection, array $args, DataStore $repository)
     {
         $this->connection = $connection;
-        parent::__construct($args);
+        parent::__construct($args, $repository);
         if (!empty($args['table'])) {
             $this->setTable($args['table']);
-        }
-        if (!empty($args['filter'])) {
-            $this->setFilter($args['filter']);
         }
     }
 
     /**
      * Get by ID, array or object
      *
-     * @param $args
+     * @param mixed $args
      * @return DataItem
      */
     public function get($args)
     {
         $dataItem = $this->create($args);
         if ($dataItem->hasId()) {
-            $dataItem = $this->getById($dataItem->getId());
+            $dataItem = $this->repository->getById($dataItem->getId());
         }
         return $dataItem;
     }
@@ -59,7 +51,7 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @param mixed $data
      * @param bool  $autoUpdate update instead of insert if ID given
-     * @return mixed
+     * @return DataItem
      * @throws \Exception
      */
     public function save($data, $autoUpdate = true)
@@ -70,26 +62,16 @@ class DoctrineBaseDriver extends BaseDriver
 
         $dataItem = $this->create($data);
 
-        try {
-            // Insert if no ID given
-            if (!$autoUpdate || !$dataItem->hasId()) {
-                $dataItem = $this->insert($dataItem);
-            } // Replace if has ID
-            else {
-                $dataItem = $this->update($dataItem);
-            }
-
-            // Get complete dataItem data
-            $result = $this->getById($dataItem->getId());
-
-        } catch (\Exception $e) {
-            $result = array(
-                "exception" => $e,
-                "dataItem"  => $dataItem,
-                "data"      => $data
-            );
+        // Insert if no ID given
+        if (!$autoUpdate || !$dataItem->hasId()) {
+            $dataItem = $this->insert($dataItem);
+        } // Replace if has ID
+        else {
+            $dataItem = $this->update($dataItem);
         }
 
+        // Get complete dataItem data
+        $result = $this->repository->getById($dataItem->getId());
         return $result;
     }
 
@@ -142,9 +124,9 @@ class DoctrineBaseDriver extends BaseDriver
 
 
     /**
-     * Executes statement and fetch list as array
+     * Fetches single-column SQL result set.
      *
-     * @param $statement
+     * @param string $statement
      * @return array
      */
     public function fetchList($statement)
@@ -167,7 +149,7 @@ class DoctrineBaseDriver extends BaseDriver
     /**
      * Set table name
      *
-     * @param $name
+     * @param string $name
      * @return $this
      * @todo: this information belongs in the DataStore or FeatureType, not here
      */
@@ -216,24 +198,13 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @param array $fields
      * @return QueryBuilder
+     * @deprecated use implementation in DataStore / FeatureType
+     * @todo 0.2.0: remove this method
      */
     public function getSelectQueryBuilder(array $fields = array())
     {
-        $connection = $this->getConnection();
-        $qb         = $connection->createQueryBuilder();
-        $fields     = array_merge($this->getFields(), $fields);
-        $fields     = array_merge(array($this->getUniqueId()), $fields);
-
-        foreach ($fields as &$field) {
-            if (is_array($field)) {
-                $keyName    = current(array_keys($field));
-                $expression = current(array_values($field));
-                $field      = "$expression AS " . $this->connection->quoteIdentifier($keyName);
-            }
-        }
-
-        $queryBuilder = $qb->select($fields)->from($this->getTableName(), 't');
-        return $queryBuilder;
+        @trigger_error("DEPRECATED: " . get_class($this) . '::getSelectQueryBuilder does nothing but delegate to DataStore / FeatureType::getSelectQueryBuilder and will be removed in 0.2.0', E_USER_DEPRECATED);
+        return $this->repository->getSelectQueryBuilder($fields);
     }
 
     /**
@@ -241,31 +212,13 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @param array $criteria
      * @return DataItem[]
+     * @deprecated this method's body has been baked into DataStore::search, where it belongs; FeatureType doesn't even use this
+     * @todo 0.2.0: remove this method
      */
     public function search(array $criteria = array())
     {
-
-        /** @var Statement $statement */
-        $maxResults   = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
-        $where        = isset($criteria['where']) ? $criteria['where'] : null;
-        $queryBuilder = $this->getSelectQueryBuilder();
-
-        // add filter (https://trac.wheregroup.com/cp/issues/3733)
-        if (!empty($this->sqlFilter)) {
-            $queryBuilder->andWhere($this->sqlFilter);
-        }
-
-        // add second filter (https://trac.wheregroup.com/cp/issues/4643)
-        if ($where) {
-            $queryBuilder->andWhere($where);
-        }
-
-        $queryBuilder->setMaxResults($maxResults);
-        $statement  = $queryBuilder->execute();
-        $rows       = $statement->fetchAll();
-
-        // Cast array to DataItem array list
-        return $this->prepareResults($rows);
+        @trigger_error("DEPRECATED: " . get_class($this) . '::search does nothing but delegate to DataStore / FeatureType::search and will be removed in 0.2.0', E_USER_DEPRECATED);
+        return $this->repository->search($criteria);
     }
 
     /**
@@ -273,28 +226,24 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @param array $rows - Data items to be casted
      * @return DataItem[]
+     * @deprecated DataStore is responsible for DataItem creation, and already handles this
+     * @todo 0.2.0: remove this method
      */
     public function prepareResults($rows)
     {
-        $rowsOut = array();
-        foreach ($rows as $key => $row) {
-            $rowsOut[] = $this->create($row);
-        }
-        return $rowsOut;
+        @trigger_error("DEPRECATED: " . get_class($this) . '::search does nothing but delegate to DataStore / FeatureType::prepareResults and will be removed in 0.2.0', E_USER_DEPRECATED);
+        return $this->repository->prepareResults($rows);
     }
 
-
     /**
-     * Set permanent SQL filter used by $this->search()
-     * https://trac.wheregroup.com/cp/issues/3733
+     * Does absolutely nothing
      *
-     * @see $this->search()
-     * @param $sqlFilter
-     * @todo: this information belongs in the DataStore or FeatureType, not here
+     * @deprecated does nothing
+     * @todo 0.2.0: remove this method
      */
-    public function setFilter($sqlFilter)
+    public function setFilter()
     {
-        $this->sqlFilter = $sqlFilter;
+        @trigger_error("DEPRECATED: " . get_class($this) . '::setFilter does nothing and will be removed in 0.2.0', E_USER_DEPRECATED);
     }
 
     /**
@@ -308,13 +257,15 @@ class DoctrineBaseDriver extends BaseDriver
     /**
      * Get data item by id
      *
-     * @param $id
+     * @param integer|string $id
      * @return DataItem
+     * @deprecated previously only used by / only works for DataStore (doesn't pass srid to FeatureType)
+     * @todo 0.2.0: remove this method
      */
     public function getById($id)
     {
-        $list = $this->getByCriteria($id, $this->getUniqueId());
-        return reset($list);
+        @trigger_error("DEPRECATED: " . get_class($this) . '::getById does nothing but delegate to DataStore / FeatureType::getById and will be removed in 0.2.0', E_USER_DEPRECATED);
+        return $this->repository->getById($id);
     }
 
     /**
@@ -377,7 +328,6 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function update($dataItem)
     {
-        /** @var DataItem $dataItem */
         $dataItem   = $this->create($dataItem);
         $data       = $this->cleanData($dataItem->toArray());
         $connection = $this->getConnection();
@@ -394,8 +344,8 @@ class DoctrineBaseDriver extends BaseDriver
     /**
      * Remove data item
      *
-     * @param  DataItem|array|int $arg
-     * @return bool
+     * @param DataItem|array|int $arg
+     * @return integer
      */
     public function remove($arg)
     {
@@ -406,14 +356,15 @@ class DoctrineBaseDriver extends BaseDriver
     /**
      * List objects by criteria
      *
-     * @param $criteria
-     * @param $fieldName
+     * @param string|integer $criteria
+     * @param string $fieldName
      * @return DataItem[]
+     * @deprecated no remaining usages
+     * @todo 0.2.0: remove this method
      */
     public function getByCriteria($criteria, $fieldName)
     {
-        /** @var Statement $statement */
-        $queryBuilder = $this->getSelectQueryBuilder();
+        $queryBuilder = $this->repository->getSelectQueryBuilder();
         $queryBuilder->where($fieldName . " = :criteria");
         $queryBuilder->setParameter('criteria', $criteria);
 
@@ -430,26 +381,5 @@ class DoctrineBaseDriver extends BaseDriver
     public function getLastInsertId()
     {
         return $this->getConnection()->lastInsertId();
-    }
-
-    /**
-     * Extract ordered type list from two associate key lists of data and types.
-     *
-     * @param array $data
-     * @param array $types
-     *
-     * @return array
-     */
-    protected function extractTypeValues(array $data, array $types)
-    {
-        $typeValues = array();
-
-        foreach ($data as $k => $_) {
-            $typeValues[] = isset($types[$k])
-                ? $types[$k]
-                : \PDO::PARAM_STR;
-        }
-
-        return $typeValues;
     }
 }

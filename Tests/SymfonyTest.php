@@ -9,7 +9,7 @@ use Symfony\Component\DependencyInjection\Container;
  * @package Mapbender\DataSourceBundle\Tests
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class SymfonyTest extends WebTestCase
+abstract class SymfonyTest extends WebTestCase
 {
 
     /** @var Client */
@@ -33,7 +33,7 @@ class SymfonyTest extends WebTestCase
      */
     protected function get($serviceName)
     {
-        return self::$container->get($serviceName);
+        return static::$container->get($serviceName);
     }
 
     /**
@@ -48,35 +48,11 @@ class SymfonyTest extends WebTestCase
      * Get symfony parameter
      *
      * @param $name
-     * @return mixed|null
+     * @return mixed
      */
-    public function getParameter($name)
+    protected function getParameter($name)
     {
-        $names = explode("/", $name);
-        $r     = null;
-        $name  = current($names);
-        if (!$name || !self::$container->hasParameter($name)) {
-            return $r;
-        }
-
-        $parameters = self::$container->getParameter($name);
-        $c          = count($names);
-        foreach ($names as $k => &$name) {
-            if ($k == 0) {
-                continue;
-            }
-
-            if (isset($parameters[ $name ])) {
-                $parameters = $parameters[ $name ];
-                if ($k + 1 == $c) {
-                    $r = $parameters;
-                }
-            } else {
-                break;
-            }
-        }
-
-        return $r;
+        return static::$container->getParameter($name);
     }
 
     /**
@@ -84,26 +60,19 @@ class SymfonyTest extends WebTestCase
      *
      * @return mixed|null
      */
-    public function getConfiguration()
+    protected function getConfiguration()
     {
         $trace         = debug_backtrace();
         $caller        = $trace[1];
         $methodName    = preg_replace("/^test/", "", $caller["function"]);
         $methodName[0] = strtolower($methodName[0]);
-        $parameter     = $this->getParameter("test/" . $caller["class"] . "/" . $methodName);
-        return $parameter;
-    }
+        $path = "test/" . $caller["class"] . "/" . $methodName;
 
-    /**
-     * Get calss configuration if available
-     *
-     * @return mixed|null
-     */
-    public function getClassConfiguration()
-    {
-        $trace     = debug_backtrace();
-        $caller    = $trace[1];
-        $parameter = $this->getParameter("test/" . $caller["class"]);
-        return $parameter;
+        $names = explode("/", $path);
+        $r = self::$container->getParameter($names[0]);
+        foreach (array_slice($names, 1) as $name) {
+            $r = $r[$name];
+        }
+        return $r;
     }
 }

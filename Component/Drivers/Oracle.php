@@ -13,7 +13,7 @@ class Oracle extends DoctrineBaseDriver implements Geographic
     /**
      * Transform result column names from lower case to upper
      *
-     * @param        $rows         array Two dimensional array link
+     * @param array[] $rows
      */
     public static function transformColumnNames(&$rows)
     {
@@ -35,24 +35,26 @@ class Oracle extends DoctrineBaseDriver implements Geographic
      *
      * @param array $rows
      * @return DataItem[]
+     * @deprecated DataStore is responsible for DataItem creation, and already handles this
+     * @todo 0.2.0: remove this method
      */
     public function prepareResults($rows)
     {
-        $rowsOut = parent::prepareResults($rows);
-        self::transformColumnNames($rowsOut);
-        return $rowsOut;
+        self::transformColumnNames($rows);
+        return parent::prepareResults($rows);
     }
 
     /**
      * Add geometry column
      *
-     * @param        $tableName
-     * @param        $type
-     * @param        $srid
+     * @param string $tableName
+     * @param string $type
+     * @param integer $srid
      * @param string $geomFieldName
      * @param string $schemaName
      * @param int    $dimensions
      * @return mixed
+     * @deprecated remove in 0.2.0 this is DBA work
      */
     public function addGeometryColumn($tableName,
         $type,
@@ -61,14 +63,13 @@ class Oracle extends DoctrineBaseDriver implements Geographic
         $schemaName = "public",
         $dimensions = 2)
     {
-        // TODO: Implement addGeometryColumn() method.
         throw new \RuntimeException("Method not implemented");
     }
 
     /**
      * Get table geometry type
      *
-     * @param        $tableName
+     * @param string $tableName
      * @param string $schema
      * @return mixed
      */
@@ -79,9 +80,13 @@ class Oracle extends DoctrineBaseDriver implements Geographic
     }
 
     /**
+     * Returns transformed geometry in NATIVE FORMAT (resource).
+     *
      * @param string $ewkt
      * @param null $srid
      * @return mixed
+     * @todo: null srid makes no sense, should throw an error
+     * @todo: if an ewkt goes in, an ewkt should come out; native format is pretty useless outside of insert / update usage
      */
     public function transformEwkt($ewkt, $srid = null)
     {

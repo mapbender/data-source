@@ -1,6 +1,8 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component;
 
+use Doctrine\DBAL\Connection;
+use Symfony\Bridge\Doctrine\RegistryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -39,6 +41,7 @@ class DataStoreService
     /**
      * @param string $name
      * @return DataStore
+     * @since 0.1.15
      */
     public function getDataStoreByName($name)
     {
@@ -52,6 +55,7 @@ class DataStoreService
     /**
      * @param mixed[] $config
      * @return DataStore
+     * @since 0.1.15
      */
     public function dataStoreFactory(array $config)
     {
@@ -61,6 +65,7 @@ class DataStoreService
 
     /**
      * @return array
+     * @deprecated remove in 0.2.0; you can't really do anything with the return value anyway
      */
     public function listDrivers()
     {
@@ -78,4 +83,17 @@ class DataStoreService
         return $this->container->getParameter($paramKey);
     }
 
+    /**
+     * @param string $name
+     * @return Connection
+     * @since 0.0.16
+     */
+    public function getDbalConnectionByName($name)
+    {
+        /** @var RegistryInterface $registry */
+        $registry = $this->container->get('doctrine');
+        /** @var Connection $connection */
+        $connection = $registry->getConnection($name);
+        return $connection;
+    }
 }

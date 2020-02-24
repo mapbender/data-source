@@ -2,7 +2,6 @@
 namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\DBAL\Statement;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
@@ -11,7 +10,6 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
  * Class FeatureType handles Feature objects.
@@ -57,11 +55,6 @@ class FeatureType extends DataStore
     protected $srid = null;
 
     /**
-     * @var string SQL where filter
-     */
-    protected $sqlFilter;
-
-    /**
      * @var array file info list
      */
     protected $filesInfo = array();
@@ -97,7 +90,24 @@ class FeatureType extends DataStore
 
     protected function configure(array $args)
     {
-        parent::configure($args);
+        if (array_key_exists('geomField', $args)) {
+            $this->setGeomField($args['geomField']);
+        }
+        if (array_key_exists('srid', $args)) {
+            $this->setSrid($args['srid']);
+        }
+        if (array_key_exists('waysTableName', $args)) {
+            $this->setWaysTableName($args['waysTableName']);
+        }
+        if (array_key_exists('waysGeomFieldName', $args)) {
+            $this->setWaysGeomFieldName($args['waysGeomFieldName']);
+        }
+        if (array_key_exists('waysVerticesTableName', $args)) {
+            $this->setWaysVerticesTableName($args['waysVerticesTableName']);
+        }
+        if (array_key_exists('files', $args)) {
+            $this->setFiles($args['files']);
+        }
         if (!empty($args['export'])) {
             if (!is_array($args['export'])) {
                 throw new \InvalidArgumentException("Unexpected type " . gettype($args['export']) . " for 'export'. Expected array.");
@@ -106,6 +116,16 @@ class FeatureType extends DataStore
                 $this->exportFields = $args['export']['fields'];
             }
         }
+        $remaining = array_diff_key($args, array_flip(array(
+            'geomField',
+            'srid',
+            'waysTableName',
+            'waysGeomFieldName',
+            'waysVerticesTableName',
+            'files',
+        )));
+
+        parent::configure($remaining);
     }
 
     /**
@@ -148,17 +168,21 @@ class FeatureType extends DataStore
      *
      * @param int $id
      * @param int $srid SRID
-     * @return Feature
+     * @return Feature|null
      */
     public function getById($id, $srid = null)
     {
-        $rows = $this->getSelectQueryBuilder($srid)
+        $rows = $this->getSelectQueryBuilder($srid)->setMaxResults(1)
             ->where($this->getUniqueId() . " = :id")
             ->setParameter('id', $id)
             ->execute()
             ->fetchAll();
-        $this->prepareResults($rows, $srid);
-        return reset($rows);
+        $features = $this->prepareResults($rows, $srid);
+        if ($features) {
+            return $features[0];
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -216,7 +240,7 @@ class FeatureType extends DataStore
     public function insert($featureData)
     {
         $feature                       = $this->create($featureData);
-        $data                          = $this->cleanFeatureData($feature->toArray());
+        $data = $feature->toArray();
         $driver                        = $this->getDriver();
         $lastId                        = null;
         $data[ $this->getGeomField() ] = $this->transformEwkt($data[ $this->getGeomField() ], $this->getSrid());
@@ -244,10 +268,13 @@ class FeatureType extends DataStore
 
 
     /**
+     * Returns transformed geometry in NATIVE FORMAT (WKB or resource).
+     *
      * @param string $ewkt EWKT geometry
      * @param null|int $srid SRID
      * @return bool|string
      * @throws \Exception
+     * @todo: if an ewkt goes in, an ewkt should come out; native format is pretty useless outside of insert / update usage
      */
     public function transformEwkt($ewkt, $srid = null)
     {
@@ -263,15 +290,14 @@ class FeatureType extends DataStore
     }
 
     /**
-     * @param $featureData
+     * @param mixed $featureData
      * @return Feature
      * @throws \Exception
      */
     public function update($featureData)
     {
-        /** @var Feature $feature */
         $feature                       = $this->create($featureData);
-        $data                          = $this->cleanFeatureData($feature->toArray());
+        $data = $feature->toArray();
         $connection                    = $this->getConnection();
         $data[ $this->getGeomField() ] = $this->transformEwkt($data[ $this->getGeomField() ]);
         unset($data[ $this->getUniqueId() ]);
@@ -311,94 +337,61 @@ class FeatureType extends DataStore
      * Search feature by criteria
      *
      * @param array $criteria
-     * @return Feature[]
+     * @return Feature[]|array
+     * @todo: methods should not have parametric return types
      */
     public function search(array $criteria = array())
     {
-        /** @var Statement $statement */
-        /** @var Feature $feature */
+        // @todo: support unlimited selects
         $maxResults      = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
-        $intersect       = isset($criteria['intersectGeometry']) ? $criteria['intersectGeometry'] : null;
         $returnType      = isset($criteria['returnType']) ? $criteria['returnType'] : null;
         $srid            = isset($criteria['srid']) ? $criteria['srid'] : $this->getSrid();
-        $where           = isset($criteria['where']) ? $criteria['where'] : null;
         $queryBuilder    = $this->getSelectQueryBuilder($srid);
-        $connection      = $queryBuilder->getConnection();
-        $whereConditions = array();
 
-        // add GEOM where condition
-        if ($intersect) {
-            $geometry          = BaseDriver::roundGeometry($intersect, 2);
-            $whereConditions[] = $this->getDriver()->getIntersectCondition($geometry, $this->geomField, $srid, $this->getSrid());
-        }
-
-        // add filter (https://trac.wheregroup.com/cp/issues/3733)
-        if (!empty($this->sqlFilter)) {
-            /** @var TokenStorageInterface $tokenStorage */
-            $tokenStorage = $this->container->get("security.token_storage");
-            $userName = $tokenStorage->getToken()->getUsername();
-            $sqlFilter         = strtr($this->sqlFilter, array(
-                ':userName' => $userName,
-            ));
-            $whereConditions[] = $sqlFilter;
-
-        }
-
-        // add second filter (https://trac.wheregroup.com/cp/issues/4643)
-        if ($where) {
-            $whereConditions[] = $where;
-        }
-
-        if (isset($criteria["source"]) && isset($criteria["distance"])) {
-            $whereConditions[] = "ST_DWithin(t." . $this->getGeomField() . ","
-                . $connection->quote($criteria["source"])
-                . "," . $criteria['distance'] . ')';
-        }
-
-
-        if (count($whereConditions)) {
-            $queryBuilder->where(join(" AND ", $whereConditions));
-        }
+        $this->addCustomSearchCritera($queryBuilder, $criteria);
 
         $queryBuilder->setMaxResults($maxResults);
 
-        // $queryBuilder->setParameters($params);
-        // $sql = $queryBuilder->getSQL();
-
         $statement  = $queryBuilder->execute();
-        $rows       = $statement->fetchAll();
-        $hasResults = count($rows) > 0;
-
-        // Convert to Feature object
-        if ($hasResults) {
-            $this->prepareResults($rows, $srid);
-        }
+        $rows = $statement->fetchAll();
+        $features = $this->prepareResults($rows, $srid);
 
         if ($returnType == "FeatureCollection") {
-            $rows = $this->toFeatureCollection($rows);
+            return $this->toFeatureCollection($features);
+        } else {
+            return $features;
         }
-
-        return $rows;
     }
 
     /**
-     * Get unique ID
+     * Add custom (non-Doctrineish) criteria to passed query builder.
+     * Override hook for customization
      *
-     * @return mixed unique ID
-     * @todo: this information belongs HERE, not in the driver
+     * @param QueryBuilder $queryBuilder
+     * @param array $params
      */
-    public function getUniqueId()
+    protected function addCustomSearchCritera(QueryBuilder $queryBuilder, array $params)
     {
-        return $this->getDriver()->getUniqueId();
-    }
-
-    /**
-     * @return string
-     * @todo: this information belongs here, not in the driver
-     */
-    public function getTableName()
-    {
-        return $this->getDriver()->getTableName();
+        parent::addCustomSearchCritera($queryBuilder, $params);
+        // add bounding geometry condition
+        if (!empty($params['intersect'])) {
+            $geometry = BaseDriver::roundGeometry($params['intersect'], 2);
+            if (!empty($params['srid'])) {
+                $sridFrom = $params['srid'];
+            } else {
+                $sridFrom = $this->getSrid();
+            }
+            $queryBuilder->andWhere($this->getDriver()->getIntersectCondition($geometry, $this->geomField, $sridFrom, $this->getSrid()));
+        }
+        // Add condition for maximum distance to given wkt 'source'
+        // @todo: specify and document
+        if (isset($params["source"]) && isset($params["distance"])) {
+            // @todo: quote column identifer
+            $queryBuilder->andWhere("ST_DWithin(t." . $this->getGeomField() . ","
+                . $queryBuilder->getConnection()->quote($params["source"])
+                . ', :distance)');
+            $queryBuilder->setParameter(':distance', $params['distance']);
+        }
     }
 
     /**
@@ -412,28 +405,27 @@ class FeatureType extends DataStore
     /**
      * Convert results to Feature objects
      *
-     * @param Feature[] $rows
+     * @param array[] $rows
      * @param null      $srid
      * @return Feature[]
-     * @todo: this logic belongs in the driver, not here
      */
-    public function prepareResults(&$rows, $srid = null)
+    public function prepareResults($rows, $srid = null)
     {
         $driver = $this->getDriver();
-        $hasSrid = $srid != null;
+        $srid = $srid ?: $this->getSrid();
 
         if ($driver instanceof Oracle) {
+            // @todo: this logic belongs in the driver, not here
+            // @todo: this behaviour may cause more trouble than it solves. There should be an option
+            //        to disable it.
             Oracle::transformColumnNames($rows);
         }
-
-        foreach ($rows as $key => &$row) {
-            $row = $this->create($row);
-            if ($hasSrid) {
-                $row->setSrid($srid);
-            }
+        $features = array();
+        foreach ($rows as $key => $row) {
+            $feature = new Feature($row, $srid, $this->getUniqueId(), $this->getGeomField());
+            $features[] = $feature;
         }
-
-        return $rows;
+        return $features;
     }
 
     /**
@@ -446,29 +438,31 @@ class FeatureType extends DataStore
     {
         $driver = $this->getDriver();
         $geomFieldCondition = $driver->getGeomAttributeAsWkt($this->geomField, $srid ? $srid : $this->getSrid());
-        $queryBuilder       = $driver->getSelectQueryBuilder(array($geomFieldCondition));
+        $queryBuilder = parent::getSelectQueryBuilder();
+        $queryBuilder->addSelect($geomFieldCondition);
         return $queryBuilder;
     }
 
     /**
      * Cast feature by $args
      *
-     * @param $args
+     * @param mixed $args
      * @return Feature
      */
     public function create($args)
     {
-        $feature = null;
         if (is_object($args)) {
             if ($args instanceof Feature) {
-                $feature = $args;
+                return $args;
             } else {
-                $args = get_object_vars($args);
+                return new Feature(get_object_vars($args), $this->getSrid(), $this->getUniqueId(), $this->getGeomField());
             }
         } elseif (is_numeric($args)) {
-            $args = array($this->getUniqueId() => intval($args));
+            $feature = new Feature(array(), $this->getSrid(), $this->getUniqueId(), $this->getGeomField());
+            $feature->setId($args);
+            return $feature;
         }
-        return $feature && $feature instanceof Feature ? $feature : new Feature($args, $this->getSrid(), $this->getUniqueId(), $this->getGeomField());
+        return new Feature($args, $this->getSrid(), $this->getUniqueId(), $this->getGeomField());
     }
 
     /**
@@ -487,38 +481,21 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Convert Features[] to FeatureCollection
+     * Convert Features to FeatureCollection
      *
-     * @param Feature[] $rows
+     * @param Feature[] $features
      * @return array FeatureCollection
      */
-    public function toFeatureCollection($rows)
+    public function toFeatureCollection($features)
     {
-        /** @var Feature $feature */
-        foreach ($rows as $k => $feature) {
-            $rows[ $k ] = $feature->toGeoJson(true);
+        $collection = array(
+            'type' => 'FeatureCollection',
+            'features' => array(),
+        );
+        foreach ($features as $feature) {
+            $collection['features'][] = $feature->toGeoJson();
         }
-        return array("type"     => "FeatureCollection",
-                     "features" => $rows);
-    }
-
-    /**
-     * Clean data this can't be saved into db table from data array
-     *
-     * @param array $data
-     * @return array
-     */
-    private function cleanFeatureData($data)
-    {
-        $fields = array_merge($this->getFields(), array($this->getUniqueId(), $this->getGeomField()));
-
-        // clean data from feature
-        foreach ($data as $fieldName => $value) {
-            if (isset($fields[ $fieldName ])) {
-                unset($data[ $fieldName ]);
-            }
-        }
-        return $data;
+        return $collection;
     }
 
     /**
@@ -579,18 +556,6 @@ class FeatureType extends DataStore
     public function setWaysVerticesTableName($waysVerticesTableName)
     {
         $this->waysVerticesTableName = $waysVerticesTableName;
-    }
-
-    /**
-     * Set FeatureType permanent SQL filter used by $this->search()
-     * https://trac.wheregroup.com/cp/issues/3733
-     *
-     * @see $this->search()
-     * @param $sqlFilter
-     */
-    protected function setFilter($sqlFilter)
-    {
-        $this->sqlFilter = $sqlFilter;
     }
 
     /**
@@ -732,7 +697,7 @@ class FeatureType extends DataStore
     }
 
     /**
-     * @param $fileInfo
+     * @param array[] $fileInfo
      * @internal param $fileInfos
      */
     public function setFiles($fileInfo)
@@ -741,7 +706,7 @@ class FeatureType extends DataStore
     }
 
     /**
-     * @return array
+     * @return array[]
      */
     public function getFileInfo()
     {
@@ -749,7 +714,7 @@ class FeatureType extends DataStore
     }
 
     /**
-     * @param        $tableName
+     * @param string $tableName
      * @param string $schema
      * @return mixed|null
      */
@@ -767,8 +732,9 @@ class FeatureType extends DataStore
     /**
      * Detect (E)WKT geometry type
      *
-     * @param $wkt
+     * @param string $wkt
      * @return string
+     * @todo: remove in 0.2.0; only accessed by unit tests. Move implementation to Utility.
      */
     public static function getWktType($wkt)
     {
@@ -815,8 +781,9 @@ class FeatureType extends DataStore
      * Get by ID list
      *
      * @param mixed[] $ids
-     * @param bool $prepareResults
-     * @return array[][]
+     * @param bool $prepareResults to return Feature objects instead of associative row arrays
+     * @return array[]|Feature[]
+     * @todo: methods should not have parametric return types
      */
     public function getByIds($ids, $prepareResults = true)
     {
@@ -826,10 +793,10 @@ class FeatureType extends DataStore
         $rows = $queryBuilder->where($condition)->execute()->fetchAll();
 
         if ($prepareResults) {
-            $this->prepareResults($rows);
+            return $this->prepareResults($rows);
+        } else {
+            return $rows;
         }
-
-        return $rows;
     }
 
     /**
@@ -881,9 +848,10 @@ class FeatureType extends DataStore
     }
 
     /**
-     * @param $row
-     * @param $code
-     * @return null
+     * @param mixed[] $row
+     * @param string $code
+     * @return mixed
+     * @todo: stop using eval already
      */
     private function evaluateField($row, $code)
     {

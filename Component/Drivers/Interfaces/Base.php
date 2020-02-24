@@ -18,6 +18,8 @@ interface Base
      *
      * @param mixed $id ID
      * @return DataItem
+     * @deprecated only used by / only works for DataStore (doesn't pass srid to FeatureType)
+     * @todo 0.2.0: remove this method
      */
     public function getById($id);
 
@@ -26,6 +28,7 @@ interface Base
      *
      * @param mixed $args
      * @return DataItem
+     * @todo 0.2.0: remove method
      */
     public function create($args);
 
@@ -41,8 +44,8 @@ interface Base
     /**
      * Remove by args
      *
-     * @param $args
-     * @return mixed
+     * @param DataItem|array|int $args
+     * @return integer
      */
     public function remove($args);
 
@@ -57,6 +60,7 @@ interface Base
      * Has permission to read?
      *
      * @return bool
+     * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function canRead();
 
@@ -64,6 +68,7 @@ interface Base
      * Has permission to write?
      *
      * @return bool
+     * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function canWrite();
 

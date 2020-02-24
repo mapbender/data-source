@@ -12,7 +12,7 @@ class FeatureTypeTest extends SymfonyTest
 {
     const REMOVE_TEST_TABLES = false;
 
-    protected $configuration;
+    protected $configuration = array();
 
     // The OGC and ISO specifications
     const WKT_POINT              = "POINT(0 0)";
@@ -38,27 +38,12 @@ class FeatureTypeTest extends SymfonyTest
 10 10),(11 11, 11.5 11, 11 11.5, 11 11)))";
 
 
-    public function setUp()
-    {
-        $this->configuration = array();
-        $container           = self::$container;
-
-        if ($container->hasParameter("testing")) {
-            $this->configuration = $container->getParameter("testing");
-        }
-
-        if(!isset($this->configuration["featureType"])){
-            self::markTestSkipped("No feature type test declaration found");
-        }else{
-            $this->configuration = $this->configuration["featureType"];
-        }
-    }
-
     /**
      * Test save and recognize geometries
      */
     public function testGeometries()
     {
+        // @todo: use a fixture for read / write database tests
         /** @var Registry $doctrine */
         $container      = self::$container;
         $doctrine       = $container->get("doctrine");
