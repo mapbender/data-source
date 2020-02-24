@@ -1,3 +1,7 @@
+## 0.1.16.1
+- Fix DataStore getById
+- Fix error handling when saving
+
 ## 0.1.16
 - Fix Feature initialization from GeoJSON: respect configured `geomField`, apply optional non-standard embedded `srid` and `id` correctly
 - Fix broken data format in Oracle::prepareResults
