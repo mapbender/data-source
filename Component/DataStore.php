@@ -235,27 +235,62 @@ class DataStore
     }
 
     /**
-     * Convert array to DataItem object
+     * Promote mostly random input data to a DataItem, or return a passed DataItem as-is, unmodified
      *
-     * @param mixed $data
+     * @param DataItem|object|int|array $data
      * @return DataItem
-     * @todo: the implementation belongs here, not in the driver
+     * @todo 0.2.0: remove unmodified object pass-through
+     * @todo 0.2.0: remove the path for all hope is lost, let's just call get_object_vars
+     * @todo 0.2.0: remove the path for scalar id pre-initialization
      */
     public function create($data)
     {
         if (is_object($data)) {
-            if ($data instanceof DataItem) {
+            $referenceClassName = \get_class($this->itemFactory());
+            if (\is_a($data, $referenceClassName, true)) {
+                @trigger_error("Deprecated: do not call create AT ALL if you know you're working with a {$referenceClassName}. This will be an error in 0.2.0. Use the object you already have.", E_USER_DEPRECATED);
                 return $data;
             } else {
-                return new DataItem(get_object_vars($data), $this->getUniqueId());
+                @trigger_error("Deprecated: do not call create with a random unrecognized object type. This will be an error in 0.2.0. Bring your own attributes and call itemFromArray.", E_USER_DEPRECATED);
+                return $this->itemFromArray(get_object_vars($data));
             }
         } elseif (is_numeric($data)) {
-            $dataItem = new DataItem(array(), $this->getUniqueId());
-            $dataItem->setId(intval($data));
-            return $dataItem;
+            @trigger_error("Deprecated: do not call create with a scalar to preinitialize the item id. This will be an error in 0.2.0.", E_USER_DEPRECATED);
+            return $this->itemFromArray(array(
+                $this->getUniqueId() => $data,
+            ));
         } else {
-            return new DataItem($data, $this->getUniqueId());
+            return $this->itemFromArray($data);
         }
+    }
+
+    /**
+     * Create empty item
+     *
+     * @return DataItem
+     * @since 0.1.16.2
+     */
+    public function itemFactory()
+    {
+        return new DataItem($this->getUniqueId());
+    }
+
+    /**
+     * Create preinitialized item
+     *
+     * @param array $values
+     * @return DataItem
+     * @since 0.1.16.2
+     */
+    public function itemFromArray(array $values)
+    {
+        /**
+         * NOTE: we deliberatly AVOID using itemFactory here because of the absolutely irritating matrix
+         * of potential constructor initializer types
+         * @sse DataItem::__construct
+         */
+        $item = new DataItem($values, $this->getUniqueId());
+        return $item;
     }
 
     /**

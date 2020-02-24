@@ -103,6 +103,7 @@ class Feature extends DataItem
      * @param string $uniqueIdField ID field name
      * @param string $geomField GEOM field name
      * @todo: this constructor supports way too many formats. Drop a few, standardize on something.
+     * @internal
      */
     public function __construct($args = null, $srid = null, $uniqueIdField = 'id', $geomField = "geom")
     {

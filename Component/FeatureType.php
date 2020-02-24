@@ -448,21 +448,47 @@ class FeatureType extends DataStore
      *
      * @param mixed $args
      * @return Feature
+     * @todo 0.2.0: remove specialization promoting from DataItem to Feature
      */
     public function create($args)
     {
-        if (is_object($args)) {
-            if ($args instanceof Feature) {
-                return $args;
-            } else {
-                return new Feature(get_object_vars($args), $this->getSrid(), $this->getUniqueId(), $this->getGeomField());
-            }
-        } elseif (is_numeric($args)) {
-            $feature = new Feature(array(), $this->getSrid(), $this->getUniqueId(), $this->getGeomField());
-            $feature->setId($args);
+        if (is_object($args) && ($args instanceof DataItem) && !($args instanceof Feature)) {
+            @trigger_error("Deprecated: unsafe promotion from DataItem to Feature. This will be an error in 0.2.0.", E_USER_DEPRECATED);
+            return $this->itemFromArray($args->getAttributes());
+        } else {
+            /** @var Feature $feature */ /** @see itemFactory */ /** @see itemFromArray */
+            $feature = parent::create($args);
             return $feature;
         }
-        return new Feature($args, $this->getSrid(), $this->getUniqueId(), $this->getGeomField());
+    }
+
+    /**
+     * Create empty item
+     *
+     * @return Feature
+     * @since 0.1.16.2
+     */
+    public function itemFactory()
+    {
+        return new Feature(array(), $this->getSrid(), $this->getUniqueId(), $this->getGeomField());
+    }
+
+    /**
+     * Create preinitialized item
+     *
+     * @param array $values
+     * @return Feature
+     * @since 0.1.16.2
+     */
+    public function itemFromArray(array $values)
+    {
+        /**
+         * NOTE: we deliberatly AVOID using itemFactory here because of the absolutely irritating matrix
+         * of potential constructor initializer types
+         * @see Feature::__construct
+         * @sse DataItem::__construct
+         */
+        return new Feature($values, $this->getSrid(), $this->getUniqueId(), $this->getGeomField());
     }
 
     /**

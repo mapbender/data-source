@@ -18,6 +18,7 @@ class DataItem
     /**
      * @param mixed  $args string|array|null Optional JSON string or array
      * @param string $uniqueIdField ID field name
+     * @internal
      */
     public function __construct($args = array(), $uniqueIdField = 'id')
     {
