@@ -337,7 +337,9 @@ class DoctrineBaseDriver extends BaseDriver
             throw new \Exception("DataItem can't be updated without criteria");
         }
 
-        $connection->update($this->tableName, $data, array($this->uniqueId => $dataItem->getId()));
+        $connection->update($this->tableName, $data, array(
+            $this->repository->getUniqueId() => $dataItem->getId(),
+        ));
         return $dataItem;
     }
 
@@ -349,8 +351,10 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function remove($arg)
     {
-        return $this->getConnection()
-            ->delete($this->tableName, array($this->uniqueId => $this->repository->create($arg)->getId())) > 0;
+        return $this->getConnection()->delete($this->tableName, array(
+            // @todo: don't invoke create. Removal requires id.
+            $this->repository->getUniqueId() => $this->repository->create($arg)->getId(),
+        )) > 0;
     }
 
     /**

@@ -54,6 +54,8 @@ class DataStore
     protected $connectionType;
     protected $fields;
 
+    protected $uniqueIdFieldName = 'id';
+
     /** @var string SQL where filter */
     protected $sqlFilter;
 
@@ -77,6 +79,9 @@ class DataStore
 
     protected function configure(array $args)
     {
+        if (!empty($args['uniqueId'])) {
+            $this->uniqueIdFieldName = $args['uniqueId'];
+        }
         if (array_key_exists('filter', $args)) {
             $this->setFilter($args['filter']);
         }
@@ -87,6 +92,7 @@ class DataStore
             $this->setParentField($args['parentField']);
         }
         $unhandledArgs = array_diff_key($args, array_flip(array(
+            'uniqueId',
             'mapping',
             'parentField',
             'filter',
@@ -123,6 +129,9 @@ class DataStore
      */
     protected function driverFactory(array $args)
     {
+        // uniqueId ownership here
+        unset($args['uniqueId']);
+        // @todo: give drivers proper constructor arguments. Wild-west arrays are not proper constructor arguments.
         $hasFields = isset($args["fields"]) && is_array($args["fields"]);
 
         if ($hasFields && isset($args["parentField"])) {
@@ -389,11 +398,10 @@ class DataStore
      * Get unique ID field name
      *
      * @return string
-     * @todo: this information belongs HERE, not in the driver
      */
     public function getUniqueId()
     {
-        return $this->getDriver()->getUniqueId();
+        return $this->uniqueIdFieldName;
     }
 
     /**

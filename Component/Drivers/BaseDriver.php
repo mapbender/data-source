@@ -24,9 +24,6 @@ abstract class BaseDriver implements Base
      */
     protected $fields = array();
 
-    /** @var string */
-    protected $uniqueId = 'id';
-
     /**
      * @var Connection|mixed
      */
@@ -41,24 +38,9 @@ abstract class BaseDriver implements Base
     public function __construct(array $args, DataStore $repository)
     {
         $this->repository = $repository;
-        if (!empty($args['uniqueId'])) {
-            $this->setUniqueId($args['uniqueId']);
-        }
         if (!empty($args['fields'])) {
             $this->setFields($args['fields']);
         }
-    }
-
-    /**
-     * @param int $uniqueId
-     * @todo: this information belongs in the DataStore or FeatureType, not here
-     */
-    public function setUniqueId($uniqueId)
-    {
-        if (!is_string($uniqueId)) {
-            throw new \InvalidArgumentException("Unexpected type " . gettype($uniqueId) . ". Expected string.");
-        }
-        $this->uniqueId = $uniqueId;
     }
 
     /**
@@ -84,14 +66,13 @@ abstract class BaseDriver implements Base
      * Get unique ID field name
      *
      * @return string
-     * @todo: this information belongs in the DataStore or FeatureType, not here
-     * @todo: 0.2.0: reverse DataStore => driver inflection direction and remove this method
      * @deprecated
      * @internal
+     * @todo: 0.2.0 remove this method
      */
     public function getUniqueId()
     {
-        return $this->uniqueId;
+        return $this->repository->getUniqueId();
     }
 
     /**
