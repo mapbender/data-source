@@ -24,15 +24,6 @@ interface Base
     public function getById($id);
 
     /**
-     * Cast DataItem by $args
-     *
-     * @param mixed $args
-     * @return DataItem
-     * @todo 0.2.0: remove method
-     */
-    public function create($args);
-
-    /**
      * Save the data
      *
      * @param DataItem $data

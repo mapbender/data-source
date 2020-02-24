@@ -28,7 +28,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
         $connection = $this->connection;
         $keys = array();
         $values = array();
-        $item = $this->create($item);
+        $item = $this->repository->create($item);
 
         $connection->connect();
 

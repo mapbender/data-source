@@ -39,7 +39,7 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function get($args)
     {
-        $dataItem = $this->create($args);
+        $dataItem = $this->repository->create($args);
         if ($dataItem->hasId()) {
             $dataItem = $this->repository->getById($dataItem->getId());
         }
@@ -60,7 +60,7 @@ class DoctrineBaseDriver extends BaseDriver
             throw new \Exception("Data item given isn't compatible to save into the table: " . $this->getTableName());
         }
 
-        $dataItem = $this->create($data);
+        $dataItem = $this->repository->create($data);
 
         // Insert if no ID given
         if (!$autoUpdate || !$dataItem->hasId()) {
@@ -277,7 +277,7 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function insert($item, $cleanData = true)
     {
-        $item       = $this->create($item);
+        $item       = $this->repository->create($item);
         $connection = $this->getConnection();
 
         if ($cleanData) {
@@ -328,7 +328,7 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function update($dataItem)
     {
-        $dataItem   = $this->create($dataItem);
+        $dataItem   = $this->repository->create($dataItem);
         $data       = $this->cleanData($dataItem->toArray());
         $connection = $this->getConnection();
         unset($data[$this->repository->getUniqueId()]);
@@ -350,7 +350,7 @@ class DoctrineBaseDriver extends BaseDriver
     public function remove($arg)
     {
         return $this->getConnection()
-            ->delete($this->tableName, array($this->uniqueId => $this->create($arg)->getId())) > 0;
+            ->delete($this->tableName, array($this->uniqueId => $this->repository->create($arg)->getId())) > 0;
     }
 
     /**
