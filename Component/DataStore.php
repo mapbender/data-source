@@ -281,7 +281,7 @@ class DataStore
      */
     public function itemFactory()
     {
-        return new DataItem($this->getUniqueId());
+        return new DataItem(array(), $this->getUniqueId());
     }
 
     /**
