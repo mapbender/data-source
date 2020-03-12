@@ -1,3 +1,7 @@
+## 0.1.16.2
+- Fix Oracle bounding-box intersection query ([PR#14](https://github.com/mapbender/data-source/pull/14))
+- Fix DataStore empty item initialization
+
 ## 0.1.16.1
 - Fix DataStore getById
 - Fix error handling when saving
