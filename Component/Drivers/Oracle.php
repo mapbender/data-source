@@ -103,7 +103,7 @@ class Oracle extends DoctrineBaseDriver implements Geographic
      */
     public function getIntersectCondition($wkt, $geomFieldName, $srid, $sridTo)
     {
-        return "SDO_RELATE($wkt ,SDO_GEOMETRY(SDO_CS.TRANSFORM('$geomFieldName',$srid),$sridTo), 'mask=ANYINTERACT querytype=WINDOW') = 'TRUE'";
+        return "SDO_RELATE($geomFieldName, SDO_GEOMETRY('$wkt', $srid), 'mask=ANYINTERACT querytype=WINDOW') = 'TRUE'";
     }
 
     /**
