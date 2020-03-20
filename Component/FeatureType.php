@@ -346,7 +346,7 @@ class FeatureType extends DataStore
         $maxResults      = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
         $returnType      = isset($criteria['returnType']) ? $criteria['returnType'] : null;
         $srid            = isset($criteria['srid']) ? $criteria['srid'] : $this->getSrid();
-        $queryBuilder    = $this->getSelectQueryBuilder($srid);
+        $queryBuilder    = $this->getSelectQueryBuilder(null,$srid);
 
         $this->addCustomSearchCritera($queryBuilder, $criteria);
 
