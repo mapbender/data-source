@@ -172,7 +172,7 @@ class FeatureType extends DataStore
      */
     public function getById($id, $srid = null)
     {
-        $rows = $this->getSelectQueryBuilder(null,$srid)->setMaxResults(1)
+        $rows = $this->getSelectQueryBuilder(array(),$srid)->setMaxResults(1)
             ->where($this->getUniqueId() . " = :id")
             ->setParameter('id', $id)
             ->execute()
@@ -346,7 +346,7 @@ class FeatureType extends DataStore
         $maxResults      = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
         $returnType      = isset($criteria['returnType']) ? $criteria['returnType'] : null;
         $srid            = isset($criteria['srid']) ? $criteria['srid'] : $this->getSrid();
-        $queryBuilder    = $this->getSelectQueryBuilder(null,$srid);
+        $queryBuilder    = $this->getSelectQueryBuilder(array(),$srid);
 
         $this->addCustomSearchCritera($queryBuilder, $criteria);
 
