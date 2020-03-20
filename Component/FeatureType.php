@@ -172,7 +172,7 @@ class FeatureType extends DataStore
      */
     public function getById($id, $srid = null)
     {
-        $rows = $this->getSelectQueryBuilder($srid)->setMaxResults(1)
+        $rows = $this->getSelectQueryBuilder(null,$srid)->setMaxResults(1)
             ->where($this->getUniqueId() . " = :id")
             ->setParameter('id', $id)
             ->execute()
@@ -431,14 +431,15 @@ class FeatureType extends DataStore
     /**
      * Get query builder prepared to select from the source table
      *
+     * @param array $fields
      * @param null $srid
      * @return QueryBuilder
      */
-    public function getSelectQueryBuilder($srid = null)
+    public function getSelectQueryBuilder(array $fields = array(),$srid = null)
     {
         $driver = $this->getDriver();
         $geomFieldCondition = $driver->getGeomAttributeAsWkt($this->geomField, $srid ? $srid : $this->getSrid());
-        $queryBuilder = parent::getSelectQueryBuilder();
+        $queryBuilder = parent::getSelectQueryBuilder($fields);
         $queryBuilder->addSelect($geomFieldCondition);
         return $queryBuilder;
     }
