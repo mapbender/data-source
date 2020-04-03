@@ -374,9 +374,8 @@ class FeatureType extends DataStore
     {
         parent::addCustomSearchCritera($queryBuilder, $params);
         // add bounding geometry condition
-        if (!empty($params['intersect']) || !empty($params['intersectGeometry'])) {
-            $intersect = !empty($params['intersect']) ? $params['intersect'] : $params['intersectGeometry'];
-            $geometry = BaseDriver::roundGeometry($intersect, 2);
+        if (!empty($params['intersect'])) {
+            $geometry = BaseDriver::roundGeometry($params['intersect'], 2);
             if (!empty($params['srid'])) {
                 $sridFrom = $params['srid'];
             } else {
