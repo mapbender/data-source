@@ -323,7 +323,7 @@ class FeatureType extends DataStore
         /** @var Statement $statement */
         /** @var Feature $feature */
         $maxResults      = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
-        $intersect       = isset($criteria['intersectGeometry']) ? $criteria['intersectGeometry'] : null;
+        $intersect       = isset($criteria['intersect']) ? $criteria['intersect'] : (isset($criteria['intersectGeometry']) ? $criteria['intersectGeometry'] : null);
         $returnType      = isset($criteria['returnType']) ? $criteria['returnType'] : null;
         $srid            = isset($criteria['srid']) ? $criteria['srid'] : $this->getSrid();
         $where           = isset($criteria['where']) ? $criteria['where'] : null;
