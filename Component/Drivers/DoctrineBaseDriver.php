@@ -231,7 +231,7 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function prepareResults($rows)
     {
-        @trigger_error("DEPRECATED: " . get_class($this) . '::search does nothing but delegate to DataStore / FeatureType::prepareResults and will be removed in 0.2.0', E_USER_DEPRECATED);
+        @trigger_error("DEPRECATED: " . get_class($this) . '::prepareResults does nothing but delegate to DataStore / FeatureType::prepareResults and will be removed in 0.2.0', E_USER_DEPRECATED);
         return $this->repository->prepareResults($rows);
     }
 
