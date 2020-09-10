@@ -148,11 +148,13 @@ abstract class BaseElement extends BaseElementLegacy
      */
     protected function prepareSelectItem($item)
     {
-        $paths = array(
-            'dataStore' => null,
-            'service' => null,
-            'sql' => null,
-        );
+        $dsConfigKey = $this->getDataStoreKeyInFormItemConfig();
+        $paths = array_flip(array(
+            $dsConfigKey,
+            'dataStore',
+            'service',
+            'sql',
+        ));
         $configuredPaths = array_keys(array_intersect_key($paths, array_filter($item)));
         if (count($configuredPaths) > 1) {
             $message
@@ -163,7 +165,7 @@ abstract class BaseElement extends BaseElementLegacy
             @trigger_error("WARNING: {$message}", E_USER_DEPRECATED);
         }
 
-        if (!empty($item['dataStore'])) {
+        if (!empty($item[$dsConfigKey]) || !empty($item['dataStore'])) {
             return $this->prepareDataStoreSelectItem($item);
         } elseif (!empty($item['service'])) {
             return $this->prepareServiceSelectItem($item);
@@ -249,14 +251,21 @@ abstract class BaseElement extends BaseElementLegacy
      */
     protected function prepareDataStoreSelectItem($item)
     {
-        $dataStoreInfo = $item['dataStore'];
+        $dsConfigKey = $this->getDataStoreKeyInFormItemConfig();
+        if (empty($item[$dsConfigKey])) {
+            if (!empty($item['dataStore'])) {
+                // fall back to using default 'dataStore' key
+                $dsConfigKey = 'dataStore';
+            }
+        }
+        $dataStoreInfo = $item[$dsConfigKey];
         $dataStore = $this->getDataStoreService()->get($dataStoreInfo['id']);
         $options = array();
         foreach ($dataStore->search() as $dataItem) {
             $options[$dataItem->getId()] = $dataItem->getAttribute($dataStoreInfo["text"]);
         }
-        if (isset($item['dataStore']['popupItems'])) {
-            $item['dataStore']['popupItems'] = $this->prepareItems($item['dataStore']['popupItems']);
+        if (isset($dataStoreInfo[$dsConfigKey]['popupItems'])) {
+            $item[$dsConfigKey]['popupItems'] = $this->prepareItems($item[$dsConfigKey]['popupItems']);
         }
         $item['options'] = $options;
         return $item;
@@ -334,5 +343,29 @@ abstract class BaseElement extends BaseElementLegacy
             $configuration['children'] = $this->prepareItems($configuration['children']);
         }
         return $configuration;
+    }
+
+    /**
+     * Names the key inside the schema top-level config where data store config
+     * is located.
+     * Override support for child classes (Digitizer uses featureType instead
+     * of the default dataStore).
+     * @return string
+     */
+    protected function getDataStoreKeyInSchemaConfig()
+    {
+        return 'dataStore';
+    }
+
+    /**
+     * Names the key inside a form item where settings for a referenced
+     * data store are placed. This is an optional path inside select items.
+     * Override support for child classes (Digitizer may or may not use featureType
+     * instead of the default dataStore).
+     * @return string
+     */
+    protected function getDataStoreKeyInFormItemConfig()
+    {
+        return $this->getDataStoreKeyInSchemaConfig();
     }
 }
