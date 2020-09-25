@@ -360,9 +360,10 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function remove($arg)
     {
-        return $this->getConnection()->delete($this->tableName, array(
-            // @todo: don't invoke create. Removal requires id.
-            $this->repository->getUniqueId() => $this->repository->create($arg)->getId(),
+        $id = $this->anythingToId($arg);
+        // @todo: empty id should be an error
+        return $this->getConnection()->delete($this->getTableName(), array(
+            $this->repository->getUniqueId() => $id,
         )) > 0;
     }
 
@@ -394,5 +395,33 @@ class DoctrineBaseDriver extends BaseDriver
     public function getLastInsertId()
     {
         return $this->getConnection()->lastInsertId();
+    }
+
+    /**
+     * Attempts to extract an id from whatever $arg is
+     * Completely equivalent to DataStore::create($arg)->getId()
+     *
+     * @param mixed $arg
+     * @return integer|null
+     */
+    private function anythingToId($arg)
+    {
+        if (\is_numeric($arg)) {
+            return $arg;
+        } elseif (\is_object($arg)) {
+            if ($arg instanceof DataItem) {
+                return $arg->getId();
+            } else {
+                // self-delegate to array path
+                return $this->anythingToId(\get_object_vars($arg));
+            }
+        } elseif (\is_array($arg)) {
+            $uniqueId = $this->repository->getUniqueId();
+            if (!empty($arg[$uniqueId])) {
+                return $arg[$uniqueId];
+            }
+        }
+        // uh-oh!
+        return null;
     }
 }
