@@ -367,9 +367,16 @@ class DataStore
      */
     public function insert($itemOrData)
     {
-        $item = $this->create($itemOrData);
-        // DataStore / FeatureType divergence quirk: FT passes $cleanData = false, DT passes true
-        $id = $this->getDriver()->insert($itemOrData, true)->getId();
+        return $this->insertItem($this->create($itemOrData));
+    }
+
+    /**
+     * @param DataItem $item
+     * @return DataItem
+     */
+    protected function insertItem(DataItem $item)
+    {
+        $id = $this->getDriver()->insert($item, $this->cleanDataOnSave())->getId();
         $item->setId($id);
         return $item;
     }
@@ -384,6 +391,11 @@ class DataStore
     {
         // DataStore / FeatureType divergence quirk: FT::update doesn't go through the driver at all
         return $this->getDriver()->update($itemOrData);
+    }
+
+    protected function cleanDataOnSave()
+    {
+        return true;
     }
 
     /**

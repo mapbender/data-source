@@ -218,9 +218,20 @@ class FeatureType extends DataStore
      */
     public function insert($featureData)
     {
-        $feature                       = $this->create($featureData);
+        return $this->insertItem($this->create($featureData));
+    }
+
+    /**
+     * Insert feature
+     *
+     * @param DataItem $feature
+     * @return Feature
+     * @throws \Exception
+     */
+    protected function insertItem(DataItem $feature)
+    {
+        /** @var Feature $feature */
         $data = $feature->toArray();
-        $driver                        = $this->getDriver();
         $lastId                        = null;
         $data[ $this->getGeomField() ] = $this->transformEwkt($data[ $this->getGeomField() ], $this->getSrid());
         $event                         = array(
@@ -234,11 +245,10 @@ class FeatureType extends DataStore
         }
 
         if ($this->allowInsert) {
-            // DataStore / FeatureType divergence quirk: FT passes $cleanData = false, DT passes true
-            $lastId = $driver->insert($data, false)->getId();
+            $feature = parent::insertItem($feature);
+        } else {
+            $feature->setId(null);
         }
-
-        $feature->setId($lastId);
 
         if (isset($this->events[ self::EVENT_ON_AFTER_INSERT ])) {
             $this->secureEval($this->events[ self::EVENT_ON_AFTER_INSERT ], $event);
@@ -246,6 +256,10 @@ class FeatureType extends DataStore
         return $feature;
     }
 
+    protected function cleanDataOnSave()
+    {
+        return false;
+    }
 
     /**
      * Returns transformed geometry in NATIVE FORMAT (WKB or resource).
