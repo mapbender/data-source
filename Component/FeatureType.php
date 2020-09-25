@@ -186,6 +186,20 @@ class FeatureType extends DataStore
     }
 
     /**
+     * @param DataItem $feature
+     * @param Feature|array|mixed $dataArg original value passed to save method
+     * @return array
+     */
+    protected function getSaveEventData(DataItem $feature, &$dataArg)
+    {
+        /** @var Feature $feature */
+        return array(
+            'item' => &$dataArg,
+            'feature' => $feature,
+        );
+    }
+
+    /**
      * Save feature
      *
      * @param array|Feature|DataItem $featureData
@@ -200,15 +214,12 @@ class FeatureType extends DataStore
         }
 
         $feature = $this->create($featureData);
-        $event   = array(
-            'item'    => &$featureData,
-            'feature' => $feature
-        );
 
+        $eventData = $this->getSaveEventData($feature, $featureData);
         $this->allowSave = true;
 
         if (isset($this->events[ static::EVENT_ON_BEFORE_SAVE ])) {
-            $this->secureEval($this->events[ static::EVENT_ON_BEFORE_SAVE ], $event);
+            $this->secureEval($this->events[static::EVENT_ON_BEFORE_SAVE], $eventData);
         }
 
         if ($this->allowSave) {
@@ -220,7 +231,7 @@ class FeatureType extends DataStore
         }
 
         if (isset($this->events[ static::EVENT_ON_AFTER_SAVE ])) {
-            $this->secureEval($this->events[ static::EVENT_ON_AFTER_SAVE ], $event);
+            $this->secureEval($this->events[static::EVENT_ON_AFTER_SAVE], $eventData);
         }
 
         // Get complete feature data

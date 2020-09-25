@@ -303,6 +303,18 @@ class DataStore
     }
 
     /**
+     * @param DataItem $item
+     * @param DataItem|array|mixed $dataArg original value passed to save method
+     * @return array
+     */
+    protected function getSaveEventData(DataItem $item, &$dataArg)
+    {
+        return array(
+            'item' => &$dataArg,
+        );
+    }
+
+    /**
      * Save data item
      *
      * @param DataItem|array $item Data item
@@ -317,13 +329,8 @@ class DataStore
         }
 
         $saveItem = $this->create($item);
-        $eventData = array(
-            // DataStore / FeatureType divergence quirk: FT enforces an array type for 'item', provides
-            //      extra 'feature' entry for Feature object; DT passes whatever comes in (going by
-            //      DataManager history, always a DataItem object)
-            'item' => &$item,   // may be an array or a DataItem :]
-        );
 
+        $eventData = $this->getSaveEventData($saveItem, $item);
         $this->allowSave = true;
 
         if (isset($this->events[ self::EVENT_ON_BEFORE_SAVE ])) {
