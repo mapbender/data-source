@@ -222,6 +222,22 @@ class FeatureType extends DataStore
     }
 
     /**
+     * Extracts persistable values (insert / update) from Feature
+     * Implicitly transforms the geometry to a compatible CRS.
+     * @todo: do this with an SQL expression inside the insert / update query, instead of a separate SELECT
+     *
+     * @param Feature $feature
+     * @return mixed[]
+     */
+    protected function getSaveData(Feature $feature)
+    {
+        $data = $feature->toArray();
+        $geomField = $this->getGeomField();
+        $data[$geomField] = $this->transformEwkt($data[$geomField], $this->getSrid());
+        return $data;
+    }
+
+    /**
      * Insert feature
      *
      * @param DataItem $feature
@@ -231,9 +247,7 @@ class FeatureType extends DataStore
     protected function insertItem(DataItem $feature)
     {
         /** @var Feature $feature */
-        $data = $feature->toArray();
-        $lastId                        = null;
-        $data[ $this->getGeomField() ] = $this->transformEwkt($data[ $this->getGeomField() ], $this->getSrid());
+        $data = $this->getSaveData($feature);
         $event                         = array(
             'item'    => &$data,
             'feature' => $feature
@@ -301,8 +315,7 @@ class FeatureType extends DataStore
     public function updateItem(DataItem $feature)
     {
         /** @var Feature $feature */
-        $data = $feature->toArray();
-        $data[ $this->getGeomField() ] = $this->transformEwkt($data[ $this->getGeomField() ]);
+        $data = $this->getSaveData($feature);
 
         $event             = array(
             'item'    => &$data,
