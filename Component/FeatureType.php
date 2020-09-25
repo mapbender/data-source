@@ -290,7 +290,17 @@ class FeatureType extends DataStore
      */
     public function update($featureData)
     {
-        $feature                       = $this->create($featureData);
+        return $this->updateItem($this->create($featureData));
+    }
+
+    /**
+     * @param DataItem $feature
+     * @return Feature
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function updateItem(DataItem $feature)
+    {
+        /** @var Feature $feature */
         $data = $feature->toArray();
         $connection                    = $this->getConnection();
         $data[ $this->getGeomField() ] = $this->transformEwkt($data[ $this->getGeomField() ]);
@@ -309,14 +319,11 @@ class FeatureType extends DataStore
             throw new \Exception("Feature can't be updated without criteria");
         }
 
-        $tableName = $this->getTableName();
-        $quotedData = array();
-        foreach($data as $key => $value){
-            $quotedData[$connection->quoteIdentifier($key)] = $value;
-        }
-
         if ($this->allowUpdate) {
-            $connection->update($tableName, $quotedData, array($this->getUniqueId() => $feature->getId()));
+            $identifier = array(
+                $this->getUniqueId() => $feature->getId(),
+            );
+            $this->getDriver()->updateValues($this->getTableName(), $data, $identifier);
         }
 
         if (isset($this->events[ self::EVENT_ON_AFTER_UPDATE ])) {

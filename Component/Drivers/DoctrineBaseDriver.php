@@ -291,7 +291,7 @@ class DoctrineBaseDriver extends BaseDriver
      * @param array $data
      * @return array
      */
-    protected function cleanData($data)
+    public function cleanData($data)
     {
         $originalFields = $this->getFields();
         $uniqueId = $this->repository->getUniqueId();
@@ -345,6 +345,12 @@ class DoctrineBaseDriver extends BaseDriver
         if (empty($data)) {
             throw new \Exception("Can't update row without data");
         }
+        // quote column names
+        $quotedData = array();
+        foreach ($data as $key => $value) {
+            $quotedData[$connection->quoteIdentifier($key)] = $value;
+        }
+        $connection->update($tableName, $quotedData, $identifier);
         return $connection->update($tableName, $data, $identifier);
     }
 

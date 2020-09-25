@@ -389,8 +389,27 @@ class DataStore
      */
     public function update($itemOrData)
     {
-        // DataStore / FeatureType divergence quirk: FT::update doesn't go through the driver at all
-        return $this->getDriver()->update($itemOrData);
+        $item = $this->create($itemOrData);
+        return $this->updateItem($item);
+    }
+
+    /**
+     * @param DataItem $item
+     * @return DataItem
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function updateItem(DataItem $item)
+    {
+        $data = $item->toArray();
+        if ($this->cleanDataOnSave()) {
+            $data = $this->getDriver()->cleanData($data);
+        }
+        unset($data[$this->getUniqueId()]);
+        $identifier = array(
+            $this->getUniqueId() => $item->getId(),
+        );
+        $this->getDriver()->updateValues($this->getTableName(), $data, $identifier);
+        return $item;
     }
 
     protected function cleanDataOnSave()
