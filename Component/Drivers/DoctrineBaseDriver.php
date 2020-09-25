@@ -324,7 +324,6 @@ class DoctrineBaseDriver extends BaseDriver
     {
         $dataItem   = $this->repository->create($dataItem);
         $data       = $this->cleanData($dataItem->toArray());
-        unset($data[$this->repository->getUniqueId()]);
         $identifier = array(
             $this->repository->getUniqueId() => $dataItem->getId(),
         );
@@ -339,9 +338,10 @@ class DoctrineBaseDriver extends BaseDriver
      * @return int rows affected
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function updateValues($tableName, array $data, $identifier)
+    public function updateValues($tableName, array $data, array $identifier)
     {
         $connection = $this->getConnection();
+        $data = array_diff_key($data, $identifier);
         if (empty($data)) {
             throw new \Exception("Can't update row without data");
         }

@@ -302,9 +302,7 @@ class FeatureType extends DataStore
     {
         /** @var Feature $feature */
         $data = $feature->toArray();
-        $connection                    = $this->getConnection();
         $data[ $this->getGeomField() ] = $this->transformEwkt($data[ $this->getGeomField() ]);
-        unset($data[ $this->getUniqueId() ]);
 
         $event             = array(
             'item'    => &$data,

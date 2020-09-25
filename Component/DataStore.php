@@ -404,7 +404,6 @@ class DataStore
         if ($this->cleanDataOnSave()) {
             $data = $this->getDriver()->cleanData($data);
         }
-        unset($data[$this->getUniqueId()]);
         $identifier = array(
             $this->getUniqueId() => $item->getId(),
         );
