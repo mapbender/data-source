@@ -253,6 +253,7 @@ class FeatureType extends DataStore
         }
 
         if ($this->allowInsert) {
+            // DataStore / FeatureType divergence quirk: FT passes $cleanData = false, DT passes true
             $lastId = $driver->insert($data, false)->getId();
         }
 

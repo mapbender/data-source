@@ -330,13 +330,10 @@ class DataStore
             $this->secureEval($this->events[self::EVENT_ON_BEFORE_SAVE], $eventData);
         }
         if ($this->allowSave) {
-            // DataStore / FeatureType divergence quirk: FT has own insert / update methods, executing
-            // additional events; DS goes directly to the driver
-            $driver = $this->getDriver();
             if (!$autoUpdate || !$saveItem->hasId()) {
-                $result = $driver->insert($saveItem);
+                $result = $this->insert($saveItem);
             } else {
-                $result = $driver->update($saveItem);
+                $result = $this->update($saveItem);
             }
             // Reload with complete data
             $result = $this->getById($result->getId());
@@ -350,6 +347,32 @@ class DataStore
         return $result;
     }
 
+    /**
+     * Insert new row
+     *
+     * @param array|DataItem $itemOrData
+     * @return DataItem
+     */
+    public function insert($itemOrData)
+    {
+        $item = $this->create($itemOrData);
+        // DataStore / FeatureType divergence quirk: FT passes $cleanData = false, DT passes true
+        $id = $this->getDriver()->insert($itemOrData, true)->getId();
+        $item->setId($id);
+        return $item;
+    }
+
+    /**
+     * Update existing row
+     *
+     * @param array|DataItem $itemOrData
+     * @return DataItem
+     */
+    public function update($itemOrData)
+    {
+        // DataStore / FeatureType divergence quirk: FT::update doesn't go through the driver at all
+        return $this->getDriver()->update($itemOrData);
+    }
 
     /**
      * Remove data item
