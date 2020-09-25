@@ -338,9 +338,9 @@ class DataStore
         }
         if ($this->allowSave) {
             if (!$autoUpdate || !$saveItem->hasId()) {
-                $saveItem = $this->insert($saveItem);
+                $this->insertItem($saveItem);
             } else {
-                $saveItem = $this->update($saveItem);
+                $this->updateItem($saveItem);
             }
         }
 
