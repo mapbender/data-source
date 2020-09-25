@@ -36,14 +36,12 @@ class DoctrineBaseDriver extends BaseDriver
      *
      * @param mixed $args
      * @return DataItem
+     * @deprecated
+     * @todo 0.2: remove this method
      */
     public function get($args)
     {
-        $dataItem = $this->repository->create($args);
-        if ($dataItem->hasId()) {
-            $dataItem = $this->repository->getById($dataItem->getId());
-        }
-        return $dataItem;
+        return $this->repository->get($args);
     }
 
     /**

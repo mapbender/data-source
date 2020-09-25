@@ -202,7 +202,7 @@ class DataStore
      */
     public function getParent($id)
     {
-        $dataItem = $this->get($id);
+        $dataItem = $this->getById($id);
         $queryBuilder = $this->getSelectQueryBuilder();
         $queryBuilder->andWhere($this->getUniqueId() . " = " . $dataItem->getAttribute($this->getParentField()));
         $queryBuilder->setMaxResults(1);
@@ -636,13 +636,17 @@ class DataStore
     }
 
     /**
-     * Get by argument
-     *
-     * @inheritdoc
+     * Get by argument. ID of given DataItem or configured id column name entry in given array, or scalar id
+     * @param DataItem|array|string|integer
+     * @return DataItem
      */
     public function get($args)
     {
-        return $this->getDriver()->get($args);
+        $item = $this->create($args);   // uh-oh
+        if ($item->getId()) {
+            $item = $this->getById($item->getId());
+        }
+        return $item;
     }
 
     /**
@@ -819,7 +823,7 @@ class DataStore
             throw new Exception('This kind of externalDriver can\'t get relations');
         }
 
-        $criteria = $this->get($id)->getAttribute($internalFieldName);
+        $criteria = $this->getById($id)->getAttribute($internalFieldName);
 
         $queryBuilder = $externalDataStore->getSelectQueryBuilder();
         $queryBuilder->where($externalFieldName . " = :criteria");

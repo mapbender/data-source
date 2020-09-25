@@ -26,6 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
  * @method Feature save
  * @method Feature update
  * @method Feature insert
+ * @method Feature get
  */
 class FeatureType extends DataStore
 {

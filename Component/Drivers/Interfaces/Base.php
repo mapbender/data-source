@@ -10,6 +10,7 @@ interface Base
      *
      * @param mixed $id
      * @return array
+     * @todo 0.2: remove this method
      */
     public function get($id);
 
