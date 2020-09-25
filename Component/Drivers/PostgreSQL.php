@@ -16,31 +16,8 @@ use Mapbender\DataSourceBundle\Entity\Feature;
 class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geographic
 {
 
-    /**
-     * Insert data item
-     *
-     * @param array|DataItem $item
-     * @param bool $cleanData Clean data before insert?
-     * @return DataItem
-     */
-    public function insert($item, $cleanData = true)
+    public function insertValues($tableName, array $data)
     {
-        $item = $this->repository->create($item);
-
-        if ($cleanData) {
-            $data = $this->cleanData($item->toArray());
-        } else {
-            $data = $item->toArray();
-        }
-
-        $id = $this->insertRaw($data);
-        $item->setId($id);
-        return $item;
-    }
-
-    public function insertRaw(array $data)
-    {
-
         $connection = $this->connection;
         $keys = array();
         $values = array();
@@ -52,7 +29,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
             $values[] = $connection->quote($value);
         }
 
-        $sql = 'INSERT INTO ' . $connection->quoteIdentifier($this->tableName)
+        $sql = 'INSERT INTO ' . $connection->quoteIdentifier($tableName)
             . ' (' . implode(', ', $keys) . ')'
             . ' VALUES '
             . ' (' . implode(', ', $values) . ')'

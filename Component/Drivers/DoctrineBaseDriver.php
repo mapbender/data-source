@@ -269,18 +269,19 @@ class DoctrineBaseDriver extends BaseDriver
         } else {
             $data = $item->toArray();
         }
-        $id = $this->insertRaw($data);
+        $id = $this->insertValues($this->getTableName(), $data);
         $item->setId($id);
         return $item;
     }
 
     /**
+     * @param string $tableName
      * @param array $data
      * @return int the last insert id
      */
-    public function insertRaw(array $data)
+    public function insertValues($tableName, array $data)
     {
-        $this->connection->insert($this->tableName, $data);
+        $this->connection->insert($tableName, $data);
         return $this->connection->lastInsertId();
     }
 
