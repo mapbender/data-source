@@ -24,6 +24,8 @@ use Symfony\Component\HttpFoundation\Request;
  * @link      https://github.com/mapbender/mapbender-digitizer
  *
  * @method Feature save
+ * @method Feature update
+ * @method Feature insert
  */
 class FeatureType extends DataStore
 {
@@ -211,17 +213,6 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Insert feature
-     *
-     * @param array|Feature $featureData
-     * @return Feature
-     */
-    public function insert($featureData)
-    {
-        return $this->insertItem($this->create($featureData));
-    }
-
-    /**
      * Extracts persistable values (insert / update) from Feature
      * Implicitly transforms the geometry to a compatible CRS.
      * @todo: do this with an SQL expression inside the insert / update query, instead of a separate SELECT
@@ -295,16 +286,6 @@ class FeatureType extends DataStore
         }
 
         return $driver->transformEwkt($ewkt, $srid);
-    }
-
-    /**
-     * @param mixed $featureData
-     * @return Feature
-     * @throws \Exception
-     */
-    public function update($featureData)
-    {
-        return $this->updateItem($this->create($featureData));
     }
 
     /**
