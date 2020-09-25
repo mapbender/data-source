@@ -324,17 +324,28 @@ class DoctrineBaseDriver extends BaseDriver
     {
         $dataItem   = $this->repository->create($dataItem);
         $data       = $this->cleanData($dataItem->toArray());
-        $connection = $this->getConnection();
         unset($data[$this->repository->getUniqueId()]);
-
-        if (empty($data)) {
-            throw new \Exception("DataItem can't be updated without criteria");
-        }
-
-        $connection->update($this->tableName, $data, array(
+        $identifier = array(
             $this->repository->getUniqueId() => $dataItem->getId(),
-        ));
+        );
+        $this->updateValues($this->getTableName(), $data, $identifier);
         return $dataItem;
+    }
+
+    /**
+     * @param string $tableName
+     * @param mixed[] $data
+     * @param mixed[] $identifier
+     * @return int rows affected
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function updateValues($tableName, array $data, $identifier)
+    {
+        $connection = $this->getConnection();
+        if (empty($data)) {
+            throw new \Exception("Can't update row without data");
+        }
+        return $connection->update($tableName, $data, $identifier);
     }
 
     /**
