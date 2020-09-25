@@ -212,11 +212,9 @@ class FeatureType extends DataStore
         }
 
         if ($this->allowSave) {
-            // Insert if no ID given
             if (!$autoUpdate || !$feature->hasId()) {
                 $feature = $this->insert($feature);
-            } // Replace if has ID
-            else {
+            } else {
                 $feature = $this->update($feature);
             }
         }
@@ -320,8 +318,6 @@ class FeatureType extends DataStore
         foreach($data as $key => $value){
             $quotedData[$connection->quoteIdentifier($key)] = $value;
         }
-
-
 
         if ($this->allowUpdate) {
             $connection->update($tableName, $quotedData, array($this->getUniqueId() => $feature->getId()));

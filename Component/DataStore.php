@@ -312,18 +312,26 @@ class DataStore
      */
     public function save($item, $autoUpdate = true)
     {
+        if (!is_array($item) && !is_object($item)) {
+            throw new \Exception("Feature data given isn't compatible to save into the table: " . $this->getTableName());
+        }
+
+        $saveItem = $this->create($item);
+        $eventData = array(
+            // DataStore / FeatureType divergence quirk: FT enforces an array type for 'item', provides
+            //      extra 'feature' entry for Feature object; DT passes whatever comes in (going by
+            //      DataManager history, always a DataItem object)
+            'item' => &$item,   // may be an array or a DataItem :]
+        );
+
         $this->allowSave = true;
+
         if (isset($this->events[ self::EVENT_ON_BEFORE_SAVE ])) {
-            $this->secureEval($this->events[ self::EVENT_ON_BEFORE_SAVE ], array(
-                'item' => &$item
-            ));
+            $this->secureEval($this->events[self::EVENT_ON_BEFORE_SAVE], $eventData);
         }
         if ($this->allowSave) {
-            // Promote to DataItem from whatever we got
-            if (!is_array($item) && !is_object($item)) {
-                throw new \Exception("Feature data given isn't compatible to save into the table: " . $this->getTableName());
-            }
-            $saveItem = $this->create($item);
+            // DataStore / FeatureType divergence quirk: FT has own insert / update methods, executing
+            // additional events; DS goes directly to the driver
             $driver = $this->getDriver();
             if (!$autoUpdate || !$saveItem->hasId()) {
                 $result = $driver->insert($saveItem);
@@ -337,9 +345,7 @@ class DataStore
         }
 
         if (isset($this->events[ self::EVENT_ON_AFTER_SAVE ])) {
-            $this->secureEval($this->events[ self::EVENT_ON_AFTER_SAVE ], array(
-                'item' => &$item
-            ));
+            $this->secureEval($this->events[self::EVENT_ON_AFTER_SAVE], $eventData);
         }
         return $result;
     }
