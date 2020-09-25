@@ -338,20 +338,25 @@ class DataStore
         }
         if ($this->allowSave) {
             if (!$autoUpdate || !$saveItem->hasId()) {
-                $result = $this->insert($saveItem);
+                $saveItem = $this->insert($saveItem);
             } else {
-                $result = $this->update($saveItem);
+                $saveItem = $this->update($saveItem);
             }
-            // Reload with complete data
-            $result = $this->getById($result->getId());
-        } else {
-            $result = null;
         }
 
         if (isset($this->events[ self::EVENT_ON_AFTER_SAVE ])) {
             $this->secureEval($this->events[self::EVENT_ON_AFTER_SAVE], $eventData);
         }
-        return $result;
+        return $this->reloadItem($saveItem);
+    }
+
+    /**
+     * @param DataItem $item
+     * @return DataItem|null
+     */
+    protected function reloadItem($item)
+    {
+        return $this->getById($item->getId());
     }
 
     /**

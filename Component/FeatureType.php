@@ -233,11 +233,16 @@ class FeatureType extends DataStore
         if (isset($this->events[ static::EVENT_ON_AFTER_SAVE ])) {
             $this->secureEval($this->events[static::EVENT_ON_AFTER_SAVE], $eventData);
         }
+        return $this->reloadItem($feature);
+    }
 
-        // Get complete feature data
-        $result = $this->getById($feature->getId(), $feature->getSrid());
-
-        return $result;
+    /**
+     * @param Feature $feature
+     * @return Feature|null
+     */
+    protected function reloadItem($feature)
+    {
+        return $this->getById($feature->getId(), $feature->getSrid());
     }
 
     /**
