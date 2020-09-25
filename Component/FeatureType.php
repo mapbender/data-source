@@ -22,6 +22,8 @@ use Symfony\Component\HttpFoundation\Request;
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  * @copyright 2015 by WhereGroup GmbH & Co. KG
  * @link      https://github.com/mapbender/mapbender-digitizer
+ *
+ * @method Feature save
  */
 class FeatureType extends DataStore
 {
@@ -197,43 +199,6 @@ class FeatureType extends DataStore
             'item' => &$dataArg,
             'feature' => $feature,
         );
-    }
-
-    /**
-     * Save feature
-     *
-     * @param array|Feature|DataItem $featureData
-     * @param bool                   $autoUpdate update instead of insert if ID given
-     * @return DataItem|Feature
-     * @throws \Exception
-     */
-    public function save($featureData, $autoUpdate = true)
-    {
-        if (!is_array($featureData) && !is_object($featureData)) {
-            throw new \Exception("Feature data given isn't compatible to save into the table: " . $this->getTableName());
-        }
-
-        $feature = $this->create($featureData);
-
-        $eventData = $this->getSaveEventData($feature, $featureData);
-        $this->allowSave = true;
-
-        if (isset($this->events[ static::EVENT_ON_BEFORE_SAVE ])) {
-            $this->secureEval($this->events[static::EVENT_ON_BEFORE_SAVE], $eventData);
-        }
-
-        if ($this->allowSave) {
-            if (!$autoUpdate || !$feature->hasId()) {
-                $feature = $this->insert($feature);
-            } else {
-                $feature = $this->update($feature);
-            }
-        }
-
-        if (isset($this->events[ static::EVENT_ON_AFTER_SAVE ])) {
-            $this->secureEval($this->events[static::EVENT_ON_AFTER_SAVE], $eventData);
-        }
-        return $this->reloadItem($feature);
     }
 
     /**
