@@ -17,9 +17,6 @@
         "phpunit/phpunit": "^3.7",
         "symfony/framework-bundle" :"*"
     },
-    "config": {
-        "bin-dir": "bin"
-    },
     "autoload": {
         "psr-4": {
             "Mapbender\\DataSourceBundle\\": "."
