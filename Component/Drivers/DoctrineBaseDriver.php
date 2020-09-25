@@ -264,17 +264,24 @@ class DoctrineBaseDriver extends BaseDriver
     public function insert($item, $cleanData = true)
     {
         $item       = $this->repository->create($item);
-        $connection = $this->getConnection();
-
         if ($cleanData) {
             $data = $this->cleanData($item->toArray());
         } else {
             $data = $item->toArray();
         }
-
-        $connection->insert($this->tableName, $data);
-        $item->setId($connection->lastInsertId());
+        $id = $this->insertRaw($data);
+        $item->setId($id);
         return $item;
+    }
+
+    /**
+     * @param array $data
+     * @return int the last insert id
+     */
+    public function insertRaw(array $data)
+    {
+        $this->connection->insert($this->tableName, $data);
+        return $this->connection->lastInsertId();
     }
 
     /**

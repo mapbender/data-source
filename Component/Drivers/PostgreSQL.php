@@ -25,12 +25,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
      */
     public function insert($item, $cleanData = true)
     {
-        $connection = $this->connection;
-        $keys = array();
-        $values = array();
         $item = $this->repository->create($item);
-
-        $connection->connect();
 
         if ($cleanData) {
             $data = $this->cleanData($item->toArray());
@@ -38,10 +33,20 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
             $data = $item->toArray();
         }
 
+        $id = $this->insertRaw($data);
+        $item->setId($id);
+        return $item;
+    }
+
+    public function insertRaw(array $data)
+    {
+
+        $connection = $this->connection;
+        $keys = array();
+        $values = array();
         foreach ($data as $key => $value) {
             if ($value === null) {
                 continue;
-
             }
             $keys[] = $connection->quoteIdentifier($key);
             $values[] = $connection->quote($value);
@@ -53,9 +58,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
             . ' (' . implode(', ', $values) . ')'
             . ' RETURNING ' . $connection->quoteIdentifier($this->repository->getUniqueId());
 
-        $id = $connection->fetchColumn($sql);
-        $item->setId($id);
-        return $item;
+        return $connection->fetchColumn($sql);
     }
 
     /**
