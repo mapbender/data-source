@@ -56,9 +56,6 @@ class DataStoreServiceTest extends SymfonyTest
         $dataStoreList = $this->getParameter("dataStores");
         foreach ($dataStoreList as $name => $settings) {
             $dataStore = $service->get($name);
-            $driver    = $dataStore->getDriver();
-            $this->assertTrue($driver instanceof BaseDriver);
-            $this->assertTrue($driver instanceof Base);
 
             // Test search method
             foreach ($dataStore->search() as $dataItem) {
