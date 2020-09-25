@@ -313,10 +313,6 @@ class FeatureType extends DataStore
         if (isset($this->events[ static::EVENT_ON_BEFORE_UPDATE ])) {
             $this->secureEval($this->events[ static::EVENT_ON_BEFORE_UPDATE ], $event);
         }
-        if (empty($data)) {
-            throw new \Exception("Feature can't be updated without criteria");
-        }
-
         if ($this->allowUpdate) {
             $identifier = array(
                 $this->getUniqueId() => $feature->getId(),
