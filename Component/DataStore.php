@@ -312,7 +312,6 @@ class DataStore
      */
     public function save($item, $autoUpdate = true)
     {
-        $result = null;
         $this->allowSave = true;
         if (isset($this->events[ self::EVENT_ON_BEFORE_SAVE ])) {
             $this->secureEval($this->events[ self::EVENT_ON_BEFORE_SAVE ], array(
@@ -320,7 +319,21 @@ class DataStore
             ));
         }
         if ($this->allowSave) {
-            $result = $this->getDriver()->save($item, $autoUpdate);
+            // Promote to DataItem from whatever we got
+            if (!is_array($item) && !is_object($item)) {
+                throw new \Exception("Feature data given isn't compatible to save into the table: " . $this->getTableName());
+            }
+            $saveItem = $this->create($item);
+            $driver = $this->getDriver();
+            if (!$autoUpdate || !$saveItem->hasId()) {
+                $result = $driver->insert($saveItem);
+            } else {
+                $result = $driver->update($saveItem);
+            }
+            // Reload with complete data
+            $result = $this->getById($result->getId());
+        } else {
+            $result = null;
         }
 
         if (isset($this->events[ self::EVENT_ON_AFTER_SAVE ])) {

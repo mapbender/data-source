@@ -47,7 +47,9 @@ class DoctrineBaseDriver extends BaseDriver
     }
 
     /**
-     * Save the data
+     * Auto-inflect insert or update, depending on prepopulated id in the given $data
+     * @deprecated use method on DataStore / FeatureType ("repository")
+     * @todo 0.2: remove this method
      *
      * @param mixed $data
      * @param bool  $autoUpdate update instead of insert if ID given
@@ -56,23 +58,7 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function save($data, $autoUpdate = true)
     {
-        if (!is_array($data) && !is_object($data)) {
-            throw new \Exception("Data item given isn't compatible to save into the table: " . $this->getTableName());
-        }
-
-        $dataItem = $this->repository->create($data);
-
-        // Insert if no ID given
-        if (!$autoUpdate || !$dataItem->hasId()) {
-            $dataItem = $this->insert($dataItem);
-        } // Replace if has ID
-        else {
-            $dataItem = $this->update($dataItem);
-        }
-
-        // Get complete dataItem data
-        $result = $this->repository->getById($dataItem->getId());
-        return $result;
+        return $this->repository->save($data, $autoUpdate);
     }
 
     /**

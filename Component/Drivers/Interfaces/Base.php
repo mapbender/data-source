@@ -24,11 +24,13 @@ interface Base
     public function getById($id);
 
     /**
-     * Save the data
+     * Auto-inflect insert or update, depending on prepopulated id in the given $data
      *
      * @param DataItem $data
      * @param boolean  $autoUpdate Create if item doesn't exits
      * @return mixed
+     * @deprecated use method on DataStore / FeatureType ("repository")
+     * @todo 0.2: remove this method
      */
     public function save($data, $autoUpdate = true);
 
