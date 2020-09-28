@@ -281,7 +281,7 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function insertValues($tableName, array $data)
     {
-        $this->connection->insert($tableName, $data);
+        $this->connection->insert($tableName, $this->prepareParams($data));
         return $this->connection->lastInsertId();
     }
 
@@ -346,13 +346,8 @@ class DoctrineBaseDriver extends BaseDriver
         if (empty($data)) {
             throw new \Exception("Can't update row without data");
         }
-        // quote column names
-        $quotedData = array();
-        foreach ($data as $key => $value) {
-            $quotedData[$connection->quoteIdentifier($key)] = $value;
-        }
-        $connection->update($tableName, $quotedData, $identifier);
-        return $connection->update($tableName, $data, $identifier);
+
+        return $connection->update($tableName, $this->prepareParams($data), $identifier);
     }
 
     /**
@@ -388,6 +383,33 @@ class DoctrineBaseDriver extends BaseDriver
         $statement = $queryBuilder->execute();
         $rows      = $statement->fetchAll();
         return $this->prepareResults($rows);
+    }
+
+    /**
+     * Makes given plain column-name => value mapping safely insertable / updatetable.
+     *
+     * @param mixed[] $data
+     * @return mixed[]
+     */
+    protected function prepareParams($data)
+    {
+        $connection = $this->getConnection();
+        $prepared = array();
+        foreach ($data as $key => $value) {
+            $prepared[$connection->quoteIdentifier($key)] = $this->prepareParamValue($value);
+        }
+        return $prepared;
+    }
+
+    /**
+     * @param mixed $value
+     * @return mixed
+     * @todo: expression support
+     */
+    protected function prepareParamValue($value)
+    {
+        // Base driver: no transformation
+        return $value;
     }
 
     /**

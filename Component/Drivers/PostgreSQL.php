@@ -19,23 +19,27 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     public function insertValues($tableName, array $data)
     {
         $connection = $this->connection;
-        $keys = array();
-        $values = array();
-        foreach ($data as $key => $value) {
-            if ($value === null) {
-                continue;
-            }
-            $keys[] = $connection->quoteIdentifier($key);
-            $values[] = $connection->quote($value);
-        }
+        $params = $this->prepareParams($data);
+        $placeholders = array_fill(0, count($params), '?');
 
         $sql = 'INSERT INTO ' . $connection->quoteIdentifier($tableName)
-            . ' (' . implode(', ', $keys) . ')'
+            . ' (' . implode(', ', array_keys($params)) . ')'
             . ' VALUES '
-            . ' (' . implode(', ', $values) . ')'
+            . ' (' . implode(', ', $placeholders) . ')'
             . ' RETURNING ' . $connection->quoteIdentifier($this->repository->getUniqueId());
 
-        return $connection->fetchColumn($sql);
+        return $connection->fetchColumn($sql, array_values($params));
+    }
+
+    protected function prepareParamValue($value)
+    {
+        if (\is_bool($value)) {
+            // PostgreSQL PDO will accept a variety of string representations for boolean columns
+            // including 't' and 'f'
+            return $value ? 't' : 'f';
+        } else {
+            return parent::prepareParamValue($value);
+        }
     }
 
     /**
