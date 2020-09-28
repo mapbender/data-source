@@ -234,7 +234,6 @@ class DataStore
         $rows = $this->prepareResults($statement->fetchAll());
 
         if ($recursive) {
-            /** @var DataItem $dataItem */
             foreach ($rows as $dataItem) {
                 $dataItem->setChildren($this->getTree($dataItem->getId(), $recursive));
             }
