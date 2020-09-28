@@ -1,3 +1,12 @@
+## 0.1.17
+- Fix DataStore-only errors on updates with reserved words as column names (e.g. PostgreSQL "public")
+- Fix SELECT queries with reserved words as column names (e.g. PostgreSQL "public")
+- Fix UPDATEs and INSERTs writing values to type BOOLEAN columns on PostgreSQL
+- Fix inability to write NULL into nullable columns with non-null defaults on INSERT on PostgreSQL
+- Added misc BaseElement child class customization support methods
+  * `getDataStoreKeyInSchemaConfig`
+  * `getDataStoreKeyInFormItemConfig`
+
 ## 0.1.16.2
 - Fix Oracle bounding-box intersection query ([PR#14](https://github.com/mapbender/data-source/pull/14))
 - Fix DataStore empty item initialization
