@@ -264,6 +264,7 @@ class FeatureType extends DataStore
 
     protected function cleanDataOnSave()
     {
+        // avoid calling cleanData when inserting / updating; it would actually remove the geometry!
         return false;
     }
 

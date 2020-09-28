@@ -258,6 +258,8 @@ class DoctrineBaseDriver extends BaseDriver
      * @param array|DataItem $item
      * @param bool           $cleanData
      * @return DataItem
+     *
+     * @deprecated Driver does not care about DataItem objects, use updateValues with an array
      */
     public function insert($item, $cleanData = true)
     {
@@ -317,6 +319,7 @@ class DoctrineBaseDriver extends BaseDriver
      * @param array|DataItem $dataItem
      * @return DataItem
      * @throws \Exception
+     * @deprecated Driver does not care about DataItem objects, use updateValues with an array
      */
     public function update($dataItem)
     {

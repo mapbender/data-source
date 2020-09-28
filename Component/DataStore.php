@@ -376,7 +376,11 @@ class DataStore
      */
     protected function insertItem(DataItem $item)
     {
-        $id = $this->getDriver()->insert($item, $this->cleanDataOnSave())->getId();
+        $values = $item->toArray();
+        if ($this->cleanDataOnSave()) {
+            $values = $this->getDriver()->cleanData($values);
+        }
+        $id = $this->getDriver()->insertValues($this->getTableName(), $values);
         $item->setId($id);
         return $item;
     }
