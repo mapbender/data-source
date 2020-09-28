@@ -197,10 +197,20 @@ class FeatureType extends DataStore
      */
     protected function getSaveEventData(DataItem $feature, &$dataArg)
     {
+        // legacy quirk originData:
+        // 1) for inserts (no id), provide a blank, empty, Feature object (like ->get(array()))
+        // 2) for updates, reload the original item (incoming feature already carries new data!)
+        if ($feature->getId()) {
+            /** @var Feature $feature */
+            $originData = $this->reloadItem($feature);
+        } else {
+            $originData = $this->itemFactory();
+        }
         /** @var Feature $feature */
         return array(
             'item' => &$dataArg,
             'feature' => $feature,
+            'originData' => $originData,
         );
     }
 
@@ -240,14 +250,16 @@ class FeatureType extends DataStore
     {
         /** @var Feature $feature */
         $data = $this->getSaveData($feature);
-        $event                         = array(
-            'item'    => &$data,
-            'feature' => $feature
-        );
+        if (isset($this->events[self::EVENT_ON_BEFORE_INSERT]) || isset($this->events[self::EVENT_ON_AFTER_INSERT])) {
+            $eventData = $this->getSaveEventData($feature, $data);
+        } else {
+            $eventData = null;
+        }
+
         $this->allowInsert             = true;
 
-        if (isset($this->events[ self::EVENT_ON_BEFORE_INSERT ])) {
-            $this->secureEval($this->events[ self::EVENT_ON_BEFORE_INSERT ], $event);
+        if (isset($this->events[self::EVENT_ON_BEFORE_INSERT])) {
+            $this->secureEval($this->events[self::EVENT_ON_BEFORE_INSERT], $eventData);
         }
 
         if ($this->allowInsert) {
@@ -257,7 +269,7 @@ class FeatureType extends DataStore
         }
 
         if (isset($this->events[ self::EVENT_ON_AFTER_INSERT ])) {
-            $this->secureEval($this->events[ self::EVENT_ON_AFTER_INSERT ], $event);
+            $this->secureEval($this->events[ self::EVENT_ON_AFTER_INSERT ], $eventData);
         }
         return $feature;
     }
@@ -300,14 +312,15 @@ class FeatureType extends DataStore
         /** @var Feature $feature */
         $data = $this->getSaveData($feature);
 
-        $event             = array(
-            'item'    => &$data,
-            'feature' => $feature
-        );
         $this->allowUpdate = true;
+        if (isset($this->events[self::EVENT_ON_BEFORE_UPDATE]) || isset($this->events[self::EVENT_ON_AFTER_UPDATE])) {
+            $eventData = $this->getSaveEventData($feature, $data);
+        } else {
+            $eventData = null;
+        }
 
-        if (isset($this->events[ static::EVENT_ON_BEFORE_UPDATE ])) {
-            $this->secureEval($this->events[ static::EVENT_ON_BEFORE_UPDATE ], $event);
+        if (isset($this->events[static::EVENT_ON_BEFORE_UPDATE])) {
+            $this->secureEval($this->events[static::EVENT_ON_BEFORE_UPDATE], $eventData);
         }
         if ($this->allowUpdate) {
             $identifier = array(
@@ -316,8 +329,8 @@ class FeatureType extends DataStore
             $this->getDriver()->updateValues($this->getTableName(), $data, $identifier);
         }
 
-        if (isset($this->events[ self::EVENT_ON_AFTER_UPDATE ])) {
-            $this->secureEval($this->events[ self::EVENT_ON_AFTER_UPDATE ], $event);
+        if (isset($this->events[self::EVENT_ON_AFTER_UPDATE])) {
+            $this->secureEval($this->events[self::EVENT_ON_AFTER_UPDATE], $eventData);
         }
         return $feature;
     }

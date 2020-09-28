@@ -308,8 +308,18 @@ class DataStore
      */
     protected function getSaveEventData(DataItem $item, &$dataArg)
     {
+        // legacy quirk originData:
+        // 1) for inserts (no id), provide a blank, empty, DataItem object (like ->get(array()))
+        // 2) for updates, reload the original item (incoming item already carries new data!)
+        if ($item->getId()) {
+            $originData = $this->reloadItem($item);
+        } else {
+            $originData = $this->itemFactory();
+        }
+
         return array(
             'item' => &$dataArg,
+            'originData' => $originData,
         );
     }
 
@@ -328,11 +338,15 @@ class DataStore
         }
 
         $saveItem = $this->create($item);
+        if (isset($this->events[self::EVENT_ON_BEFORE_SAVE]) || isset($this->events[self::EVENT_ON_AFTER_SAVE])) {
+            $eventData = $this->getSaveEventData($saveItem, $item);
+        } else {
+            $eventData = null;
+        }
 
-        $eventData = $this->getSaveEventData($saveItem, $item);
         $this->allowSave = true;
 
-        if (isset($this->events[ self::EVENT_ON_BEFORE_SAVE ])) {
+        if (isset($this->events[self::EVENT_ON_BEFORE_SAVE])) {
             $this->secureEval($this->events[self::EVENT_ON_BEFORE_SAVE], $eventData);
         }
         if ($this->allowSave) {
@@ -426,23 +440,27 @@ class DataStore
      */
     public function remove($args)
     {
+        if (isset($this->events[self::EVENT_ON_BEFORE_REMOVE]) || isset($this->events[self::EVENT_ON_AFTER_REMOVE])) {
+            // uh-oh
+            $item = $this->getById($this->anythingToId($args));
+            $eventData = array(
+                'args' => &$args,
+                'method' => 'remove',
+                'originData' => $item,
+            );
+        } else {
+            $eventData = null;
+        }
         $result = null;
         $this->allowRemove = true;
         if (isset($this->events[ self::EVENT_ON_BEFORE_REMOVE ])) {
-
-            $this->secureEval($this->events[ self::EVENT_ON_BEFORE_REMOVE ], array(
-                'args'   => &$args,
-                'method' => 'remove'
-            ));
+            $this->secureEval($this->events[self::EVENT_ON_BEFORE_REMOVE], $eventData);
         }
         if ($this->allowRemove) {
             $result = $this->getDriver()->remove($args);
         }
-        if (isset($this->events[ self::EVENT_ON_AFTER_REMOVE ])) {
-            $this->secureEval($this->events[ self::EVENT_ON_AFTER_REMOVE ], array(
-                'args' => &$args
-
-            ));
+        if (isset($this->events[self::EVENT_ON_AFTER_REMOVE])) {
+            $this->secureEval($this->events[self::EVENT_ON_AFTER_REMOVE], $eventData);
         }
         return $result;
     }
@@ -719,12 +737,6 @@ class DataStore
         foreach ($args as $key => &$value) {
             ${$key} = &$value;
         }
-        if (isset($item)) {
-            $originData = $this->get($item);
-        }
-        if (isset($args)) {
-            $originData = $this->get($args);
-        }
 
         $return = eval($code);
 
@@ -880,5 +892,33 @@ class DataStore
         /** @var Connection $connection */
         $connection = $registry->getConnection($name);
         return $connection;
+    }
+
+    /**
+     * Attempts to extract an id from whatever $arg is
+     * Completely equivalent to DataStore::create($arg)->getId()
+     *
+     * @param mixed $arg
+     * @return integer|null
+     */
+    private function anythingToId($arg)
+    {
+        if (\is_numeric($arg)) {
+            return $arg;
+        } elseif (\is_object($arg)) {
+            if ($arg instanceof DataItem) {
+                return $arg->getId();
+            } else {
+                // self-delegate to array path
+                return $this->anythingToId(\get_object_vars($arg));
+            }
+        } elseif (\is_array($arg)) {
+            $uniqueId = $this->getUniqueId();
+            if (!empty($arg[$uniqueId])) {
+                return $arg[$uniqueId];
+            }
+        }
+        // uh-oh!
+        return null;
     }
 }
