@@ -399,7 +399,7 @@ class DoctrineBaseDriver extends BaseDriver
 
         $statement = $queryBuilder->execute();
         $rows      = $statement->fetchAll();
-        return $this->prepareResults($rows);
+        return $this->repository->prepareResults($rows);
     }
 
     /**
@@ -440,8 +440,8 @@ class DoctrineBaseDriver extends BaseDriver
     }
 
     /**
-     * Attempts to extract an id from whatever $arg is
-     * Completely equivalent to DataStore::create($arg)->getId()
+     * Attempts to extract an identifier array from whatever $arg is
+     * Extracted id equivalent to DataStore::create($arg)->getId()
      *
      * @param mixed $arg
      * @return mixed[]

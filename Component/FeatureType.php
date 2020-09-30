@@ -23,10 +23,10 @@ use Symfony\Component\HttpFoundation\Request;
  * @copyright 2015 by WhereGroup GmbH & Co. KG
  * @link      https://github.com/mapbender/mapbender-digitizer
  *
- * @method Feature save
- * @method Feature update
- * @method Feature insert
- * @method Feature get
+ * @method Feature save(Feature $feature, bool $autoUpdate = true)
+ * @method Feature update($itemOrData)
+ * @method Feature insert($itemOrData)
+ * @method Feature get($args)
  */
 class FeatureType extends DataStore
 {
