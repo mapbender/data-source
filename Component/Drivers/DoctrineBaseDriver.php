@@ -12,8 +12,6 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
  */
 class DoctrineBaseDriver extends BaseDriver
 {
-    const MAX_RESULTS = 100;
-
     /** @var Connection */
     public $connection;
 

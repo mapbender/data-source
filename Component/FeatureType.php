@@ -45,11 +45,6 @@ class FeatureType extends DataStore
     const EVENT_ON_AFTER_INSERT  = 'onAfterInsert';
 
     /**
-     *  Default max results by search
-     */
-    const MAX_RESULTS = 5000;
-
-    /**
      * @var string Geometry field name
      */
     protected $geomField = 'geom';
@@ -344,15 +339,15 @@ class FeatureType extends DataStore
      */
     public function search(array $criteria = array())
     {
-        // @todo: support unlimited selects
-        $maxResults      = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : self::MAX_RESULTS;
         $returnType      = isset($criteria['returnType']) ? $criteria['returnType'] : null;
         $srid            = isset($criteria['srid']) ? $criteria['srid'] : $this->getSrid();
         $queryBuilder    = $this->getSelectQueryBuilder($srid);
 
         $this->addCustomSearchCritera($queryBuilder, $criteria);
 
-        $queryBuilder->setMaxResults($maxResults);
+        if (!empty($criteria['maxResults'])) {
+            $queryBuilder->setMaxResults(intval($criteria['maxResults']));
+        }
 
         $statement  = $queryBuilder->execute();
         $rows = $statement->fetchAll();

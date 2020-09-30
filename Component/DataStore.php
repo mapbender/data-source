@@ -484,9 +484,10 @@ class DataStore
 
         $this->addCustomSearchCritera($queryBuilder, $criteria);
 
-        // @todo: support unlimited selects
-        $maxResults = isset($criteria['maxResults']) ? intval($criteria['maxResults']) : DoctrineBaseDriver::MAX_RESULTS;
-        $queryBuilder->setMaxResults($maxResults);
+        if (!empty($criteria['maxResults'])) {
+            $queryBuilder->setMaxResults(intval($criteria['maxResults']));
+        }
+
         $statement  = $queryBuilder->execute();
         $results = $this->prepareResults($statement->fetchAll());
 
