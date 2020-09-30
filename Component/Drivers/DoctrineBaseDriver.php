@@ -350,19 +350,36 @@ class DoctrineBaseDriver extends BaseDriver
         return $connection->update($tableName, $this->prepareParams($data), $identifier);
     }
 
+
+
     /**
      * Remove data item
      *
      * @param DataItem|array|int $arg
-     * @return integer
+     * @return bool
+     * @deprecated Driver does not care about DataItems, use delete (same API semantics as DBAL Connection)
+     * @todo 0.2: remove this method
      */
     public function remove($arg)
     {
-        $id = $this->anythingToId($arg);
+        $identifier = $this->anythingToIdentifier($arg);
         // @todo: empty id should be an error
-        return $this->getConnection()->delete($this->getTableName(), array(
-            $this->repository->getUniqueId() => $id,
-        )) > 0;
+        return $this->getConnection()->delete($this->getTableName(), $identifier) > 0;
+    }
+
+    /**
+     * Delete rows
+     * @see \Doctrine\DBAL\Connection::delete
+     *
+     * @param string $tableName
+     * @param mixed[] $identifier
+     * @return int number of affected rows
+     * @throws \Doctrine\DBAL\DBALException
+     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
+     */
+    public function delete($tableName, array $identifier)
+    {
+        return $this->getConnection()->delete($tableName, $identifier);
     }
 
     /**
@@ -427,23 +444,23 @@ class DoctrineBaseDriver extends BaseDriver
      * Completely equivalent to DataStore::create($arg)->getId()
      *
      * @param mixed $arg
-     * @return integer|null
+     * @return mixed[]
      */
-    private function anythingToId($arg)
+    private function anythingToIdentifier($arg)
     {
+        $uniqueId = $this->repository->getUniqueId();
         if (\is_numeric($arg)) {
-            return $arg;
+            return array($uniqueId => $arg);
         } elseif (\is_object($arg)) {
             if ($arg instanceof DataItem) {
-                return $arg->getId();
+                return array($uniqueId => $arg->getId());
             } else {
                 // self-delegate to array path
-                return $this->anythingToId(\get_object_vars($arg));
+                return $this->anythingToIdentifier(\get_object_vars($arg));
             }
         } elseif (\is_array($arg)) {
-            $uniqueId = $this->repository->getUniqueId();
             if (!empty($arg[$uniqueId])) {
-                return $arg[$uniqueId];
+                return array($uniqueId => $arg[$uniqueId]);
             }
         }
         // uh-oh!

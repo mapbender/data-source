@@ -440,9 +440,10 @@ class DataStore
      */
     public function remove($args)
     {
+        $itemId = $this->anythingToId($args);
         if (isset($this->events[self::EVENT_ON_BEFORE_REMOVE]) || isset($this->events[self::EVENT_ON_AFTER_REMOVE])) {
             // uh-oh
-            $item = $this->getById($this->anythingToId($args));
+            $item = $this->getById($itemId);
             $eventData = array(
                 'args' => &$args,
                 'method' => 'remove',
@@ -457,7 +458,7 @@ class DataStore
             $this->secureEval($this->events[self::EVENT_ON_BEFORE_REMOVE], $eventData);
         }
         if ($this->allowRemove) {
-            $result = $this->getDriver()->remove($args);
+            $result = !!$this->getDriver()->delete($this->getTableName(), $this->idToIdentifier($itemId));
         }
         if (isset($this->events[self::EVENT_ON_AFTER_REMOVE])) {
             $this->secureEval($this->events[self::EVENT_ON_AFTER_REMOVE], $eventData);
@@ -892,6 +893,16 @@ class DataStore
         /** @var Connection $connection */
         $connection = $registry->getConnection($name);
         return $connection;
+    }
+
+    /**
+     * @param mixed $id
+     * @return array
+     */
+    private function idToIdentifier($id)
+    {
+        $uniqueId = $this->getUniqueId();
+        return array($uniqueId => $id);
     }
 
     /**
