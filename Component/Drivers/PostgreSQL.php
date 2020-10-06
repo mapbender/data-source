@@ -305,7 +305,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
         $wkt = $db->quote($wkt);
         $srid = is_numeric($srid) ? intval($srid) : $db->quote($srid);
         $sridTo = is_numeric($sridTo) ? intval($sridTo) : $db->quote($sridTo);
-        return "(ST_ISVALID($geomFieldName) AND ST_INTERSECTS(ST_TRANSFORM(ST_GEOMFROMTEXT($wkt,$srid),$sridTo), $geomFieldName ))";
+        return "(ST_TRANSFORM(ST_GEOMFROMTEXT($wkt,$srid),$sridTo) && ST_MakeValid($geomFieldName))";
     }
 
     /**
