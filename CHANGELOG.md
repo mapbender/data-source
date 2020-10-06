@@ -3,6 +3,9 @@
 - Fix SELECT queries with reserved words as column names (e.g. PostgreSQL "public")
 - Fix UPDATEs and INSERTs writing values to type BOOLEAN columns on PostgreSQL
 - Fix inability to write NULL into nullable columns with non-null defaults on INSERT on PostgreSQL
+- Fix PHP7.0 method signature error ([PR#15](https://github.com/mapbender/data-source/pull/15/files))
+- Fix Postgis intersection condition not matching self-intersecting geometries
+- Fix row loading limit
 - Added misc BaseElement child class customization support methods
   * `getDataStoreKeyInSchemaConfig`
   * `getDataStoreKeyInFormItemConfig`
