@@ -268,6 +268,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
      * @internal param $wkt
      * @todo: null srid makes no sense, should throw an error
      * @todo: if an ewkt goes in, an ewkt should come out; native format is pretty useless outside of insert / update usage
+     * @todo: never produce dummy geometries; dummy geometries only produce collateral errors
      */
     public function transformEwkt($ewkt, $srid = null)
     {
