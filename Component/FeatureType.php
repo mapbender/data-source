@@ -137,12 +137,19 @@ class FeatureType extends DataStore
     {
         $driver = parent::driverFactory($args);
         // filter geometry field from select fields, unless explicitly configured
-        $geomField = $this->geomField;
+        $geomField = $this->getGeomField();
         if (empty($args['fields']) || !in_array($geomField, $args['fields'])) {
             $filteredFields = array_filter($driver->getFields(), function($fieldName) use ($geomField) {
                 return $fieldName != $geomField;
             });
             $driver->setFields($filteredFields);
+        }
+        if ($driver instanceof Geographic) {
+            // Reset and ignore srid from featureType configuration if driver can auto-detect field CRS
+            $driverSrid = $driver->findGeometryFieldSrid($driver->getTableName(), $this->getGeomField());
+            if ($driverSrid) {
+                $this->srid = $driverSrid;
+            }
         }
         return $driver;
     }
