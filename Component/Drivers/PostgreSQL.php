@@ -326,14 +326,17 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     public function findGeometryFieldSrid($tableName, $geomFieldName)
     {
         $connection = $this->getConnection();
-        $schemaName = "current_schema()";
-        if (strpos($tableName, ".")) {
-            list($schemaName, $tableName) = explode('.', $tableName);
-            $schemaName = $connection->quote($schemaName);
+        $sql = 'SELECT srid FROM "public"."geometry_columns" WHERE "f_geometry_column" = ? AND "f_table_name" = ?';
+        $params[] = $geomFieldName;
+        if (false !== strpos($tableName, ".")) {
+            $tableNameParts = explode('.', $tableName, 2);
+            $params[] = $tableNameParts[1];
+            $params[] = $tableNameParts[0];
+            $sql .= ' AND "f_table_schema" = ?';
+        } else {
+            $params[] = $tableName;
+            $sql .= ' AND "f_table_schema" = current_schema()';
         }
-
-        return $connection->fetchColumn("SELECT Find_SRID(" . $schemaName . ", 
-            " . $connection->quote($tableName) . ", 
-            " . $connection->quote($geomFieldName) . ")");
+        return $connection->fetchColumn($sql, $params);
     }
 }
