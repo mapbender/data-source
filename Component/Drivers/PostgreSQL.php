@@ -307,6 +307,23 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
         }
     }
 
+    public function getReadEwktSql($data)
+    {
+        return "ST_MakeValid(ST_GeomFromEWKT({$data}))";
+    }
+
+    public function getTransformSql($data, $sridTo)
+    {
+        if (!$sridTo || !\is_numeric($sridTo)) {
+            throw new \InvalidArgumentException("Invalid sridTo " . print_r($sridTo, true));
+        }
+        return "ST_MakeValid(ST_Transform({$data}, " . intval($sridTo) . '))';
+    }
+
+    public function getDumpWktSql($data)
+    {
+        return "ST_AsText({$data})";
+    }
 
     /**
      * @inheritdoc

@@ -90,12 +90,28 @@ class Oracle extends DoctrineBaseDriver implements Geographic
      */
     public function transformEwkt($ewkt, $srid = null)
     {
-        // @todo: use param binding for injection safety
-        return $this->getConnection()->fetchColumn(
-            "SELECT 
-              SDO_CS.TRANSFORM(
-                SDO_UTIL.TO_WKBGEOMETRY('$ewkt'), 
-              $srid)");
+        $connection = $this->getConnection();
+        $loadSql = $this->getReadEwktSql($connection->quote($ewkt));
+        $transformSql = $this->getTransformSql($loadSql, $srid);
+        return $connection->fetchColumn("SELECT {$transformSql}");
+    }
+
+    public function getReadEwktSql($data)
+    {
+        return "SDO_UTIL.TO_WKBGEOMETRY({$data})";
+    }
+
+    public function getTransformSql($data, $sridTo)
+    {
+        if (!$sridTo || !\is_numeric($sridTo)) {
+            throw new \InvalidArgumentException("Invalid sridTo " . print_r($sridTo, true));
+        }
+        return "SDO_CS.TRANSFORM({$data}, " . intval($sridTo) . ')';
+    }
+
+    public function getDumpWktSql($data)
+    {
+        return "SDO_UTIL.TO_WKTGEOMETRY({$data})";
     }
 
     /**

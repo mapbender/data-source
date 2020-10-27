@@ -43,6 +43,31 @@ interface Geographic
     public function transformEwkt($ewkt, $srid = null);
 
     /**
+     * Returns an sql expression string reprojecting $data to $sridTo
+     *
+     * @param string $data column reference (should be passed pre-quoted) or sql expression
+     * @param integer $sridTo
+     * @return string
+     */
+    public function getTransformSql($data, $sridTo);
+
+    /**
+     * Returns an sql expression string constructing a database-native geometry object from $ewkt
+     *
+     * @param string $ewkt
+     * @return string
+     */
+    public function getReadEwktSql($ewkt);
+
+    /**
+     * Returns an sql expression converting native geometry object $data to its WKT representation
+     *
+     * @param string $data column reference (should be passed pre-quoted) or sql expression
+     * @return string
+     */
+    public function getDumpWktSql($data);
+
+    /**
      * Get intersect SQL condition
      *
      * @param string $wkt           WKT
