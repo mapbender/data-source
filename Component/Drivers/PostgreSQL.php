@@ -288,23 +288,18 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
         $type = $this->getTableGeomType($this->getTableName());
         $wktType = static::getWktType($ewkt);
 
-        if (strpos(strtoupper($ewkt), 'NAN') !== false) {
-            return $db->fetchColumn("SELECT ST_TRANSFORM(ST_GEOMFROMTEXT('SRID=4326;POINT EMPTY' ), " . $srid . ")");
-            // Return null geometry in case of NaN $ewkt
-        } else {
-            if ($type
-                && $wktType != $type
-                && in_array(strtoupper($wktType), Feature::$simpleGeometries)
-                && in_array(strtoupper($type), Feature::$complexGeometries)
-            ) {
-                $ewkt = 'SRID=' . $srid . ';' . $db->fetchColumn("SELECT ST_ASTEXT(ST_TRANSFORM(ST_MULTI(" . $db->quote($ewkt) . "),$srid))");
-            }
-
-            $srid = is_numeric($srid) ? intval($srid) : $db->quote($srid);
-            $ewkt = $db->quote($ewkt);
-
-            return $db->fetchColumn("SELECT ST_TRANSFORM(ST_GEOMFROMTEXT($ewkt), $srid)");
+        if ($type
+            && $wktType != $type
+            && in_array(strtoupper($wktType), Feature::$simpleGeometries)
+            && in_array(strtoupper($type), Feature::$complexGeometries)
+        ) {
+            $ewkt = 'SRID=' . $srid . ';' . $db->fetchColumn("SELECT ST_ASTEXT(ST_TRANSFORM(ST_MULTI(" . $db->quote($ewkt) . "),$srid))");
         }
+
+        $srid = is_numeric($srid) ? intval($srid) : $db->quote($srid);
+        $ewkt = $db->quote($ewkt);
+
+        return $db->fetchColumn("SELECT ST_TRANSFORM(ST_GEOMFROMTEXT($ewkt), $srid)");
     }
 
     public function getReadEwktSql($data)
