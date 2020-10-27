@@ -324,6 +324,19 @@ class DataStore
     }
 
     /**
+     * @param DataItem $item
+     * @return mixed[]
+     */
+    protected function getSaveData(DataItem $item)
+    {
+        $data = $item->toArray();
+        if ($this->cleanDataOnSave()) {
+            $data = $this->getDriver()->cleanData($data);
+        }
+        return $data;
+    }
+
+    /**
      * Save data item
      *
      * @param DataItem|array $item Data item
@@ -389,10 +402,7 @@ class DataStore
      */
     protected function insertItem(DataItem $item)
     {
-        $values = $item->toArray();
-        if ($this->cleanDataOnSave()) {
-            $values = $this->getDriver()->cleanData($values);
-        }
+        $values = $this->getSaveData($item);
         $id = $this->getDriver()->insertValues($this->getTableName(), $values);
         $item->setId($id);
         return $item;
@@ -417,10 +427,7 @@ class DataStore
      */
     public function updateItem(DataItem $item)
     {
-        $data = $item->toArray();
-        if ($this->cleanDataOnSave()) {
-            $data = $this->getDriver()->cleanData($data);
-        }
+        $data = $this->getSaveData($item);
         $identifier = array(
             $this->getUniqueId() => $item->getId(),
         );

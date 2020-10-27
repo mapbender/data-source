@@ -228,17 +228,24 @@ class FeatureType extends DataStore
     /**
      * Extracts persistable values (insert / update) from Feature
      * Implicitly transforms the geometry to a compatible CRS.
-     * @todo: do this with an SQL expression inside the insert / update query, instead of a separate SELECT
-     * @todo: make geometry valid on insert / update
      *
-     * @param Feature $feature
+     * @param DataItem $feature
      * @return mixed[]
      */
-    protected function getSaveData(Feature $feature)
+    protected function getSaveData(DataItem $feature)
     {
+        /** @var Feature $feature */
         $data = $feature->toArray();
+        $ewkt = $feature->getEwkt();
         $geomField = $this->getGeomField();
-        $data[$geomField] = $this->transformEwkt($data[$geomField], $this->getSrid());
+        if ($ewkt) {
+            $driver = $this->getDriver();
+            $connection = $driver->getConnection();
+            $geomSql = $driver->getTransformSql($driver->getReadEwktSql($connection->quote($ewkt)), $this->getSrid());
+            $data[$geomField] = new Expression($geomSql);
+        } else {
+            $data[$geomField] = null;
+        }
         return $data;
     }
 
