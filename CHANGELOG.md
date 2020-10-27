@@ -1,3 +1,10 @@
+## 0.1.18
+- Fix reprojection errors on insert
+- Fix Postgis column srid detection
+- Fix intersection query errors with small intersect geometries on degree-based CRS
+- Prefer database-detected column srid over (error prone) `srid` value from feature type configuration
+- Run all insert / update geometries through `ST_MakeValid` on Postgis to avoid collateral intersection query errors
+
 ## 0.1.17
 - Fix DataStore-only errors on updates with reserved words as column names (e.g. PostgreSQL "public")
 - Fix SELECT queries with reserved words as column names (e.g. PostgreSQL "public")
