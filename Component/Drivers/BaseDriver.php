@@ -113,19 +113,4 @@ abstract class BaseDriver implements Base
         }
         return substr($wkt, 0, strpos($wkt, '('));
     }
-
-    /**
-     *
-     * Round geometry up to $round parameter.
-     *
-     * Default: geometry round = 0.2
-     *
-     * @param string $geometry WKT
-     * @param int    $round    Default=2
-     * @return string WKT
-     */
-    public static function roundGeometry($geometry, $round = 2)
-    {
-        return preg_replace("/(\\d+)\\.(\\d{$round})\\d+/", '$1.$2', $geometry);
-    }
 }

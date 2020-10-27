@@ -384,13 +384,13 @@ class FeatureType extends DataStore
         parent::addCustomSearchCritera($queryBuilder, $params);
         // add bounding geometry condition
         if (!empty($params['intersect'])) {
-            $geometry = BaseDriver::roundGeometry($params['intersect'], 2);
+            $clipWkt = $params['intersect'];
             if (!empty($params['srid'])) {
-                $sridFrom = $params['srid'];
+                $clipSrid = $params['srid'];
             } else {
-                $sridFrom = $this->getSrid();
+                $clipSrid = $this->getSrid();
             }
-            $queryBuilder->andWhere($this->getDriver()->getIntersectCondition($geometry, $this->geomField, $sridFrom, $this->getSrid()));
+            $queryBuilder->andWhere($this->getDriver()->getIntersectCondition($clipWkt, $this->geomField, $clipSrid, $this->getSrid()));
         }
         // Add condition for maximum distance to given wkt 'source'
         // @todo: specify and document
