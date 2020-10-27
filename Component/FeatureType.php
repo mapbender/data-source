@@ -239,9 +239,16 @@ class FeatureType extends DataStore
         $ewkt = $feature->getEwkt();
         $geomField = $this->getGeomField();
         if ($ewkt) {
+            $tableSrid = $this->getSrid();
+            // HACK: replace invalid client-supplied geometries with empty dummy WKTs
+            // @see https://repo.wheregroup.com/bev/tickets---extern/issues/36 (internal)
+            if (strpos(strtoupper($ewkt), 'NAN') !== false) {
+                @trigger_error("WARNING: replacing invalid geometry with empty point. This will be an error in a future version (supplied EWKT: {$ewkt})", E_USER_DEPRECATED);
+                $ewkt = "SRID={$tableSrid};POINT EMPTY";
+            }
             $driver = $this->getDriver();
             $connection = $driver->getConnection();
-            $geomSql = $driver->getTransformSql($driver->getReadEwktSql($connection->quote($ewkt)), $this->getSrid());
+            $geomSql = $driver->getTransformSql($driver->getReadEwktSql($connection->quote($ewkt)), $tableSrid);
             if ($this->checkPromoteToCollection($ewkt)) {
                 $geomSql = $driver->getPromoteToCollectionSql($geomSql);
             }
