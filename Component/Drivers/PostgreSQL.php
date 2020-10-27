@@ -6,7 +6,6 @@ use Doctrine\DBAL\Connection;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Manageble;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Routable;
-use Mapbender\DataSourceBundle\Component\Expression;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
 
@@ -17,30 +16,12 @@ use Mapbender\DataSourceBundle\Entity\Feature;
 class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geographic
 {
 
-    public function insertValues($tableName, array $data)
+    protected function getInsertSql($tableName, $columns, $values)
     {
-        $connection = $this->connection;
-        $columns = array();
-        $sqlValues = array();
-        $params = array();
-        foreach ($data as $columnName => $value) {
-            if ($value instanceof Expression) {
-                $sqlValues[] = $value->getText();
-            } else {
-                // add placeholder and param binding
-                $sqlValues[] = '?';
-                $params[] = $this->prepareParamValue($value);
-            }
-            $columns[] = $connection->quoteIdentifier($columnName);
-        }
-
-        $sql = 'INSERT INTO ' . $connection->quoteIdentifier($tableName)
-            . ' (' . implode(', ', $columns) . ')'
-            . ' VALUES '
-            . ' (' . implode(', ', $sqlValues) . ')'
-            . ' RETURNING ' . $connection->quoteIdentifier($this->repository->getUniqueId());
-
-        return $connection->fetchColumn($sql, array_values($params));
+        $idName = $this->repository->getUniqueId();
+        return parent::getInsertSql($tableName, $columns, $values)
+            . ' RETURNING ' . $this->getConnection()->quoteIdentifier($idName)
+        ;
     }
 
     protected function prepareParamValue($value)

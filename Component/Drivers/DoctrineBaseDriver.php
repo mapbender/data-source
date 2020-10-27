@@ -280,6 +280,20 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function insertValues($tableName, array $data)
     {
+        $pData = $this->prepareInsertData($data);
+
+        $sql = $this->getInsertSql($tableName, $pData[0], $pData[1]);
+        $connection = $this->getConnection();
+        $connection->executeQuery($sql, $pData[2]);
+        return $connection->lastInsertId();
+    }
+
+    /**
+     * @param mixed[] $data
+     * @return array numeric with 3 entries: first: quoted column names; second: sql value expressions; third: query parameters
+     */
+    protected function prepareInsertData(array $data)
+    {
         $connection = $this->connection;
         $columns = array();
         $sqlValues = array();
@@ -294,15 +308,21 @@ class DoctrineBaseDriver extends BaseDriver
             }
             $columns[] = $connection->quoteIdentifier($columnName);
         }
+        return array(
+            $columns,
+            $sqlValues,
+            $params,
+        );
+    }
 
-        $sql =
-            'INSERT INTO ' . $connection->quoteIdentifier($tableName)
+    protected function getInsertSql($tableName, $columns, $values)
+    {
+        return
+            'INSERT INTO ' . $this->getConnection()->quoteIdentifier($tableName)
             . ' (' . implode(', ', $columns) . ')'
             . ' VALUES '
-            . ' (' . implode(', ', $sqlValues) . ')'
+            . ' (' . implode(', ', $values) . ')'
         ;
-        $connection->executeQuery($sql, $params);
-        return $connection->lastInsertId();
     }
 
     /**
