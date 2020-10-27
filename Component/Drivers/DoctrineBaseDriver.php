@@ -4,6 +4,7 @@ namespace Mapbender\DataSourceBundle\Component\Drivers;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Mapbender\DataSourceBundle\Component\DataStore;
+use Mapbender\DataSourceBundle\Component\Expression;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
@@ -279,8 +280,29 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function insertValues($tableName, array $data)
     {
-        $this->connection->insert($tableName, $this->prepareParams($data));
-        return $this->connection->lastInsertId();
+        $connection = $this->connection;
+        $columns = array();
+        $sqlValues = array();
+        $params = array();
+        foreach ($data as $columnName => $value) {
+            if ($value instanceof Expression) {
+                $sqlValues[] = $value->getText();
+            } else {
+                // add placeholder and param binding
+                $sqlValues[] = '?';
+                $params[] = $this->prepareParamValue($value);
+            }
+            $columns[] = $connection->quoteIdentifier($columnName);
+        }
+
+        $sql =
+            'INSERT INTO ' . $connection->quoteIdentifier($tableName)
+            . ' (' . implode(', ', $columns) . ')'
+            . ' VALUES '
+            . ' (' . implode(', ', $sqlValues) . ')'
+        ;
+        $connection->executeQuery($sql, $params);
+        return $connection->lastInsertId();
     }
 
     /**
@@ -340,12 +362,37 @@ class DoctrineBaseDriver extends BaseDriver
     public function updateValues($tableName, array $data, array $identifier)
     {
         $connection = $this->getConnection();
+
         $data = array_diff_key($data, $identifier);
         if (empty($data)) {
             throw new \Exception("Can't update row without data");
         }
+        $initializers = array();
+        $conditions = array();
+        $params = array();
+        foreach ($data as $columnName => $value) {
+            $columnQuoted = $connection->quoteIdentifier($columnName);
+            if ($value instanceof Expression) {
+                $initializers[] = "{$columnQuoted} = {$value->getText()}";
+            } else {
+                // add placeholder and param binding
+                $initializers[] = "{$columnQuoted} = ?";
+                $params[] = $this->prepareParamValue($value);
+            }
+        }
+        foreach ($identifier as $columnName => $value) {
+            $conditions[] = $connection->quoteIdentifier($columnName) . ' = ?';
+            $params[] = $this->prepareParamValue($value);
+        }
 
-        return $connection->update($tableName, $this->prepareParams($data), $identifier);
+        $sql =
+            'UPDATE ' . $connection->quoteIdentifier($tableName)
+            . ' SET '
+            . implode(', ', $initializers)
+            . ' WHERE '
+            . implode(' AND ', $conditions)
+        ;
+        return $connection->executeUpdate($sql, $params);
     }
 
 
@@ -419,7 +466,6 @@ class DoctrineBaseDriver extends BaseDriver
     /**
      * @param mixed $value
      * @return mixed
-     * @todo: expression support
      */
     protected function prepareParamValue($value)
     {
