@@ -74,6 +74,22 @@ class Feature extends DataItem
     }
 
     /**
+     * Get geometry as EWKT string.
+     *
+     * @return string|null
+     */
+    public function getEwkt()
+    {
+        $geom = $this->getGeom();
+        $srid = $this->getSrid();
+        if ($geom && $srid) {
+            return "SRID={$srid};{$geom}";
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * @return integer|null
      */
     public function getSrid()
@@ -177,11 +193,7 @@ class Feature extends DataItem
     public function toArray()
     {
         $data = parent::toArray();
-
-        if ($this->hasGeom() && $this->getSrid()) {
-            $data[$this->geomField] = "SRID=" . $this->getSrid() . ";" . $this->getGeom();
-        }
-
+        $data[$this->geomField] = $this->getEwkt();
         return $data;
     }
 
