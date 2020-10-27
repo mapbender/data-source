@@ -79,23 +79,6 @@ class Oracle extends DoctrineBaseDriver implements Geographic
         throw new \RuntimeException("Method not implemented");
     }
 
-    /**
-     * Returns transformed geometry in NATIVE FORMAT (resource).
-     *
-     * @param string $ewkt
-     * @param null $srid
-     * @return mixed
-     * @todo: null srid makes no sense, should throw an error
-     * @todo: if an ewkt goes in, an ewkt should come out; native format is pretty useless outside of insert / update usage
-     */
-    public function transformEwkt($ewkt, $srid = null)
-    {
-        $connection = $this->getConnection();
-        $loadSql = $this->getReadEwktSql($connection->quote($ewkt));
-        $transformSql = $this->getTransformSql($loadSql, $srid);
-        return $connection->fetchColumn("SELECT {$transformSql}");
-    }
-
     public function getReadEwktSql($data)
     {
         return "SDO_UTIL.TO_WKBGEOMETRY({$data})";

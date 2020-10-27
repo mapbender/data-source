@@ -310,28 +310,6 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Returns transformed geometry in NATIVE FORMAT (WKB or resource).
-     *
-     * @param string $ewkt EWKT geometry
-     * @param null|int $srid SRID
-     * @return bool|string
-     * @throws \Exception
-     * @todo: if an ewkt goes in, an ewkt should come out; native format is pretty useless outside of insert / update usage
-     */
-    public function transformEwkt($ewkt, $srid = null)
-    {
-        /** @var Geographic|BaseDriver $driver */
-        $srid   = $srid ? $srid : $this->getSrid();
-        $driver = $this->getDriver();
-
-        if (!($driver instanceof Geographic)) {
-            throw new \Exception('Driver isn\'t ablet to transform ewkt');
-        }
-
-        return $driver->transformEwkt($ewkt, $srid);
-    }
-
-    /**
      * @param DataItem $feature
      * @return Feature
      * @throws \Doctrine\DBAL\DBALException

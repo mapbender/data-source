@@ -32,17 +32,6 @@ interface Geographic
     public function getTableGeomType($tableName, $schema = null);
 
     /**
-     * Returns transformed geometry in NATIVE FORMAT (WKB or resource).
-     *
-     * @param string $ewkt
-     * @param int|null $srid
-     * @return mixed
-     * @todo: null srid makes no sense, should throw an error
-     * @todo: if an ewkt goes in, an ewkt should come out; native format is pretty useless outside of insert / update usage
-     */
-    public function transformEwkt($ewkt, $srid = null);
-
-    /**
      * Returns an sql expression string reprojecting $data to $sridTo
      *
      * @param string $data column reference (should be passed pre-quoted) or sql expression
