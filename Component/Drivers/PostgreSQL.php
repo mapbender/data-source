@@ -278,28 +278,26 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
      * @param int|null $srid
      * @return mixed
      * @internal param $wkt
-     * @todo: null srid makes no sense, should throw an error
      * @todo: if an ewkt goes in, an ewkt should come out; native format is pretty useless outside of insert / update usage
-     * @todo: never produce dummy geometries; dummy geometries only produce collateral errors
      */
     public function transformEwkt($ewkt, $srid = null)
     {
         $db = $this->getConnection();
+        $sql = $this->getReadEwktSql($db->quote($ewkt));
+        $sql = $this->getTransformSql($sql, $srid);
+
         $type = $this->getTableGeomType($this->getTableName());
         $wktType = static::getWktType($ewkt);
 
+        // @todo: document why we would want to promote to collection, and why we only do it on Postgis
         if ($type
             && $wktType != $type
             && in_array(strtoupper($wktType), Feature::$simpleGeometries)
             && in_array(strtoupper($type), Feature::$complexGeometries)
         ) {
-            $ewkt = 'SRID=' . $srid . ';' . $db->fetchColumn("SELECT ST_ASTEXT(ST_TRANSFORM(ST_MULTI(" . $db->quote($ewkt) . "),$srid))");
+            $sql = "ST_Multi({$sql})";
         }
-
-        $srid = is_numeric($srid) ? intval($srid) : $db->quote($srid);
-        $ewkt = $db->quote($ewkt);
-
-        return $db->fetchColumn("SELECT ST_TRANSFORM(ST_GEOMFROMTEXT($ewkt), $srid)");
+        return $db->fetchColumn("SELECT {$sql}");
     }
 
     public function getReadEwktSql($data)
