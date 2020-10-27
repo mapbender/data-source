@@ -442,8 +442,6 @@ class DataStore
 
     /**
      * Remove data item
-     *
-     * @inheritdoc
      */
     public function remove($args)
     {

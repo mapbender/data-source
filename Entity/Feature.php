@@ -224,6 +224,8 @@ class Feature extends DataItem
      * Has geom data
      *
      * @return bool
+     * @deprecated coerce to boolean
+     * @todo 0.2.0: remove this method
      */
     public function hasGeom(){
         return !is_null($this->geom);
