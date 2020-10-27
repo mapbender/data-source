@@ -6,6 +6,7 @@ use Doctrine\DBAL\Connection;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Manageble;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Routable;
+use Mapbender\DataSourceBundle\Component\Expression;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
 
@@ -19,13 +20,24 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     public function insertValues($tableName, array $data)
     {
         $connection = $this->connection;
-        $params = $this->prepareParams($data);
-        $placeholders = array_fill(0, count($params), '?');
+        $columns = array();
+        $sqlValues = array();
+        $params = array();
+        foreach ($data as $columnName => $value) {
+            if ($value instanceof Expression) {
+                $sqlValues[] = $value->getText();
+            } else {
+                // add placeholder and param binding
+                $sqlValues[] = '?';
+                $params[] = $this->prepareParamValue($value);
+            }
+            $columns[] = $connection->quoteIdentifier($columnName);
+        }
 
         $sql = 'INSERT INTO ' . $connection->quoteIdentifier($tableName)
-            . ' (' . implode(', ', array_keys($params)) . ')'
+            . ' (' . implode(', ', $columns) . ')'
             . ' VALUES '
-            . ' (' . implode(', ', $placeholders) . ')'
+            . ' (' . implode(', ', $sqlValues) . ')'
             . ' RETURNING ' . $connection->quoteIdentifier($this->repository->getUniqueId());
 
         return $connection->fetchColumn($sql, array_values($params));
