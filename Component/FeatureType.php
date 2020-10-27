@@ -242,11 +242,30 @@ class FeatureType extends DataStore
             $driver = $this->getDriver();
             $connection = $driver->getConnection();
             $geomSql = $driver->getTransformSql($driver->getReadEwktSql($connection->quote($ewkt)), $this->getSrid());
+            if ($this->checkPromoteToCollection($ewkt)) {
+                $geomSql = $driver->getPromoteToCollectionSql($geomSql);
+            }
             $data[$geomField] = new Expression($geomSql);
         } else {
             $data[$geomField] = null;
         }
         return $data;
+    }
+
+    /**
+     * @param string $ewkt
+     * @return boolean
+     */
+    protected function checkPromoteToCollection($ewkt)
+    {
+        $type = $this->getDriver()->getTableGeomType($this->getTableName());
+        $wktType = BaseDriver::getWktType($ewkt);
+
+        // @todo: document why we would want to promote to collection, and why we only have a Postgis implementation
+        return $type && $wktType != $type
+            && in_array(strtoupper($wktType), Feature::$simpleGeometries)
+            && in_array(strtoupper($type), Feature::$complexGeometries)
+        ;
     }
 
     /**
