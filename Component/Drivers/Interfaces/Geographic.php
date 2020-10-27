@@ -68,6 +68,13 @@ interface Geographic
     public function getDumpWktSql($data);
 
     /**
+     * Returns an sql expression promiting $geomExpression to a multi-geometry type
+     * @param string $geomExpression
+     * @return string
+     */
+    public function getPromoteToCollectionSql($geomExpression);
+
+    /**
      * Get intersect SQL condition
      *
      * @param string $wkt           WKT

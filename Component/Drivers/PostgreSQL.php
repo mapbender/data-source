@@ -276,7 +276,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
             && in_array(strtoupper($wktType), Feature::$simpleGeometries)
             && in_array(strtoupper($type), Feature::$complexGeometries)
         ) {
-            $sql = "ST_Multi({$sql})";
+            $sql = $this->getPromoteToCollectionSql($sql);
         }
         return $db->fetchColumn("SELECT {$sql}");
     }
@@ -292,6 +292,15 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
             throw new \InvalidArgumentException("Invalid sridTo " . print_r($sridTo, true));
         }
         return "ST_MakeValid(ST_Transform({$data}, " . intval($sridTo) . '))';
+    }
+
+    /**
+     * @param string $geomExpression
+     * @return string
+     */
+    public function getPromoteToCollectionSql($geomExpression)
+    {
+        return "ST_Multi({$geomExpression})";
     }
 
     public function getDumpWktSql($data)

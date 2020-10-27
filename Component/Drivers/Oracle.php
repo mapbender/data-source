@@ -115,6 +115,17 @@ class Oracle extends DoctrineBaseDriver implements Geographic
     }
 
     /**
+     * @param string $geomExpression
+     * @return string
+     */
+    public function getPromoteToCollectionSql($geomExpression)
+    {
+        // no implementation
+        // @todo: support this? Use cases?
+        return $geomExpression;
+    }
+
+    /**
      * @inheritdoc
      */
     public function getIntersectCondition($wkt, $geomFieldName, $srid, $sridTo)
