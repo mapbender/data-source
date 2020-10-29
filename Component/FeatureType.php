@@ -285,8 +285,8 @@ class FeatureType extends DataStore
     protected function insertItem(DataItem $feature)
     {
         /** @var Feature $feature */
-        $data = $this->getSaveData($feature);
         if (isset($this->events[self::EVENT_ON_BEFORE_INSERT]) || isset($this->events[self::EVENT_ON_AFTER_INSERT])) {
+            $data = $this->getSaveData($feature);
             $eventData = $this->getSaveEventData($feature, $data);
         } else {
             $eventData = null;

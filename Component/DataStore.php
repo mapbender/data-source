@@ -350,7 +350,6 @@ class DataStore
         foreach ($removeFields as $removeField) {
             unset($data[$removeField]);
         }
-        unset($data[$this->getUniqueId()]);
         return $data;
     }
 
@@ -421,6 +420,8 @@ class DataStore
     protected function insertItem(DataItem $item)
     {
         $values = $this->getSaveData($item);
+        $idName = $this->getUniqueId();
+        unset($values[$idName]);
         $id = $this->getDriver()->insert($this->getTableName(), $values);
         $item->setId($id);
         return $item;
