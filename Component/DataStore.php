@@ -331,8 +331,26 @@ class DataStore
     {
         $data = $item->toArray();
         if ($this->cleanDataOnSave()) {
-            $data = $this->getDriver()->cleanData($data);
+            $data = $this->cleanSaveData($data);
         }
+        return $data;
+    }
+
+    /**
+     * Removes values from $data array that cannot be saved.
+     *
+     * @param mixed[] $data
+     * @return mixed[]
+     * @todo 0.2: remove data cleaning; configurations containing invalid data fields need fixing, and they should absolutely cause errors
+     */
+    protected function cleanSaveData($data)
+    {
+        $tableFields = $this->getDriver()->getFields() ?: array();
+        $removeFields = array_diff(array_keys($data), $tableFields);
+        foreach ($removeFields as $removeField) {
+            unset($data[$removeField]);
+        }
+        unset($data[$this->getUniqueId()]);
         return $data;
     }
 

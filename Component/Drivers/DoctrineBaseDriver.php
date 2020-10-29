@@ -304,34 +304,6 @@ class DoctrineBaseDriver extends BaseDriver
     }
 
     /**
-     * Clean data this can't be saved into db table from data array
-     *
-     * @param array $data
-     * @return array
-     */
-    public function cleanData($data)
-    {
-        $originalFields = $this->getFields();
-        $uniqueId = $this->repository->getUniqueId();
-        $fields         = array_merge(
-            $originalFields,
-            array($uniqueId));
-
-        // clean data from data item
-        foreach ($data as $fieldName => $value) {
-            if (array_search($fieldName, $fields) === false) {
-                unset($data[ $fieldName ]);
-            }
-        }
-
-        if (isset($data[ $uniqueId ]) && empty($data[ $uniqueId ])) {
-            unset($data[ $uniqueId ]);
-        }
-
-        return $data;
-    }
-
-    /**
      * @param string $tableName
      * @param mixed[] $data
      * @param mixed[] $identifier
