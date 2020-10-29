@@ -24,7 +24,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
         ;
     }
 
-    public function insertValues($tableName, array $data)
+    public function insert($tableName, array $data)
     {
         $pData = $this->prepareInsertData($data);
 

@@ -421,7 +421,7 @@ class DataStore
     protected function insertItem(DataItem $item)
     {
         $values = $this->getSaveData($item);
-        $id = $this->getDriver()->insertValues($this->getTableName(), $values);
+        $id = $this->getDriver()->insert($this->getTableName(), $values);
         $item->setId($id);
         return $item;
     }
@@ -449,7 +449,7 @@ class DataStore
         $identifier = array(
             $this->getUniqueId() => $item->getId(),
         );
-        $this->getDriver()->updateValues($this->getTableName(), $data, $identifier);
+        $this->getDriver()->update($this->getTableName(), $data, $identifier);
         return $item;
     }
 

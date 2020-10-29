@@ -256,7 +256,7 @@ class DoctrineBaseDriver extends BaseDriver
      * @param array $data
      * @return int the last insert id
      */
-    public function insertValues($tableName, array $data)
+    public function insert($tableName, array $data)
     {
         $pData = $this->prepareInsertData($data);
 
@@ -310,7 +310,7 @@ class DoctrineBaseDriver extends BaseDriver
      * @return int rows affected
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function updateValues($tableName, array $data, array $identifier)
+    public function update($tableName, array $data, array $identifier)
     {
         $connection = $this->getConnection();
 
