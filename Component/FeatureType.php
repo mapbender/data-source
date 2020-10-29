@@ -8,6 +8,7 @@ use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
+use Mapbender\DataSourceBundle\Utils\WktUtility;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -266,7 +267,7 @@ class FeatureType extends DataStore
     protected function checkPromoteToCollection($ewkt)
     {
         $type = $this->getDriver()->getTableGeomType($this->getTableName());
-        $wktType = BaseDriver::getWktType($ewkt);
+        $wktType = WktUtility::getGeometryType($ewkt);
 
         // @todo: document why we would want to promote to collection, and why we only have a Postgis implementation
         return $type && $wktType != $type
@@ -777,13 +778,12 @@ class FeatureType extends DataStore
      *
      * @param string $wkt
      * @return string
-     * @todo: remove in 0.2.0; only accessed by unit tests. Move implementation to Utility.
+     * @todo: remove in 0.2.0
      */
     public static function getWktType($wkt)
     {
-        return BaseDriver::getWktType($wkt);
+        return WktUtility::getGeometryType($wkt);
     }
-
 
     /**
      * Get route nodes between geometries

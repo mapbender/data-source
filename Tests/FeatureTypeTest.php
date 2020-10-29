@@ -4,6 +4,7 @@ namespace Mapbender\DataSourceBundle\Tests;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Mapbender\DataSourceBundle\Component\FeatureType;
 use Mapbender\DataSourceBundle\Entity\Feature;
+use Mapbender\DataSourceBundle\Utils\WktUtility;
 
 /**
  * @author  Andriy Oblivantsev <eslider@gmail.com>
@@ -61,8 +62,7 @@ class FeatureTypeTest extends SymfonyTest
                      self::WKT_GEOMETRYCOLLECTION,
                  ) as $wkt) {
 
-            $type          = FeatureType::getWktType($wkt);
-            $wkt           = preg_replace('/,\s+/s', ',', $wkt);
+            $type = WktUtility::getGeometryType($wkt);
             $tableName     = "test_" . strtolower($type);
             $srid          = 4326;
             $geomFieldName = 'geom';

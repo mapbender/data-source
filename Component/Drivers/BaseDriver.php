@@ -55,20 +55,4 @@ abstract class BaseDriver implements Base
     {
         return $this->fields = $fields;
     }
-
-    /**
-     * Detect (E)WKT geometry type
-     *
-     * @param string $wkt
-     * @return string
-     * @todo 0.2.0 move to utility collection
-     */
-    public static function getWktType($wkt)
-    {
-        $isEwkt = strpos($wkt, 'SRID') === 0;
-        if ($isEwkt) {
-            $wkt = substr($wkt, strpos($wkt, ';') + 1);
-        }
-        return substr($wkt, 0, strpos($wkt, '('));
-    }
 }
