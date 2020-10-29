@@ -252,28 +252,6 @@ class DoctrineBaseDriver extends BaseDriver
     }
 
     /**
-     * Insert data item
-     *
-     * @param array|DataItem $item
-     * @param bool           $cleanData
-     * @return DataItem
-     *
-     * @deprecated Driver does not care about DataItem objects, use updateValues with an array
-     */
-    public function insert($item, $cleanData = true)
-    {
-        $item       = $this->repository->create($item);
-        if ($cleanData) {
-            $data = $this->cleanData($item->toArray());
-        } else {
-            $data = $item->toArray();
-        }
-        $id = $this->insertValues($this->getTableName(), $data);
-        $item->setId($id);
-        return $item;
-    }
-
-    /**
      * @param string $tableName
      * @param array $data
      * @return int the last insert id
@@ -351,25 +329,6 @@ class DoctrineBaseDriver extends BaseDriver
         }
 
         return $data;
-    }
-
-    /**
-     * Update data
-     *
-     * @param array|DataItem $dataItem
-     * @return DataItem
-     * @throws \Exception
-     * @deprecated Driver does not care about DataItem objects, use updateValues with an array
-     */
-    public function update($dataItem)
-    {
-        $dataItem   = $this->repository->create($dataItem);
-        $data       = $this->cleanData($dataItem->toArray());
-        $identifier = array(
-            $this->repository->getUniqueId() => $dataItem->getId(),
-        );
-        $this->updateValues($this->getTableName(), $data, $identifier);
-        return $dataItem;
     }
 
     /**
