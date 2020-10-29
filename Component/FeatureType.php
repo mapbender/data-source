@@ -130,7 +130,7 @@ class FeatureType extends DataStore
 
     /**
      * @param array $args
-     * @return Drivers\DoctrineBaseDriver|Drivers\Interfaces\Base
+     * @return Drivers\DoctrineBaseDriver
      * @throws \Doctrine\DBAL\DBALException
      */
     protected function driverFactory(array $args)

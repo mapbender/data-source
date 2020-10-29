@@ -31,6 +31,14 @@ class DoctrineBaseDriver extends BaseDriver
     }
 
     /**
+     * @return Connection
+     */
+    public function getConnection()
+    {
+        return $this->connection;
+    }
+
+    /**
      * Get by ID, array or object
      *
      * @param mixed $args
@@ -202,20 +210,6 @@ class DoctrineBaseDriver extends BaseDriver
     {
         @trigger_error("DEPRECATED: " . get_class($this) . '::search does nothing but delegate to DataStore / FeatureType::search and will be removed in 0.2.0', E_USER_DEPRECATED);
         return $this->repository->search($criteria);
-    }
-
-    /**
-     * Convert results to DataItem objects
-     *
-     * @param array $rows - Data items to be casted
-     * @return DataItem[]
-     * @deprecated DataStore is responsible for DataItem creation, and already handles this
-     * @todo 0.2.0: remove this method
-     */
-    public function prepareResults($rows)
-    {
-        @trigger_error("DEPRECATED: " . get_class($this) . '::prepareResults does nothing but delegate to DataStore / FeatureType::prepareResults and will be removed in 0.2.0', E_USER_DEPRECATED);
-        return $this->repository->prepareResults($rows);
     }
 
     /**

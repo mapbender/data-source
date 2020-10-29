@@ -4,7 +4,6 @@ namespace Mapbender\DataSourceBundle\Component\Drivers;
 use Doctrine\DBAL\Connection;
 use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
-use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
  * @package Mapbender\DataSourceBundle\Component\Drivers
@@ -23,11 +22,6 @@ abstract class BaseDriver implements Base
      * @var array Field to select from the table
      */
     protected $fields = array();
-
-    /**
-     * @var Connection|mixed
-     */
-    protected $connection;
 
     /**
      * @param array $args
@@ -60,42 +54,6 @@ abstract class BaseDriver implements Base
     public function setFields(array $fields)
     {
         return $this->fields = $fields;
-    }
-
-    /**
-     * Get unique ID field name
-     *
-     * @return string
-     * @deprecated
-     * @internal
-     * @todo: 0.2.0 remove this method
-     */
-    public function getUniqueId()
-    {
-        return $this->repository->getUniqueId();
-    }
-
-    /**
-     * Cast DataItem by $args
-     *
-     * @param mixed $args
-     * @return DataItem
-     * @deprecated
-     * @todo 0.2.0: remove method
-     */
-    public function create($args)
-    {
-        return $this->repository->create($args);
-    }
-
-    /**
-     * Get connection link
-     *
-     * @return Connection|mixed
-     */
-    public function getConnection()
-    {
-        return $this->connection;
     }
 
     /**

@@ -206,7 +206,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
                     $hasReverseCost
                 ) AS route
             LEFT JOIN $waysTableName ON route.id2 = $waysTableName.gid")->fetchAll();
-        return $this->prepareResults($results);
+        return $this->repository->prepareResults($results);
     }
 
     /**
@@ -236,35 +236,6 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     {
         $schemaName = $this->getConnection()->quote($schemaName);
         return $this->fetchList("SELECT DISTINCT table_name FROM information_schema.tables WHERE table_schema LIKE '$schemaName'");
-    }
-
-    /**
-     * Returns transformed geometry in NATIVE FORMAT (WKB).
-     *
-     * @param string $ewkt
-     * @param int|null $srid
-     * @return mixed
-     * @internal param $wkt
-     * @todo: if an ewkt goes in, an ewkt should come out; native format is pretty useless outside of insert / update usage
-     */
-    public function transformEwkt($ewkt, $srid = null)
-    {
-        $db = $this->getConnection();
-        $sql = $this->getReadEwktSql($db->quote($ewkt));
-        $sql = $this->getTransformSql($sql, $srid);
-
-        $type = $this->getTableGeomType($this->getTableName());
-        $wktType = static::getWktType($ewkt);
-
-        // @todo: document why we would want to promote to collection, and why we only do it on Postgis
-        if ($type
-            && $wktType != $type
-            && in_array(strtoupper($wktType), Feature::$simpleGeometries)
-            && in_array(strtoupper($type), Feature::$complexGeometries)
-        ) {
-            $sql = $this->getPromoteToCollectionSql($sql);
-        }
-        return $db->fetchColumn("SELECT {$sql}");
     }
 
     public function getReadEwktSql($data)

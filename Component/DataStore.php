@@ -4,9 +4,8 @@ namespace Mapbender\DataSourceBundle\Component;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Mapbender\CoreBundle\Component\UploadsManager;
-use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
-use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
+use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
@@ -42,7 +41,7 @@ class DataStore
     /** @var Filesystem */
     protected $filesystem;
 
-    /** @var Base */
+    /** @var DoctrineBaseDriver */
     protected $driver;
     public    $events;
     protected $allowSave;
@@ -123,7 +122,7 @@ class DataStore
 
     /**
      * @param array $args
-     * @return Base|DoctrineBaseDriver
+     * @return DoctrineBaseDriver
      * @throws \Doctrine\DBAL\DBALException
      * @throws \RuntimeException on incompatible platform
      */
@@ -639,7 +638,7 @@ class DataStore
     /**
      * Get current driver instance
      *
-     * @return Base|BaseDriver|DoctrineBaseDriver|PostgreSQL
+     * @return DoctrineBaseDriver|Geographic
      */
     public function getDriver()
     {
