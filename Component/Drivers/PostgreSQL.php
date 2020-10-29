@@ -24,6 +24,15 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
         ;
     }
 
+    public function insertValues($tableName, array $data)
+    {
+        $pData = $this->prepareInsertData($data);
+
+        $sql = $this->getInsertSql($tableName, $pData[0], $pData[1]);
+        $connection = $this->getConnection();
+        return $connection->fetchColumn($sql, $pData[2], 0);
+    }
+
     protected function prepareParamValue($value)
     {
         if (\is_bool($value)) {
@@ -120,29 +129,6 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
                 WHERE f_table_schema = " . $_schema . "
                 AND f_table_name = " . $connection->quote($tableName))->fetchColumn();
         return $type;
-    }
-
-    /**
-     * Get last insert id
-     *
-     * @return int
-     */
-    public function getLastInsertId()
-    {
-        $connection = $this->getConnection();
-        $id = $connection->lastInsertId();
-        if ($id < 1) {
-            $fullTableName = $this->tableName;
-            $fullUniqueIdName = $connection->quoteIdentifier($this->repository->getUniqueId());
-            $sql = /** @lang PostgreSQL */
-                "SELECT $fullUniqueIdName 
-                 FROM $fullTableName
-                 LIMIT 1 
-                 OFFSET (SELECT count($fullUniqueIdName)-1 FROM $fullTableName )";
-
-            $id = $connection->fetchColumn($sql);
-        }
-        return $id;
     }
 
     /**

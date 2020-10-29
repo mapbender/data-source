@@ -478,16 +478,6 @@ class DoctrineBaseDriver extends BaseDriver
     }
 
     /**
-     * Get last insert ID
-     *
-     * @return int
-     */
-    public function getLastInsertId()
-    {
-        return $this->getConnection()->lastInsertId();
-    }
-
-    /**
      * Attempts to extract an identifier array from whatever $arg is
      * Extracted id equivalent to DataStore::create($arg)->getId()
      *

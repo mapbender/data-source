@@ -44,11 +44,4 @@ interface Manageble
      * @deprecated remove in 0.2.0 this is DBA work
      */
     public function dropTable($name);
-
-    /**
-     * Get last insert id
-     *
-     * @return int
-     */
-    public function getLastInsertId();
 }
