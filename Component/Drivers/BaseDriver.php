@@ -1,7 +1,6 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
-use Doctrine\DBAL\Connection;
 use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
 

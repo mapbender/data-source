@@ -7,7 +7,6 @@ use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Manageble;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Routable;
 use Mapbender\DataSourceBundle\Entity\DataItem;
-use Mapbender\DataSourceBundle\Entity\Feature;
 
 /**
  * @package Mapbender\DataSourceBundle\Component\Drivers
