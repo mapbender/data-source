@@ -1,3 +1,9 @@
+## 0.1.19
+- Fix potentially broken id of newly saved items / features on PostgreSQL
+- Fix FeatureType::insert method accepting prepopulated id
+- Fix geometry type detection on valid WKT with empty coordinates
+- Fix Ewkt handling in Feature::setGeom
+
 ## 0.1.18
 - Fix reprojection errors on insert
 - Fix Postgis column srid detection
