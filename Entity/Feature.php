@@ -1,6 +1,8 @@
 <?php
 namespace Mapbender\DataSourceBundle\Entity;
 
+use Mapbender\DataSourceBundle\Utils\WktUtility;
+
 /**
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  */
@@ -60,7 +62,13 @@ class Feature extends DataItem
             $geom = \geoPHP::load($geom, 'json')->out('wkt');
         }
 
-        $this->geom = $geom ?: null;
+        if ($geom && $srid = WktUtility::getEwktSrid($geom)) {
+            $this->geom = WktUtility::wktFromEwkt($geom) ?: null;
+            $this->setSrid($srid);
+        } else {
+            $this->geom = $geom ?: null;
+        }
+
         return $this;
     }
 
