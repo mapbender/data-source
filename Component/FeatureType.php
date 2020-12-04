@@ -9,7 +9,6 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
 use Mapbender\DataSourceBundle\Utils\WktUtility;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class FeatureType handles Feature objects.
@@ -33,6 +32,8 @@ class FeatureType extends DataStore
 
     /**
      * Default upload directory
+     * @deprecated class consts cannot be changed by child classes; use getUploadsDirectoryName method
+     * @todo 0.2.0: remove this const
      */
     const UPLOAD_DIR_NAME = "featureTypes";
 
@@ -53,12 +54,6 @@ class FeatureType extends DataStore
      * @var int SRID to get geometry converted to
      */
     protected $srid = null;
-
-    /**
-     * @var array file info list
-     */
-    protected $filesInfo = array();
-
 
     /**
      * @var string Routing ways node table name.
@@ -105,9 +100,6 @@ class FeatureType extends DataStore
         if (array_key_exists('waysVerticesTableName', $args)) {
             $this->setWaysVerticesTableName($args['waysVerticesTableName']);
         }
-        if (array_key_exists('files', $args)) {
-            $this->setFiles($args['files']);
-        }
         if (!empty($args['export'])) {
             if (!is_array($args['export'])) {
                 throw new \InvalidArgumentException("Unexpected type " . gettype($args['export']) . " for 'export'. Expected array.");
@@ -122,7 +114,6 @@ class FeatureType extends DataStore
             'waysTableName',
             'waysGeomFieldName',
             'waysVerticesTableName',
-            'files',
         )));
 
         parent::configure($remaining);
@@ -628,82 +619,12 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Get files directory, relative to base upload directory
-     *
-     * @param null $fieldName
-     * @return string
-     */
-    public function getFileUri($fieldName = null)
-    {
-        $path = self::UPLOAD_DIR_NAME . "/" . $this->getTableName();
-
-        if ($fieldName) {
-            $path .= "/" . $fieldName;
-        }
-
-        foreach ($this->getFileInfo() as $fileInfo) {
-            if (isset($fileInfo["field"]) && isset($fileInfo["uri"]) && $fieldName == $fileInfo["field"]) {
-                $path = $fileInfo["uri"];
-                break;
-            }
-        }
-
-        return $path;
-    }
-
-    /**
-     * Get files base path
-     *
-     * @param null $fieldName  file field name
-     * @param bool $createPath check and create path?
-     * @return string
-     */
-    public function getFilePath($fieldName = null, $createPath = true)
-    {
-        foreach ($this->getFileInfo() as $fileInfo) {
-            if (isset($fileInfo["field"]) && isset($fileInfo["path"]) && $fieldName == $fileInfo["field"]) {
-                $path = $fileInfo["path"];
-                if ($createPath && !is_dir($path)) {
-                    mkdir($path, 0775, true);
-                }
-                return $path;
-            }
-        }
-        $fileUri = $this->getFileUri($fieldName);
-        return $this->getUploadsManager()->getSubdirectoryPath($fileUri, $createPath);
-    }
-
-    /**
-     * @param string $fieldName
-     * @return string
-     */
-    public function getFileUrl($fieldName = "")
-    {
-        $fileUri = $this->getFileUri($fieldName);
-        if ($this->filesystem->isAbsolutePath($fileUri)) {
-            return $fileUri;
-        } else {
-            /** @var Request $request */
-            $request = $this->container->get('request_stack')->getCurrentRequest();
-            $baseUrl = implode('', array(
-                $request->getSchemeAndHttpHost(),
-                $request->getBasePath(),
-            ));
-            foreach ($this->getFileInfo() as $fileInfo) {
-                if (isset($fileInfo["field"]) && isset($fileInfo["uri"]) && $fieldName == $fileInfo["field"]) {
-                    return "{$baseUrl}/{$fileUri}";
-                }
-            }
-            $uploadsDir = $this->getUploadsManager()->getWebRelativeBasePath(false);
-            return "{$baseUrl}/{$uploadsDir}/{$fileUri}";
-        }
-    }
-
-    /**
      * Generate unique file name for a field.
      *
      * @param null $fieldName Field
      * @return string[]
+     * @deprecated no known callers; non-conflicting unique file names generated in {@see Uploader::upcount_name}
+     * @todo 0.2.0: remove this method
      */
     public function genFilePath($fieldName = null)
     {
@@ -731,29 +652,14 @@ class FeatureType extends DataStore
      *
      * @param null $fieldName
      * @return int
+     * @deprecated only called by deprecated / unused genFilePath
+     * @todo 0.2.0: remove this method
      */
     private function countFiles($fieldName = null)
     {
         $finder = new Finder();
         $finder->files()->in($this->getFilePath($fieldName));
         return count($finder);
-    }
-
-    /**
-     * @param array[] $fileInfo
-     * @internal param $fileInfos
-     */
-    public function setFiles($fileInfo)
-    {
-        $this->filesInfo = $fileInfo;
-    }
-
-    /**
-     * @return array[]
-     */
-    public function getFileInfo()
-    {
-        return $this->filesInfo;
     }
 
     /**
@@ -901,5 +807,14 @@ class FeatureType extends DataStore
         extract($row);
         eval('$result = ' . $code . ';');
         return $result;
+    }
+
+    /**
+     * @return string
+     * @since 0.1.20
+     */
+    public function getUploadsDirectoryName()
+    {
+        return 'featureTypes';
     }
 }

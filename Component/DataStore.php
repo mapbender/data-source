@@ -14,6 +14,7 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
@@ -59,6 +60,11 @@ class DataStore
     protected $sqlFilter;
 
     /**
+     * @var array file info list
+     */
+    protected $filesInfo = array();
+
+    /**
      * @param ContainerInterface $container
      * @param array|null $args
      * @todo: drop container injection; replace with owning DataStoreService / FeatureTypeService injection
@@ -90,11 +96,15 @@ class DataStore
         if (array_key_exists('parentField', $args)) {
             $this->setParentField($args['parentField']);
         }
+        if (array_key_exists('files', $args)) {
+            $this->setFiles($args['files']);
+        }
         $unhandledArgs = array_diff_key($args, array_flip(array(
             'uniqueId',
             'mapping',
             'parentField',
             'filter',
+            'files',
         )));
         if ($unhandledArgs) {
             $this->configureMagic($unhandledArgs);
@@ -955,5 +965,101 @@ class DataStore
         }
         // uh-oh!
         return null;
+    }
+
+    /**
+     * Get files directory, relative to base upload directory
+     *
+     * @param null $fieldName
+     * @return string
+     */
+    public function getFileUri($fieldName = null)
+    {
+        $path = $this->getUploadsDirectoryName() . "/" . $this->getTableName();
+
+        if ($fieldName) {
+            $path .= "/" . $fieldName;
+        }
+
+        foreach ($this->getFileInfo() as $fileInfo) {
+            if (isset($fileInfo["field"]) && isset($fileInfo["uri"]) && $fieldName == $fileInfo["field"]) {
+                $path = $fileInfo["uri"];
+                break;
+            }
+        }
+
+        return $path;
+    }
+
+    /**
+     * Get files base path
+     *
+     * @param null $fieldName  file field name
+     * @param bool $createPath check and create path?
+     * @return string
+     */
+    public function getFilePath($fieldName = null, $createPath = true)
+    {
+        foreach ($this->getFileInfo() as $fileInfo) {
+            if (isset($fileInfo["field"]) && isset($fileInfo["path"]) && $fieldName == $fileInfo["field"]) {
+                $path = $fileInfo["path"];
+                if ($createPath && !is_dir($path)) {
+                    mkdir($path, 0775, true);
+                }
+                return $path;
+            }
+        }
+        $fileUri = $this->getFileUri($fieldName);
+        return $this->getUploadsManager()->getSubdirectoryPath($fileUri, $createPath);
+    }
+
+    /**
+     * @param string $fieldName
+     * @return string
+     */
+    public function getFileUrl($fieldName = "")
+    {
+        $fileUri = $this->getFileUri($fieldName);
+        if ($this->filesystem->isAbsolutePath($fileUri)) {
+            return $fileUri;
+        } else {
+            /** @var Request $request */
+            $request = $this->container->get('request_stack')->getCurrentRequest();
+            $baseUrl = implode('', array(
+                $request->getSchemeAndHttpHost(),
+                $request->getBasePath(),
+            ));
+            foreach ($this->getFileInfo() as $fileInfo) {
+                if (isset($fileInfo["field"]) && isset($fileInfo["uri"]) && $fieldName == $fileInfo["field"]) {
+                    return "{$baseUrl}/{$fileUri}";
+                }
+            }
+            $uploadsDir = $this->getUploadsManager()->getWebRelativeBasePath(false);
+            return "{$baseUrl}/{$uploadsDir}/{$fileUri}";
+        }
+    }
+
+    /**
+     * @param array[] $fileInfo
+     * @internal param $fileInfos
+     */
+    public function setFiles($fileInfo)
+    {
+        $this->filesInfo = $fileInfo;
+    }
+
+    /**
+     * @return array[]
+     */
+    public function getFileInfo()
+    {
+        return $this->filesInfo;
+    }
+    /**
+     * @return string
+     */
+    public function getUploadsDirectoryName()
+    {
+        return "ds-uploads";
     }
 }
