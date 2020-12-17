@@ -1,3 +1,6 @@
+## 0.1.20
+- Extend file upload support to both DataStore and FeatureType (previously only FeatureType)
+
 ## 0.1.19
 - Fix potentially broken id of newly saved items / features on PostgreSQL
 - Fix FeatureType::insert method accepting prepopulated id
