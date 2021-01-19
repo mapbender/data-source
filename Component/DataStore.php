@@ -3,15 +3,17 @@ namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Statement;
+use Mapbender\CoreBundle\Component\UploadsManager;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
+use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
-use Mapbender\DataSourceBundle\Component\Drivers\YAML;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
@@ -41,10 +43,10 @@ class DataStore
 
     /** @var ContainerInterface */
     protected $container;
+    /** @var Filesystem */
+    protected $filesystem;
 
-    /**
-     * @var Base $driver
-     */
+    /** @var Base */
     protected $driver;
     public    $events;
     protected $allowSave;
@@ -63,11 +65,10 @@ class DataStore
      */
     public function __construct(ContainerInterface $container, $args = null)
     {
-        /** @var Connection $connection */
         $this->container = $container;
+        $this->filesystem = $container->get('filesystem');
         $type           = isset($args["type"]) ? $args["type"] : "doctrine";
         $connectionName = isset($args["connection"]) ? $args["connection"] : "default";
-        $driver         = null;
         $this->events   = isset($args["events"]) ? $args["events"] : array();
         $hasFields      = isset($args["fields"]) && is_array($args["fields"]);
 
@@ -92,38 +93,24 @@ class DataStore
             }
         }
 
-        switch ($type) {
-            case'yaml':
-                $driver = new YAML($this->container, $args);
+        /** @var Connection $connection */
+        $connection = $container->get("doctrine.dbal.{$connectionName}_connection");
+        switch ($connection->getDatabasePlatform()->getName()) {
+            case self::SQLITE_PLATFORM;
+                $this->driver = new SQLite($connection, $args);
                 break;
-            default: // doctrine
-                $connection = $this->container->get("doctrine.dbal.{$connectionName}_connection");
-                switch ($connection->getDatabasePlatform()->getName()) {
-                    case self::SQLITE_PLATFORM;
-                        $driver = new SQLite($this->container, $args);
-                        break;
-                    case self::POSTGRESQL_PLATFORM;
-                        $driver = new PostgreSQL($this->container, $args);
-                        break;
-
-                }
-                $driver->connect($connectionName);
+            case self::POSTGRESQL_PLATFORM;
+                $this->driver = new PostgreSQL($connection, $args);
+                break;
+            case self::ORACLE_PLATFORM;
+                $this->driver = new Oracle($connection, $args);
+                break;
         }
-        $this->driver = $driver;
         if (!$hasFields) {
-            $driver->setFields($driver->getStoreFields());
+            $this->driver->setFields($this->driver->getStoreFields());
         } else {
-            $driver->setFields($args["fields"]);
+            $this->driver->setFields($args["fields"]);
         }
-    }
-
-    /**
-     * @param $url
-     * @return mixed
-     */
-    public function connect($url)
-    {
-        return $this->getDriver()->connect($url);
     }
 
     /**
@@ -147,17 +134,14 @@ class DataStore
         $dataItem     = $this->get($id);
         $queryBuilder = $this->driver->getSelectQueryBuilder();
         $queryBuilder->andWhere($this->driver->getUniqueId() . " = " . $dataItem->getAttribute($this->getParentField()));
+        $queryBuilder->setMaxResults(1);
         $statement  = $queryBuilder->execute();
-        $rows       = array($statement->fetch());
-        $hasResults = count($rows) > 0;
-        $parent     = null;
-
-        if ($hasResults) {
-            $this->driver->prepareResults($rows);
-            $parent = $rows[0];
+        $rows = $this->driver->prepareResults($statement->fetchAll());
+        if ($rows) {
+            return $rows[0];
+        } else {
+            return null;
         }
-
-        return $parent;
     }
 
     /**
@@ -176,13 +160,7 @@ class DataStore
             $queryBuilder->andWhere($this->getParentField() . " = " . $parentId);
         }
         $statement  = $queryBuilder->execute();
-        $rows       = $statement->fetchAll();
-        $hasResults = count($rows) > 0;
-
-        // Cast array to DataItem array list
-        if ($hasResults) {
-            $this->driver->prepareResults($rows);
-        }
+        $rows = $this->driver->prepareResults($statement->fetchAll());
 
         if ($recursive) {
             /** @var DataItem $dataItem */
@@ -291,17 +269,12 @@ class DataStore
     }
 
     /**
-     * Is oralce platform
-     *
      * @return bool
+     * @deprecated
      */
     public function isOracle()
     {
-        static $r;
-        if (is_null($r)) {
-            $r = $this->driver->getPlatformName() == self::ORACLE_PLATFORM;
-        }
-        return $r;
+        return ($this->getDriver()) instanceof Oracle;
     }
 
 
@@ -319,28 +292,22 @@ class DataStore
      * Is SQLite platform
      *
      * @return bool
+     * @deprecated
      */
     public function isSqlite()
     {
-        static $r;
-        if (is_null($r)) {
-            $r = $this->driver->getPlatformName() == self::SQLITE_PLATFORM;
-        }
-        return $r;
+        return ($this->getDriver()) instanceof SQLite;
     }
 
     /**
      * Is postgres platform
      *
      * @return bool
+     * @deprecated
      */
     public function isPostgres()
     {
-        static $r;
-        if (is_null($r)) {
-            $r = $this->driver->getPlatformName() == self::POSTGRESQL_PLATFORM;
-        }
-        return $r;
+        return ($this->getDriver()) instanceof PostgreSQL;
     }
 
     /**
@@ -518,5 +485,15 @@ class DataStore
         $criteria = $this->get($id)->getAttribute($internalFieldName);
 
         return $externalDriver->getByCriteria($criteria, $externalFieldName);
+    }
+
+    /**
+     * @return UploadsManager
+     */
+    protected function getUploadsManager()
+    {
+        /** @var UploadsManager $ulm */
+        $ulm = $this->container->get('mapbender.uploads_manager.service');
+        return $ulm;
     }
 }

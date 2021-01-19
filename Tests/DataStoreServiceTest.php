@@ -24,7 +24,7 @@ class DataStoreServiceTest extends SymfonyTest
         $dataStore = new DataStore(parent::$container, $configuration);
         $results   = $dataStore->search();
         foreach ($results as $result) {
-            $attributes = $result->getAttributes();
+            $result->getAttributes();
         };
     }
 
@@ -44,7 +44,7 @@ class DataStoreServiceTest extends SymfonyTest
 
     public function testDriver()
     {
-        if(!$configuration = $this->getConfiguration()){
+        if(!$this->getConfiguration()){
             self::markTestSkipped("No dataStore test declaration found");
             return;
         }

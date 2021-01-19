@@ -52,7 +52,7 @@ class FeaturesTest extends WebTestCase
 
     public function testSearch()
     {
-        $results = self::$featureType->search(array());
+        self::$featureType->search(array());
     }
 
     public function testCustomSearch()
@@ -104,6 +104,7 @@ class FeaturesTest extends WebTestCase
     }
 
     /**
+     * @param int $maxResults
      * @return Feature
      */
     private function getRandomFeature($maxResults = 10)
@@ -116,10 +117,8 @@ class FeaturesTest extends WebTestCase
     public function testJson()
     {
         $feature = $this->getRandomFeature();
-        $srid    = self::$featureType->getSrid();
-        //        var_dump($feature->getGeom());
+        self::$featureType->getSrid();
         $json     = $feature . "";
-        $feature1 = self::$featureType->create($json);
-        //        var_dump($feature1->getGeom());
+        self::$featureType->create($json);
     }
 }

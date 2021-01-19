@@ -3,9 +3,6 @@ namespace Mapbender\DataSourceBundle\Component\Drivers\Interfaces;
 
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
-/**
- * Interface IDriver
- */
 interface Base
 {
     /**
@@ -21,7 +18,7 @@ interface Base
      * Get object by ID and field name
      *
      * @param mixed $id ID
-     * @return
+     * @return DataItem
      */
     public function getById($id);
 
@@ -49,14 +46,6 @@ interface Base
      * @return mixed
      */
     public function remove($args);
-
-    /**
-     * Connect to the source
-     *
-     * @param $url
-     * @return mixed
-     */
-    public function connect($url);
 
     /**
      * Is the driver connected an ready to interact?

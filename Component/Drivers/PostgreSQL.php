@@ -213,7 +213,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
      * @param      $srid
      * @param bool $directedGraph directed graph
      * @param bool $hasReverseCost Has reverse cost, only can be true, if  directed graph=true
-     * @return \Mapbender\DataSourceBundle\Entity\Feature[]
+     * @return DataItem[]
      */
     public function routeBetweenNodes(
         $waysTableName,
@@ -245,7 +245,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
                     $hasReverseCost
                 ) AS route
             LEFT JOIN $waysTableName ON route.id2 = $waysTableName.gid")->fetchAll();
-        return $this->prepareResults($results, $srid);
+        return $this->prepareResults($results);
     }
 
     /**

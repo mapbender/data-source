@@ -10,20 +10,13 @@ use Symfony\Component\Yaml\Yaml;
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  * @copyright 18.03.2015 by WhereGroup GmbH & Co. KG
  * @package   Mapbender\CoreBundle\Component
+ *
+ * @property FeatureType[] $storeList
  */
 class FeatureTypeService extends DataStoreService
 {
-    /**
-     * Feature type s defined in mapbebder.yml > parameters.featureTypes
-     *
-     * @var FeatureType[] feature types
-     */
-    protected $storeList = array();
     /** @var mixed */
     protected $declarations;
-
-    /** @var FeatureType[] */
-    protected $instances;
 
     /**
      * @param ContainerInterface $container
@@ -42,14 +35,14 @@ class FeatureTypeService extends DataStoreService
      */
     public function get($id)
     {
-        if (empty($this->instances[$id])) {
+        if (empty($this->storeList[$id])) {
             $declarations = $this->getFeatureTypeDeclarations();
             if (empty($declarations[$id])) {
                 throw new \RuntimeException("No FeatureType with id " . var_export($id, true));
             }
-            $this->instances[$id] = new FeatureType($this->container, $declarations[$id]);
+            $this->storeList[$id] = new FeatureType($this->container, $declarations[$id]);
         }
-        return $this->instances[$id];
+        return $this->storeList[$id];
     }
 
     /**
@@ -60,11 +53,11 @@ class FeatureTypeService extends DataStoreService
     public function search()
     {
         foreach ($this->getFeatureTypeDeclarations() as $id => $declaration) {
-            if (empty($this->instances[$id])) {
-                $this->instances[$id] = new FeatureType($this->container, $declaration);
+            if (empty($this->storeList[$id])) {
+                $this->storeList[$id] = new FeatureType($this->container, $declaration);
             }
         }
-        return $this->instances;
+        return $this->storeList;
     }
 
     /**

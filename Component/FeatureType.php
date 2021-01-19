@@ -3,7 +3,6 @@ namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Statement;
-use Mapbender\CoreBundle\Component\Application as AppComponent;
 use Mapbender\DataSourceBundle\Component\Drivers\BaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
@@ -13,6 +12,7 @@ use Mapbender\DataSourceBundle\Entity\Feature;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
@@ -671,20 +671,17 @@ class FeatureType extends DataStore
      */
     public function getFilePath($fieldName = null, $createPath = true)
     {
-        $path = realpath(AppComponent::getUploadsDir($this->container)) . "/" . $this->getFileUri($fieldName);
-
         foreach ($this->getFileInfo() as $fileInfo) {
             if (isset($fileInfo["field"]) && isset($fileInfo["path"]) && $fieldName == $fileInfo["field"]) {
                 $path = $fileInfo["path"];
-                break;
+                if ($createPath && !is_dir($path)) {
+                    mkdir($path, 0775, true);
+                }
+                return $path;
             }
         }
-
-        if ($createPath && !is_dir($path)) {
-            mkdir($path, 0775, true);
-        }
-
-        return $path;
+        $fileUri = $this->getFileUri($fieldName);
+        return $this->getUploadsManager()->getSubdirectoryPath($fileUri, $createPath);
     }
 
     /**
@@ -693,19 +690,24 @@ class FeatureType extends DataStore
      */
     public function getFileUrl($fieldName = "")
     {
-        $baseUrl   = AppComponent::getBaseUrl($this->container);
-        $uploadDir = AppComponent::getUploadsDir($this->container, true) . "/";
-
-        foreach ($this->getFileInfo() as $fileInfo) {
-            if (isset($fileInfo["field"]) && isset($fileInfo["uri"]) && $fieldName == $fileInfo["field"]) {
-                $uploadDir = "";
-                break;
-            }
-        }
-
         $fileUri = $this->getFileUri($fieldName);
-        $url     = strpos($fileUri, "/") === 0 ? $fileUri : $baseUrl . '/' . $uploadDir . $fileUri;
-        return $url;
+        if ($this->filesystem->isAbsolutePath($fileUri)) {
+            return $fileUri;
+        } else {
+            /** @var Request $request */
+            $request = $this->container->get('request_stack')->getCurrentRequest();
+            $baseUrl = implode('', array(
+                $request->getSchemeAndHttpHost(),
+                $request->getBasePath(),
+            ));
+            foreach ($this->getFileInfo() as $fileInfo) {
+                if (isset($fileInfo["field"]) && isset($fileInfo["uri"]) && $fieldName == $fileInfo["field"]) {
+                    return "{$baseUrl}/{$fileUri}";
+                }
+            }
+            $uploadsDir = $this->getUploadsManager()->getWebRelativeBasePath(false);
+            return "{$baseUrl}/{$uploadsDir}/{$fileUri}";
+        }
     }
 
     /**

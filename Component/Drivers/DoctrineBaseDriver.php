@@ -30,16 +30,10 @@ class DoctrineBaseDriver extends BaseDriver implements Base
      */
     protected $sqlFilter;
 
-    /**
-     * Open connection by name$settings
-     *
-     * @param $name
-     * @return $this
-     */
-    public function connect($name = "default")
+    public function __construct(Connection $connection, array $args = array())
     {
-        $this->connection = $this->container->get("doctrine.dbal.{$name}_connection");
-        return $this;
+        $this->connection = $connection;
+        parent::__construct($args);
     }
 
     /**
@@ -183,7 +177,7 @@ class DoctrineBaseDriver extends BaseDriver implements Base
      * Info: $schemaManager->listTableColumns($this->tableName) doesn't work if fields are geometries!
      *
      * @throws \Doctrine\DBAL\DBALException
-     * @return array field names
+     * @return string[] field names
      */
     public function getStoreFields()
     {
@@ -263,14 +257,9 @@ class DoctrineBaseDriver extends BaseDriver implements Base
         $queryBuilder->setMaxResults($maxResults);
         $statement  = $queryBuilder->execute();
         $rows       = $statement->fetchAll();
-        $hasResults = count($rows) > 0;
 
         // Cast array to DataItem array list
-        if ($hasResults) {
-            $this->prepareResults($rows);
-        }
-
-        return $rows;
+        return $this->prepareResults($rows);
     }
 
     /**
@@ -279,12 +268,13 @@ class DoctrineBaseDriver extends BaseDriver implements Base
      * @param array $rows - Data items to be casted
      * @return DataItem[]
      */
-    public function prepareResults(&$rows)
+    public function prepareResults($rows)
     {
-        foreach ($rows as $key => &$row) {
-            $row = $this->create($row);
+        $rowsOut = array();
+        foreach ($rows as $key => $row) {
+            $rowsOut[] = $this->create($row);
         }
-        return $rows;
+        return $rowsOut;
     }
 
 
@@ -312,7 +302,7 @@ class DoctrineBaseDriver extends BaseDriver implements Base
      * Get data item by id
      *
      * @param $id
-     * @return mixed
+     * @return DataItem
      */
     public function getById($id)
     {
@@ -423,8 +413,7 @@ class DoctrineBaseDriver extends BaseDriver implements Base
 
         $statement = $queryBuilder->execute();
         $rows      = $statement->fetchAll();
-        $this->prepareResults($rows);
-        return $rows;
+        return $this->prepareResults($rows);
     }
 
     /**

@@ -19,7 +19,11 @@ class Oracle extends DoctrineBaseDriver implements Geographic
      */
     public static function transformColumnNames(&$rows)
     {
-        $columnNames = array_keys(current($rows));
+        if (!$rows) {
+            $columnNames = array();
+        } else {
+            $columnNames = array_keys(current($rows));
+        }
         foreach ($rows as &$row) {
             foreach ($columnNames as $name) {
                 $row[ strtolower($name) ] = &$row[ $name ];
@@ -31,20 +35,14 @@ class Oracle extends DoctrineBaseDriver implements Geographic
     /**
      * Convert results to Feature objects
      *
-     * @param DataItem[] $rows
-     * @param null       $srid
+     * @param array $rows
      * @return DataItem[]
      */
-    public function prepareResults(&$rows, $srid = null)
+    public function prepareResults($rows)
     {
-        // Transform Oracle result column names from upper to lower case
-        self::transformColumnNames($rows);
-
-        foreach ($rows as $key => &$row) {
-            $row = $this->create($row, $srid);
-        }
-
-        return $rows;
+        $rowsOut = parent::prepareResults($rows);
+        self::transformColumnNames($rowsOut);
+        return $rowsOut;
     }
 
     /**
@@ -66,6 +64,7 @@ class Oracle extends DoctrineBaseDriver implements Geographic
         $dimensions = 2)
     {
         // TODO: Implement addGeometryColumn() method.
+        throw new \RuntimeException("Method not implemented");
     }
 
     /**
@@ -78,6 +77,7 @@ class Oracle extends DoctrineBaseDriver implements Geographic
     public function getTableGeomType($tableName, $schema = null)
     {
         // TODO: Implement getTableGeomType() method.
+        throw new \RuntimeException("Method not implemented");
     }
 
     /**

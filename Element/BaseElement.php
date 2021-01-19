@@ -5,6 +5,7 @@ use Doctrine\DBAL\Connection;
 use FOM\UserBundle\Entity\User;
 use Mapbender\CoreBundle\Component\Element;
 use Mapbender\DataSourceBundle\Component\DataStoreService;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -95,26 +96,26 @@ abstract class BaseElement extends Element
     }
 
     /**
-     * Handles requests (API)
-     *
-     * Get request "action" variable and run defined action method.
-     *
-     * Example: if $action="feature/get", then convert name
-     *          and run $this->getFeatureAction($request);
-     *
-     * @inheritdoc
+     * @param Request $request
+     * @return Response
+     * @deprecated do not rely on method name inflection magic; use your own implementation supporting valid actions explicitly
      */
-    public function httpAction($action)
+    public function handleHttpRequest(Request $request)
     {
-        $request     = $this->getRequestData();
-        $names       = array_reverse(explode('/', $action));
-        $namesLength = count($names);
-        for ($i = 1; $i < $namesLength; $i++) {
-            $names[ $i ][0] = strtoupper($names[ $i ][0]);
+        $r = new \ReflectionMethod($this, 'httpAction');
+        if ($r->getDeclaringClass()->name !== __CLASS__) {
+            return $this->httpAction($request->attributes->get('action'));
         }
+
+        @trigger_error('DEPRECATED: ' . get_class($this) . ' should not rely on BaseElement to handle Ajax requests, write your own implementation', E_USER_DEPRECATED);
+        $requestData = $this->getRequestData();
+        $action = $request->attributes->get('action');
+        $names = array_reverse(explode('/', $action));
+        $names = array_merge(array($names[0]), array_map('ucfirst', array_slice($names, 1)));
+
         $action     = implode($names);
         $methodName = preg_replace('/[^a-z]+/si', null, $action) . 'Action';
-        $result     = $this->{$methodName}($request);
+        $result     = $this->{$methodName}($requestData);
 
         if (is_array($result)) {
             $serializer = new JsonSerializer();
@@ -125,6 +126,22 @@ abstract class BaseElement extends Element
         return $result;
     }
 
+    /**
+     * Handles requests (API)
+     *
+     * Get request "action" variable and run defined action method.
+     *
+     * Example: if $action="feature/get", then convert name
+     *          and run $this->getFeatureAction($request);
+     *
+     * @inheritdoc
+     * @deprecated
+     */
+    public function httpAction($action)
+    {
+        $request = $this->container->get('request_stack')->getCurrentRequest();
+        return $this->handleHttpRequest($request);
+    }
 
     /**
      * Prepare element by type
@@ -192,21 +209,27 @@ abstract class BaseElement extends Element
     }
 
     /**
+     * @param Request|null $request
      * @return array|mixed
      * @throws \LogicException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException
+     * @deprecated implement your own data extraction in action methods
      */
-    protected function getRequestData()
+    protected function getRequestData(Request $request = null)
     {
-        $content = $this->container->get('request')->getContent();
-        $request = array_merge($_POST, $_GET);
+        @trigger_error('DEPRECATED: ' . get_class($this) . '::getRequestData will be removed in a future release (version TBD).', E_USER_DEPRECATED);
+        if (!$request) {
+            $request = $this->container->get('request_stack')->getCurrentRequest();
+        }
+        $content = $request->getContent();
+        $requestData = array_merge($_POST, $_GET);
 
         if (!empty($content)) {
-            $request = array_merge($request, json_decode($content, true));
+            $requestData = array_merge($requestData, json_decode($content, true));
         }
 
-        return $this->decodeRequest($request);
+        return $this->decodeRequest($requestData);
     }
 
     /**

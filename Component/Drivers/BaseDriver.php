@@ -3,7 +3,6 @@ namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Doctrine\DBAL\Connection;
 use Mapbender\DataSourceBundle\Entity\DataItem;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class BaseDriver
@@ -13,14 +12,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 abstract class BaseDriver
 {
-    /** @var ContainerInterface */
-     protected $container;
-
-    /**
-     * @var array Driver settings
-     */
-    protected $settings;
-
     /**
      * @var array Field to select from the table
      */
@@ -39,13 +30,10 @@ abstract class BaseDriver
     /**
      * BaseDriver constructor.
      *
-     * @param ContainerInterface $container
      * @param array              $args
      */
-    public function __construct(ContainerInterface $container, array $args = array())
+    public function __construct(array $args = array())
     {
-        $this->container = $container;
-
         // init $methods by $args
         if (is_array($args)) {
             $methods = get_class_methods(get_class($this));
@@ -56,7 +44,6 @@ abstract class BaseDriver
                 }
             }
         }
-        $this->settings = $args;
     }
 
     /**
