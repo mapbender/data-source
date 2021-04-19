@@ -50,6 +50,8 @@ class DataStore
 
     protected $parentField;
     protected $mapping;
+    /** @var Connection|null */
+    protected $connection;
     protected $connectionName;
     protected $connectionType;
     protected $fields;
@@ -147,12 +149,10 @@ class DataStore
     {
         // uniqueId ownership here
         unset($args['uniqueId']);
-        // @todo: give drivers proper constructor arguments. Wild-west arrays are not proper constructor arguments.
-
-        $connection = $this->getDbalConnectionByName($this->connectionName);
+        $connection = $this->getConnection();
 
         $platformName = $connection->getDatabasePlatform()->getName();
-        switch ($connection->getDatabasePlatform()->getName()) {
+        switch ($platformName) {
             case self::SQLITE_PLATFORM;
                 $driver = new SQLite($connection, $this);
                 break;
@@ -610,8 +610,7 @@ class DataStore
      */
     public function getSelectQueryBuilder(array $fields = array())
     {
-        $driver = $this->getDriver();
-        $connection = $driver->getConnection();
+        $connection = $this->getConnection();
         $qb = $connection->createQueryBuilder();
         $qb->from($this->getTableName(), 't');
         $fields = array_merge($this->getFields(), $fields);
@@ -717,9 +716,8 @@ class DataStore
      */
     public function getPlatformName()
     {
-        return $this->getDriver()->getPlatformName();
+        return $this->getConnection()->getDatabasePlatform()->getName();
     }
-
 
     /**
      * Get DBAL Connection
@@ -728,7 +726,10 @@ class DataStore
      */
     public function getConnection()
     {
-        return $this->getDriver()->getConnection();
+        if (!$this->connection) {
+            $this->connection = $this->getDbalConnectionByName($this->connectionName);
+        }
+        return $this->connection;
     }
 
     /** @noinspection PhpUnused */

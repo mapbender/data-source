@@ -158,13 +158,8 @@ class DoctrineBaseDriver extends BaseDriver
      */
     public function getPlatformName()
     {
-        static $name = null;
-        if (!$name) {
-            $name = $this->connection->getDatabasePlatform()->getName();
-        }
-        return $name;
+        return $this->connection->getDatabasePlatform()->getName();
     }
-
 
     /**
      * Get query builder prepared to select from the source table
