@@ -354,7 +354,6 @@ class FeatureType extends DataStore
      */
     public function search(array $criteria = array())
     {
-        $returnType      = isset($criteria['returnType']) ? $criteria['returnType'] : null;
         $srid            = isset($criteria['srid']) ? $criteria['srid'] : $this->getSrid();
         $queryBuilder    = $this->getSelectQueryBuilder(array(),$srid);
 
@@ -368,7 +367,8 @@ class FeatureType extends DataStore
         $rows = $statement->fetchAll();
         $features = $this->prepareResults($rows, $srid);
 
-        if ($returnType == "FeatureCollection") {
+        if (!empty($criteria['returnType']) && $criteria['returnType'] === 'FeatureCollection') {
+            @trigger_error("DEPRECATED: passed 'returnType' => 'FeatureCollection' to search. This path will be removed in 0.2.0. Change your code to use the default WKT format.", E_USER_DEPRECATED);
             return $this->toFeatureCollection($features);
         } else {
             return $features;
@@ -524,9 +524,12 @@ class FeatureType extends DataStore
      *
      * @param Feature[] $features
      * @return array FeatureCollection
+     * @deprecated
+     * @todo 0.2.0: remove this method, drop phayes/geophp dependency
      */
     public function toFeatureCollection($features)
     {
+        @trigger_error("DEPRECATED: converting to GeoJson using abandoned phayes/geophp package. This method will be removed in 0.2.0.", E_USER_DEPRECATED);
         $collection = array(
             'type' => 'FeatureCollection',
             'features' => array(),
@@ -602,6 +605,8 @@ class FeatureType extends DataStore
      *
      * @return string sequence name
      * @throws \Doctrine\DBAL\DBALException
+     * @todo 0.2.0: remove this method (DBA work)
+     * @deprecated
      */
     public function getTableSequenceName()
     {
@@ -617,6 +622,8 @@ class FeatureType extends DataStore
      *
      * @return int last insert ID
      * @throws \Doctrine\DBAL\DBALException
+     * @todo 0.2.0: remove this method (DBA work)
+     * @deprecated
      */
     public function repairTableSequence()
     {

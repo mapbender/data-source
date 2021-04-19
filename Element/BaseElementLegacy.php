@@ -169,6 +169,7 @@ abstract class BaseElementLegacy extends Element
      * @deprecated you really don't want any of this to happen; write a handleHttpRequest
      *         method with a big switch / case handling each supported Ajax action explicitly
      * @internal
+     * @todo 0.2.0: remove this method
      */
     protected function handleHttpRequestMagically(Request $request)
     {

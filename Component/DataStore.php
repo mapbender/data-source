@@ -1002,6 +1002,7 @@ class DataStore
      * @param null $fieldName  file field name
      * @param bool $createPath check and create path?
      * @return string
+     * @deprecated remove in 0.2.0
      */
     public function getFilePath($fieldName = null, $createPath = true)
     {
@@ -1021,6 +1022,7 @@ class DataStore
     /**
      * @param string $fieldName
      * @return string
+     * @deprecated remove in 0.2.0
      */
     public function getFileUrl($fieldName = "")
     {
