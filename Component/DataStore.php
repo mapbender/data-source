@@ -100,6 +100,8 @@ class DataStore
             $this->setFiles($args['files']);
         }
         $unhandledArgs = array_diff_key($args, array_flip(array(
+            'connection',
+            'table',        // driver scope
             'uniqueId',
             'mapping',
             'parentField',

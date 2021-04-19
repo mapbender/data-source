@@ -110,6 +110,7 @@ class FeatureType extends DataStore
         }
         $remaining = array_diff_key($args, array_flip(array(
             'geomField',
+            'geomType',     // driver scope
             'srid',
             'waysTableName',
             'waysGeomFieldName',
