@@ -118,46 +118,23 @@ class FeatureTypeService extends DataStoreService
     }
 
     /**
-     * Has db file?
-     *
-     * @return bool
-     */
-    protected function hasDb()
-    {
-        return is_file($this->getDbPath());
-    }
-
-    /**
      * @return array
      */
     public function getFeatureTypeDeclarations()
     {
         if ($this->declarations === null) {
-            $list = array();
-            $paramKey = $this->declarationPath;
-            if ($this->declarationPath) {
-                if (false !== strpos($paramKey, '/')) {
-                    $filePath = $paramKey;
-                    $paramKey = null;
-                } else {
-                    $filePath = false;
-                }
+            if ($this->declarationPath && $this->container->hasParameter($this->declarationPath)) {
+                $this->declarations = $this->container->getParameter($this->declarationPath);
             } else {
-                if ($this->hasDb()) {
-                    $filePath = $this->getDbPath();
-                } else {
-                    $filePath = false;
+                $this->declarations = array();
+            }
+
+            if (!$this->declarationPath || false !== strpos($this->declarationPath, '/')) {
+                $filePath = $this->declarationPath ?: $this->getDbPath();
+                if (\is_file($filePath)) {
+                    $this->declarations = array_merge($this->declarations, Yaml::parse(file_get_contents($filePath)));
                 }
             }
-
-            if ($this->container->hasParameter($paramKey)) {
-                $list = array_merge($list, $this->container->getParameter($paramKey));
-            }
-
-            if ($filePath !== false) {
-                $list = array_merge($list, Yaml::parse(file_get_contents($filePath)));
-            }
-            $this->declarations = $list;
         }
         return $this->declarations;
     }
