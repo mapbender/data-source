@@ -156,10 +156,6 @@ class FeatureTypeService extends DataStoreService
 
             if ($filePath !== false) {
                 $list = array_merge($list, Yaml::parse(file_get_contents($filePath)));
-            } else {
-                foreach ($list as $id => &$item) {
-                    $item['id'] = $id;
-                }
             }
             $this->declarations = $list;
         }
