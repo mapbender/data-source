@@ -23,12 +23,11 @@ abstract class BaseDriver implements Base
     protected $fields = array();
 
     /**
-     * @param array $args
      * @param DataStore $repository
      *
      * @todo 0.2.0: remove repository binding and all methods requiring repository inflection
      */
-    public function __construct(array $args, DataStore $repository)
+    public function __construct(DataStore $repository)
     {
         $this->repository = $repository;
     }

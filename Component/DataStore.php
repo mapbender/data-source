@@ -154,13 +154,13 @@ class DataStore
         $platformName = $connection->getDatabasePlatform()->getName();
         switch ($connection->getDatabasePlatform()->getName()) {
             case self::SQLITE_PLATFORM;
-                $driver = new SQLite($connection, $args, $this);
+                $driver = new SQLite($connection, $this);
                 break;
             case self::POSTGRESQL_PLATFORM;
-                $driver = new PostgreSQL($connection, $args, $this);
+                $driver = new PostgreSQL($connection, $this);
                 break;
             case self::ORACLE_PLATFORM;
-                $driver = new Oracle($connection, $args, $this);
+                $driver = new Oracle($connection, $this);
                 break;
             default:
                 throw new \RuntimeException("Unsupported DBAL platform " . print_r($platformName, true));

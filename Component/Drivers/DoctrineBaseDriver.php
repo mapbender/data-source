@@ -16,10 +16,10 @@ class DoctrineBaseDriver extends BaseDriver
     /** @var Connection */
     public $connection;
 
-    public function __construct(Connection $connection, array $args, DataStore $repository)
+    public function __construct(Connection $connection, DataStore $repository)
     {
         $this->connection = $connection;
-        parent::__construct($args, $repository);
+        parent::__construct($repository);
         if (!$repository->getTableName()) {
             throw new \LogicException("Cannot initialize " . get_class($this) . " with empty table name");
         }
