@@ -58,6 +58,8 @@ class DataStore
 
     /** @var string SQL where filter */
     protected $sqlFilter;
+    /** @var string|null */
+    protected $tableName;
 
     /**
      * @var array file info list
@@ -75,6 +77,9 @@ class DataStore
         $this->filesystem = $container->get('filesystem');
         $this->connectionType = isset($args["type"]) ? $args["type"] : "doctrine";
         $this->connectionName = isset($args["connection"]) ? $args["connection"] : "default";
+        if (!empty($args['table'])) {
+            $this->tableName = $args['table'];
+        }
         $this->events = isset($args["events"]) ? $args["events"] : array();
         $args = $this->lcfirstKeys($args ?: array());
         $this->configure($args);
@@ -101,7 +106,7 @@ class DataStore
         }
         $unhandledArgs = array_diff_key($args, array_flip(array(
             'connection',
-            'table',        // driver scope
+            'table',
             'uniqueId',
             'mapping',
             'parentField',
@@ -548,11 +553,10 @@ class DataStore
 
     /**
      * @return string
-     * @todo: this information belongs here, not in the driver
      */
     public function getTableName()
     {
-        return $this->getDriver()->getTableName();
+        return $this->tableName;
     }
 
     /**

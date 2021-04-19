@@ -19,7 +19,7 @@ class SQLite extends DoctrineBaseDriver
     {
         $schemaManager = $this->connection->getDriver()->getSchemaManager($this->connection);
         $columns       = array();
-        $sql           = $schemaManager->getDatabasePlatform()->getListTableColumnsSQL($this->tableName, $this->connection->getDatabase());
+        $sql = $schemaManager->getDatabasePlatform()->getListTableColumnsSQL($this->repository->getTableName(), $this->connection->getDatabase());
         $all           = $this->connection->fetchAll($sql);
 
         foreach ($all as $fieldInfo) {

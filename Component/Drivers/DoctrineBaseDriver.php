@@ -16,17 +16,12 @@ class DoctrineBaseDriver extends BaseDriver
     /** @var Connection */
     public $connection;
 
-    /**
-     * @var string Table name
-     */
-    protected $tableName;
-
     public function __construct(Connection $connection, array $args, DataStore $repository)
     {
         $this->connection = $connection;
         parent::__construct($args, $repository);
-        if (!empty($args['table'])) {
-            $this->setTable($args['table']);
+        if (!$repository->getTableName()) {
+            throw new \LogicException("Cannot initialize " . get_class($this) . " with empty table name");
         }
     }
 
@@ -138,19 +133,6 @@ class DoctrineBaseDriver extends BaseDriver
     }
 
     /**
-     * Set table name
-     *
-     * @param string $name
-     * @return $this
-     * @todo: this information belongs in the DataStore or FeatureType, not here
-     */
-    public function setTable($name)
-    {
-        $this->tableName = $name;
-        return $this;
-    }
-
-    /**
      * Get table fields
      *
      * Info: $schemaManager->listTableColumns($this->tableName) doesn't work if fields are geometries!
@@ -162,7 +144,7 @@ class DoctrineBaseDriver extends BaseDriver
     {
         $schemaManager = $this->connection->getDriver()->getSchemaManager($this->connection);
         $columns       = array();
-        $sql           = $schemaManager->getDatabasePlatform()->getListTableColumnsSQL($this->tableName, $this->connection->getDatabase());
+        $sql = $schemaManager->getDatabasePlatform()->getListTableColumnsSQL($this->repository->getTableName(), $this->connection->getDatabase());
         foreach ($this->connection->fetchAll($sql) as $fieldInfo) {
             $columns[] = $fieldInfo["field"];
         }
@@ -225,10 +207,12 @@ class DoctrineBaseDriver extends BaseDriver
 
     /**
      * @return string
+     *
+     * @todo 0.2.0: remove repository binding and all methods requiring repository inflection
      */
     public function getTableName()
     {
-        return $this->tableName;
+        return $this->repository->getTableName();
     }
 
     /**
@@ -354,7 +338,7 @@ class DoctrineBaseDriver extends BaseDriver
     {
         $identifier = $this->anythingToIdentifier($arg);
         // @todo: empty id should be an error
-        return $this->getConnection()->delete($this->getTableName(), $identifier) > 0;
+        return $this->delete($this->repository->getTableName(), $identifier) > 0;
     }
 
     /**

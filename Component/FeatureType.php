@@ -138,7 +138,7 @@ class FeatureType extends DataStore
         }
         if ($driver instanceof Geographic) {
             // Reset and ignore srid from featureType configuration if driver can auto-detect field CRS
-            $driverSrid = $driver->findGeometryFieldSrid($driver->getTableName(), $this->getGeomField());
+            $driverSrid = $driver->findGeometryFieldSrid($this->getTableName(), $this->getGeomField());
             if ($driverSrid) {
                 $this->srid = $driverSrid;
             }
