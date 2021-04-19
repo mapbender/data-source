@@ -31,27 +31,15 @@ abstract class BaseDriver implements Base
     public function __construct(array $args, DataStore $repository)
     {
         $this->repository = $repository;
-        if (!empty($args['fields'])) {
-            $this->setFields($args['fields']);
-        }
     }
 
     /**
      * @return array
-     * @todo: this information belongs in the DataStore or FeatureType, not here
+     *
+     * @todo 0.2.0: remove repository binding and all methods requiring repository inflection
      */
     public function getFields()
     {
-        return $this->fields;
-    }
-
-    /**
-     * @param array $fields
-     * @return array
-     * @todo: this information belongs in the DataStore or FeatureType, not here
-     */
-    public function setFields(array $fields)
-    {
-        return $this->fields = $fields;
+        return $this->repository->getFields();
     }
 }

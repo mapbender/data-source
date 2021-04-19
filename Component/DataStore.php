@@ -148,11 +148,7 @@ class DataStore
         // uniqueId ownership here
         unset($args['uniqueId']);
         // @todo: give drivers proper constructor arguments. Wild-west arrays are not proper constructor arguments.
-        $hasFields = isset($args["fields"]) && is_array($args["fields"]);
 
-        if ($hasFields && isset($args["parentField"])) {
-            $args["fields"][] = $args["parentField"];
-        }
         $connection = $this->getDbalConnectionByName($this->connectionName);
 
         $platformName = $connection->getDatabasePlatform()->getName();
@@ -169,6 +165,12 @@ class DataStore
             default:
                 throw new \RuntimeException("Unsupported DBAL platform " . print_r($platformName, true));
         }
+        $this->fields = $this->initializeFields($driver, $args);
+        return $driver;
+    }
+
+    protected function initializeFields(DoctrineBaseDriver $driver, $args)
+    {
         if (!empty($args['fields'])) {
             if (!is_array($args['fields'])) {
                 throw new \InvalidArgumentException("Unexpected type " . gettype($args['fields']) . " for 'fields'. Expected array.");
@@ -177,11 +179,10 @@ class DataStore
             if (!empty($args['parentField']) && !in_array($args['parentField'], $fields)) {
                 $fields[] = $args['parentField'];
             }
-            $driver->setFields($fields);
+            return $fields;
         } else {
-            $driver->setFields($driver->getStoreFields());
+            return $driver->getStoreFields();
         }
-        return $driver;
     }
 
     /**
@@ -203,11 +204,10 @@ class DataStore
 
     /**
      * @return array
-     * @todo: this information belongs here, not in the driver
      */
     public function getFields()
     {
-        return $this->getDriver()->getFields();
+        return $this->fields;
     }
 
     /**
@@ -361,8 +361,7 @@ class DataStore
      */
     protected function cleanSaveData($data)
     {
-        $tableFields = $this->getDriver()->getFields() ?: array();
-        $removeFields = array_diff(array_keys($data), $tableFields);
+        $removeFields = array_diff(array_keys($data), $this->fields);
         foreach ($removeFields as $removeField) {
             unset($data[$removeField]);
         }

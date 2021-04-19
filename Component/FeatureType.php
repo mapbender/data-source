@@ -2,6 +2,7 @@
 namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Query\QueryBuilder;
+use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
@@ -128,14 +129,6 @@ class FeatureType extends DataStore
     protected function driverFactory(array $args)
     {
         $driver = parent::driverFactory($args);
-        // filter geometry field from select fields, unless explicitly configured
-        $geomField = $this->getGeomField();
-        if (empty($args['fields']) || !in_array($geomField, $args['fields'])) {
-            $filteredFields = array_filter($driver->getFields(), function($fieldName) use ($geomField) {
-                return $fieldName != $geomField;
-            });
-            $driver->setFields($filteredFields);
-        }
         if ($driver instanceof Geographic) {
             // Reset and ignore srid from featureType configuration if driver can auto-detect field CRS
             $driverSrid = $driver->findGeometryFieldSrid($this->getTableName(), $this->getGeomField());
@@ -144,6 +137,17 @@ class FeatureType extends DataStore
             }
         }
         return $driver;
+    }
+
+    protected function initializeFields(DoctrineBaseDriver $driver, $args)
+    {
+        $fields = parent::initializeFields($driver, $args);
+        // filter geometry field from select fields, unless explicitly configured
+        $geomField = $this->getGeomField();
+        if (empty($args['fields']) || !in_array($geomField, $args['fields'])) {
+            $fields = array_diff($fields, array($geomField));
+        }
+        return $fields;
     }
 
     /**
