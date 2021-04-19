@@ -703,11 +703,11 @@ class DataStore
      */
     public function get($args)
     {
-        $item = $this->create($args);   // uh-oh
-        if ($item->getId()) {
-            $item = $this->getById($item->getId());
+        if ($id = $this->anythingToId($args)) {
+            return $this->getById($id);
+        } else {
+            return $this->create($args);    // uh-oh
         }
-        return $item;
     }
 
     /**
