@@ -60,7 +60,7 @@ class DataItem
         //        The only reason this might break anything is if some JavaScript code
         //        checks for a populated id via .hasOwnProperty instead of using simple
         //        boolean coersion.
-        if (!$this->hasId()) {
+        if (empty($data[$this->uniqueIdField])) {
             unset($data[$this->uniqueIdField]);
         }
 

@@ -397,7 +397,7 @@ class DataStore
             $this->secureEval($this->events[self::EVENT_ON_BEFORE_SAVE], $eventData);
         }
         if ($this->allowSave) {
-            if (!$autoUpdate || !$saveItem->hasId()) {
+            if (!$autoUpdate || !$saveItem->getId()) {
                 $this->insertItem($saveItem);
             } else {
                 $this->updateItem($saveItem);
