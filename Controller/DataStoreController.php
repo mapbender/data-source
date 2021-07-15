@@ -16,7 +16,7 @@ class DataStoreController extends Controller
     /**
      * @ManagerRoute("{page}", defaults={ "page"=1 }, requirements={ "page"="\d+" }, methods={"GET"})
      */
-    public function indexAction($page)
+    public function indexAction()
     {
         return $this->render('@MapbenderDataSource/DataStore/index.html.twig', array(
             'title'    => 'DataStores',

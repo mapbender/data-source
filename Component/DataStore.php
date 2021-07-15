@@ -237,6 +237,8 @@ class DataStore
      * @param null|int $parentId  Parent ID
      * @param bool     $recursive Recursive [true|false]
      * @return DataItem[]
+     * @deprecated
+     * @todo 0.2: remove this method
      */
     public function getTree($parentId = null, $recursive = true)
     {
@@ -476,6 +478,8 @@ class DataStore
 
     /**
      * Remove data item
+     * @param mixed $args
+     * @return int number of deleted rows
      */
     public function remove($args)
     {
@@ -790,6 +794,8 @@ class DataStore
 
     /**
      * @param mixed $parentField
+     * @deprecated
+     * @todo 0.2: remove this method
      */
     public function setParentField($parentField)
     {
@@ -798,6 +804,8 @@ class DataStore
 
     /**
      * @return mixed
+     * @deprecated
+     * @todo 0.2: remove this method
      */
     public function getParentField()
     {
@@ -807,6 +815,8 @@ class DataStore
     /**
      * @param mixed $mapping
      * @return $this
+     * @deprecated
+     * @todo 0.2: remove this method
      */
     public function setMapping($mapping)
     {
@@ -842,7 +852,8 @@ class DataStore
      * @param string $mappingId
      * @param integer|string $id
      * @return DataItem[]
-     * @todo: figure out who uses this
+     * @deprecated
+     * @todo 0.2: remove this method
      */
     public function getTroughMapping($mappingId, $id)
     {

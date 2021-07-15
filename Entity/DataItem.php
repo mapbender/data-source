@@ -145,6 +145,8 @@ class DataItem
 
     /**
      * @param DataItem[] $children
+     * @deprecated
+     * @todo 0.2: remove this method
      */
     public function setChildren($children)
     {
@@ -153,6 +155,8 @@ class DataItem
 
     /**
      * @return DataItem[]|null
+     * @deprecated
+     * @todo 0.2: remove this method
      */
     public function getChildren()
     {

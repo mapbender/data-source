@@ -24,7 +24,7 @@ class DataStoreServiceTest extends SymfonyTest
         $results   = $dataStore->search();
         foreach ($results as $result) {
             $result->getAttributes();
-        };
+        }
     }
 
     public function testTree()

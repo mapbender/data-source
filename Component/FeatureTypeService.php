@@ -119,6 +119,7 @@ class FeatureTypeService extends DataStoreService
 
     /**
      * @return array
+     * @todo: alias to getDataStoreDeclarations
      */
     public function getFeatureTypeDeclarations()
     {

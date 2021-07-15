@@ -184,7 +184,6 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
         $directedGraph = false,
         $hasReverseCost = false)
     {
-        /** @var Connection $db */
         $db = $this->getConnection();
         $waysTableName = $db->quoteIdentifier($waysTableName);
         $geomFieldName = $db->quoteIdentifier($waysGeomFieldName);

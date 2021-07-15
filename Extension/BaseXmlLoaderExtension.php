@@ -9,6 +9,8 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 /**
  * @package Mapbender\DataSourceBundle\Extension
  * @author  Andriy Oblivantsev <eslider@gmail.com>
+ *
+ * @deprecated use Bundle::build to load configuration
  */
 class BaseXmlLoaderExtension extends Extension
 {

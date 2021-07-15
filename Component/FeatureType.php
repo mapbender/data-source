@@ -23,7 +23,7 @@ use Symfony\Component\Finder\Finder;
  * @copyright 2015 by WhereGroup GmbH & Co. KG
  * @link      https://github.com/mapbender/mapbender-digitizer
  *
- * @method Feature save(Feature $feature, bool $autoUpdate = true)
+ * @method Feature save(Feature|array $feature, bool $autoUpdate = true)
  * @method Feature update($itemOrData)
  * @method Feature insert($itemOrData)
  * @method Feature get($args)
@@ -818,6 +818,7 @@ class FeatureType extends DataStore
         $result = null;
         extract($row);
         eval('$result = ' . $code . ';');
+        /** @noinspection PhpExpressionAlwaysNullInspection */
         return $result;
     }
 

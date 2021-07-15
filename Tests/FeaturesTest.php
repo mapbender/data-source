@@ -81,10 +81,7 @@ class FeaturesTest extends WebTestCase
         $originFeature = $this->getRandomFeature();
         $feature       = self::$featureType->getById($originFeature->getId());
         $this->assertTrue($feature instanceof Feature);
-        if ($feature instanceof Feature) {
-            $this->assertTrue($feature->hasId());
-            $this->assertTrue($feature->getId() == $originFeature->getId(), "ID is incorrect");
-        }
+        $this->assertTrue($feature->getId() == $originFeature->getId(), "ID is incorrect");
     }
 
     public function testRemove()
