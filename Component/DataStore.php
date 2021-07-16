@@ -433,6 +433,7 @@ class DataStore
     /**
      * @param DataItem $item
      * @return DataItem
+     * @since 0.1.17
      */
     public function insertItem(DataItem $item)
     {
@@ -460,6 +461,7 @@ class DataStore
      * @param DataItem $item
      * @return DataItem
      * @throws \Doctrine\DBAL\DBALException
+     * @since 0.1.17
      */
     public function updateItem(DataItem $item)
     {
@@ -989,6 +991,8 @@ class DataStore
      *
      * @param null $fieldName
      * @return string
+     * @deprecated
+     * @todo 0.2: remove (breaks data-manager < 1.2, Digitizer < 1.4)
      */
     public function getFileUri($fieldName = null)
     {
@@ -1014,7 +1018,8 @@ class DataStore
      * @param null $fieldName  file field name
      * @param bool $createPath check and create path?
      * @return string
-     * @deprecated remove in 0.2.0
+     * @deprecated
+     * @todo 0.2: remove (breaks data-manager < 1.2, Digitizer < 1.4)
      */
     public function getFilePath($fieldName = null, $createPath = true)
     {
@@ -1034,7 +1039,8 @@ class DataStore
     /**
      * @param string $fieldName
      * @return string
-     * @deprecated remove in 0.2.0
+     * @deprecated
+     * @todo 0.2: remove (breaks data-manager < 1.2, Digitizer < 1.4)
      */
     public function getFileUrl($fieldName = "")
     {
@@ -1060,7 +1066,8 @@ class DataStore
 
     /**
      * @param array[] $fileInfo
-     * @internal param $fileInfos
+     * @deprecated
+     * @todo 0.2: remove (breaks data-manager < 1.2, Digitizer < 1.4)
      */
     public function setFiles($fileInfo)
     {
@@ -1069,6 +1076,8 @@ class DataStore
 
     /**
      * @return array[]
+     * @deprecated
+     * @todo 0.2: remove (breaks data-manager < 1.2, Digitizer < 1.4)
      */
     public function getFileInfo()
     {
@@ -1076,6 +1085,8 @@ class DataStore
     }
     /**
      * @return string
+     * @deprecated
+     * @todo 0.2: remove (breaks data-manager < 1.2, Digitizer < 1.4)
      */
     public function getUploadsDirectoryName()
     {
