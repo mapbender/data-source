@@ -24,12 +24,21 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
 
     public function insert($tableName, array $data)
     {
+        $data = $this->fixEmptyNumerics($tableName, $data);
         $data = $this->extendMissingDefaults($tableName, $data);
         $pData = $this->prepareInsertData($data);
 
         $sql = $this->getInsertSql($tableName, $pData[0], $pData[1]);
         $connection = $this->getConnection();
         return $connection->fetchColumn($sql, $pData[2], 0);
+    }
+
+    public function update($tableName, array $data, array $identifier)
+    {
+        $data = array_diff_key($data, $identifier);
+        $data = $this->fixEmptyNumerics($tableName, $data);
+
+        return parent::update($tableName, $data, $identifier);
     }
 
     protected function prepareParamValue($value)
@@ -325,6 +334,16 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
             );
         }
         return $columnMeta;
+    }
+
+    protected function fixEmptyNumerics($tableName, array $data)
+    {
+        foreach ($data as $fieldName => $value) {
+            if (\is_string($value) && !$value && $this->isColumnNumeric($tableName, $fieldName)) {
+                $data[$fieldName] = $this->getMissingFieldValue($tableName, $fieldName);
+            }
+        }
+        return $data;
     }
 
     protected function extendMissingDefaults($tableName, array $data)
