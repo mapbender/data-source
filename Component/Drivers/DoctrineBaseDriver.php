@@ -11,10 +11,12 @@ use Mapbender\DataSourceBundle\Entity\DataItem;
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class DoctrineBaseDriver extends BaseDriver
+abstract class DoctrineBaseDriver extends BaseDriver
 {
     /** @var Connection */
     public $connection;
+    /** @var bool[][] */
+    protected $tableColumnMetaData = array();
 
     public function __construct(Connection $connection, DataStore $repository)
     {
@@ -408,4 +410,74 @@ class DoctrineBaseDriver extends BaseDriver
         // uh-oh!
         return null;
     }
+
+    /**
+     * @param string $table
+     * @param string $column
+     * @return bool
+     */
+    final protected function isColumnNullable($table, $column)
+    {
+        $meta = $this->getColumnsMetaData($table);
+        return empty($meta[$column]) || $meta[$column]['nullable'];
+    }
+
+    /**
+     * @param string $table
+     * @param string $column
+     * @return bool
+     */
+    final protected function columnHasDefault($table, $column)
+    {
+        $meta = $this->getColumnsMetaData($table);
+        return !empty($meta[$column]) && $meta[$column]['has_default'];
+    }
+
+    /**
+     * @param string $table
+     * @param string $column
+     * @return bool
+     */
+    final protected function isColumnNumeric($table, $column)
+    {
+        $meta = $this->getColumnsMetaData($table);
+        return empty($meta[$column]) || $meta[$column]['is_numeric'];
+    }
+
+    final protected function getMissingFieldValue($tableName, $column)
+    {
+        $columnsMeta = $this->getColumnsMetaData($tableName);
+        if (!\array_key_exists($column, $columnsMeta)) {
+            return '';  // Uh-oh
+        }
+        if ($columnsMeta[$column]['is_nullable']) {
+            return null;
+        } elseif ($columnsMeta[$column]['is_numeric']) {
+            return 0;
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * @param string $table
+     * @return bool[]
+     */
+    protected function getColumnsMetaData($table)
+    {
+        if (!\array_key_exists($table, $this->tableColumnMetaData)) {
+            $this->tableColumnMetaData[$table] = $this->loadColumnsMetaData($table);
+        }
+        return $this->tableColumnMetaData[$table] ?: array();
+    }
+
+    /**
+     * Should return minimal metadata array for $table
+     * Returned array must have column names as string keys, and map arrays
+     * with entires 'nullable' (bool) and 'has_default' (bool)
+     *
+     * @param string $table
+     * @return mixed
+     */
+    abstract protected function loadColumnsMetaData($table);
 }

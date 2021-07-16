@@ -117,4 +117,9 @@ class Oracle extends DoctrineBaseDriver implements Geographic
         $connection = $this->getConnection();
         return $connection->fetchColumn("SELECT {$tableName}.{$geomFieldName}.SDO_SRID FROM TABLE " . $tableName);
     }
+
+    protected function loadColumnsMetaData($table)
+    {
+        throw new \RuntimeException("Metadata loading not implemented in " . \get_class($this));
+    }
 }
