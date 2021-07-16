@@ -708,14 +708,15 @@ class FeatureType extends DataStore
      * @param string $sourceGeom EWKT geometry
      * @param string $targetGeom EWKT geometry
      * @return Feature[]
+     * @deprecated data-source is an appropriate starting point for pg routing; roll your own
      */
     public function routeBetweenGeom($sourceGeom, $targetGeom)
     {
-        $driver     = $this->getDriver();
-        $srid       = $this->getSrid();
-        $sourceNode = $driver->getNodeFromGeom($this->waysVerticesTableName, $this->waysGeomFieldName, $sourceGeom, $srid, 'id');
-        $targetNode = $driver->getNodeFromGeom($this->waysVerticesTableName, $this->waysGeomFieldName, $targetGeom, $srid, 'id');
-        return $driver->routeBetweenNodes($this->waysVerticesTableName, $this->waysGeomFieldName, $sourceNode, $targetNode, $srid);
+        $srid = $this->getSrid();
+        $sourceId = LegacyPgRouting::nodeFromGeom($this->connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $sourceGeom, $srid, 'id');
+        $targetId = LegacyPgRouting::nodeFromGeom($this->connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $targetGeom, $srid, 'id');
+        $rows = LegacyPgRouting::route($this->connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $sourceId, $targetId, $srid);
+        return $this->prepareResults($rows);
     }
 
     /**
