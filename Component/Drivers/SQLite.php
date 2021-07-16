@@ -27,23 +27,4 @@ class SQLite extends DoctrineBaseDriver
         }
         return $columns;
     }
-
-    protected function loadColumnsMetaData($table)
-    {
-        // NOTE: cannot use Doctrine SchemaManager::listTableColumns. SchemaManager
-        // destroys the distinction between a column with no default and a column
-        // with a null default.
-        $connection = $this->getConnection();
-        $sql = $connection->getDatabasePlatform()->getListTableColumnsSQL($table);
-        $columnMeta = array();
-        /** @see \Doctrine\DBAL\Platforms\SqlitePlatform::getListTableColumnsSQL */
-        /** @see \Doctrine\DBAL\Schema\SqliteSchemaManager::_getPortableTableColumnDefinition */
-        foreach ($connection->executeQuery($sql) as $row) {
-            $columnMeta[$row['name']] = array(
-                'is_nullable' => !$row['notnull'],
-                'has_default' => !empty($row['dflt_value']),
-                'is_numeric' => !!preg_match('#int|float|double|real|decimal|numeric#i', $row['type']),
-            );
-        }
-    }
 }

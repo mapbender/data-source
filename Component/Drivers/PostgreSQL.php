@@ -24,8 +24,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
 
     public function insert($tableName, array $data)
     {
-        $data = $this->fixEmptyNumerics($tableName, $data);
-        $data = $this->extendMissingDefaults($tableName, $data);
+        $data = $this->metaDataLoader->getTableMeta($tableName)->prepareInsertData($data);
         $pData = $this->prepareInsertData($data);
 
         $sql = $this->getInsertSql($tableName, $pData[0], $pData[1]);
@@ -36,7 +35,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     public function update($tableName, array $data, array $identifier)
     {
         $data = array_diff_key($data, $identifier);
-        $data = $this->fixEmptyNumerics($tableName, $data);
+        $data = $this->metaDataLoader->getTableMeta($tableName)->prepareUpdateData($data);
 
         return parent::update($tableName, $data, $identifier);
     }
@@ -314,48 +313,5 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
             $sql .= ' AND "f_table_schema" = current_schema()';
         }
         return $connection->fetchColumn($sql, $params);
-    }
-
-    protected function loadColumnsMetaData($table)
-    {
-        // NOTE: cannot use Doctrine SchemaManager. SchemaManager will throw when encountering
-        // geometry type columns. Internal SchemaManager Column metadata APIs are
-        // closed to querying indivicial columns.
-        $connection = $this->getConnection();
-        $sql = $connection->getDatabasePlatform()->getListTableColumnsSQL($table);
-        $columnMeta = array();
-        /** @see \Doctrine\DBAL\Platforms\PostgreSqlPlatform::getListTableColumnsSQL */
-        foreach ($connection->executeQuery($sql) as $row) {
-            $name = trim($row['field'], '"');   // Undo quote_ident
-            $columnMeta[$name] = array(
-                'is_nullable' => !$row['isnotnull'],
-                'has_default' => !!$row['default'],
-                'is_numeric' => !!preg_match('#int|float|real|decimal|numeric#i', $row['complete_type']),
-            );
-        }
-        return $columnMeta;
-    }
-
-    protected function fixEmptyNumerics($tableName, array $data)
-    {
-        foreach ($data as $fieldName => $value) {
-            if (\is_string($value) && !$value && $this->isColumnNumeric($tableName, $fieldName)) {
-                $data[$fieldName] = $this->getMissingFieldValue($tableName, $fieldName);
-            }
-        }
-        return $data;
-    }
-
-    protected function extendMissingDefaults($tableName, array $data)
-    {
-        foreach ($this->getStoreFields() as $fieldName) {
-            $fieldAlias = trim($fieldName, '"');   // Undo quote_ident from getListTablesSQl
-            if (!\array_key_exists($fieldName, $data) && !\array_key_exists($fieldAlias, $data)) {
-                if (!$this->columnHasDefault($tableName, $fieldAlias)) {
-                    $data[$fieldAlias] = $this->getMissingFieldValue($tableName, $fieldAlias);
-                }
-            }
-        }
-        return $data;
     }
 }

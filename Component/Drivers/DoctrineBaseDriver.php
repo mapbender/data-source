@@ -5,6 +5,9 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Component\Expression;
+use Mapbender\DataSourceBundle\Component\Meta\Loader\AbstractMetaLoader;
+use Mapbender\DataSourceBundle\Component\Meta\Loader\PostgreSqlMetaLoader;
+use Mapbender\DataSourceBundle\Component\Meta\Loader\SqliteMetaLoader;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
@@ -15,12 +18,15 @@ abstract class DoctrineBaseDriver extends BaseDriver
 {
     /** @var Connection */
     public $connection;
-    /** @var bool[][] */
-    protected $tableColumnMetaData = array();
+
+    /** @var AbstractMetaLoader|null */
+    protected $metaDataLoader;
 
     public function __construct(Connection $connection, DataStore $repository)
     {
         $this->connection = $connection;
+        $this->metaDataLoader = $this->initMetaDataLoader($connection);
+
         parent::__construct($repository);
         if (!$repository->getTableName()) {
             throw new \LogicException("Cannot initialize " . get_class($this) . " with empty table name");
@@ -411,73 +417,16 @@ abstract class DoctrineBaseDriver extends BaseDriver
         return null;
     }
 
-    /**
-     * @param string $table
-     * @param string $column
-     * @return bool
-     */
-    final protected function isColumnNullable($table, $column)
+    protected function initMetaDataLoader(Connection $connection)
     {
-        $meta = $this->getColumnsMetaData($table);
-        return empty($meta[$column]) || $meta[$column]['is_nullable'];
-    }
-
-    /**
-     * @param string $table
-     * @param string $column
-     * @return bool
-     */
-    final protected function columnHasDefault($table, $column)
-    {
-        $meta = $this->getColumnsMetaData($table);
-        return !empty($meta[$column]) && $meta[$column]['has_default'];
-    }
-
-    /**
-     * @param string $table
-     * @param string $column
-     * @return bool
-     */
-    final protected function isColumnNumeric($table, $column)
-    {
-        $meta = $this->getColumnsMetaData($table);
-        return empty($meta[$column]) || $meta[$column]['is_numeric'];
-    }
-
-    final protected function getMissingFieldValue($tableName, $column)
-    {
-        $columnsMeta = $this->getColumnsMetaData($tableName);
-        if (!\array_key_exists($column, $columnsMeta)) {
-            return '';  // Uh-oh
-        }
-        if ($columnsMeta[$column]['is_nullable']) {
-            return null;
-        } elseif ($columnsMeta[$column]['is_numeric']) {
-            return 0;
+        $platform = $connection->getDatabasePlatform();
+        if ($platform instanceof \Doctrine\DBAL\Platforms\PostgreSqlPlatform) {
+            return new PostgreSqlMetaLoader($connection);
+        } elseif ($platform instanceof \Doctrine\DBAL\Platforms\SqlitePlatform) {
+            return new SqliteMetaLoader($connection);
         } else {
-            return '';
+            // Uh-oh. Oracle? MySQL?
+            return null;
         }
     }
-
-    /**
-     * @param string $table
-     * @return bool[]
-     */
-    protected function getColumnsMetaData($table)
-    {
-        if (!\array_key_exists($table, $this->tableColumnMetaData)) {
-            $this->tableColumnMetaData[$table] = $this->loadColumnsMetaData($table);
-        }
-        return $this->tableColumnMetaData[$table] ?: array();
-    }
-
-    /**
-     * Should return minimal metadata array for $table
-     * Returned array must have column names as string keys, and map arrays
-     * with entires 'nullable' (bool) and 'has_default' (bool)
-     *
-     * @param string $table
-     * @return mixed
-     */
-    abstract protected function loadColumnsMetaData($table);
 }
