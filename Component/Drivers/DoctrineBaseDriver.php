@@ -419,7 +419,7 @@ abstract class DoctrineBaseDriver extends BaseDriver
     final protected function isColumnNullable($table, $column)
     {
         $meta = $this->getColumnsMetaData($table);
-        return empty($meta[$column]) || $meta[$column]['nullable'];
+        return empty($meta[$column]) || $meta[$column]['is_nullable'];
     }
 
     /**
