@@ -5,6 +5,7 @@ namespace Mapbender\DataSourceBundle\Component\Drivers;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Manageble;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Routable;
+use Mapbender\DataSourceBundle\Component\LegacyPgRouting;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
@@ -139,83 +140,6 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     }
 
     /**
-     * Get id of geometry in given table nearest to given ewkt
-     *
-     * @param string $waysVerticesTableName
-     * @param string $waysGeomFieldName
-     * @param string $ewkt
-     * @param null|int $transformTo optional srid
-     * @param string $idKey
-     * @return mixed id column value
-     * @todo: this has nothing to do with routing
-     * @todo: support returning more than just the id
-     * @todo: this implementation is super slow on non-trivial datasets
-     */
-    public function getNodeFromGeom($waysVerticesTableName, $waysGeomFieldName, $ewkt, $transformTo = null, $idKey = "id")
-    {
-        $db = $this->getConnection();
-        $geom = "ST_GeometryFromText('" . $db->quote($ewkt) . "')";
-
-        if ($transformTo) {
-            $geom = "ST_TRANSFORM($geom, $transformTo)";
-        }
-
-        return $db->fetchColumn(/** @lang PostgreSQL */
-            "SELECT 
-              {$db->quoteIdentifier($idKey)}, 
-              ST_Distance({$db->quoteIdentifier($waysGeomFieldName)}, $geom) AS distance
-            FROM 
-              {$db->quoteIdentifier($waysVerticesTableName)}
-            ORDER BY 
-              distance ASC
-            LIMIT 1");
-    }
-
-    /**
-     * Route between nodes
-     *
-     * @param string $waysTableName
-     * @param string $waysGeomFieldName
-     * @param int $startNodeId
-     * @param int $endNodeId
-     * @param mixed $srid completely ignored @todo: either use this argument or remove it
-     * @param bool $directedGraph directed graph
-     * @param bool $hasReverseCost Has reverse cost, only can be true, if  directed graph=true
-     * @return DataItem[]
-     */
-    public function routeBetweenNodes(
-        $waysTableName,
-        $waysGeomFieldName,
-        $startNodeId,
-        $endNodeId,
-        $srid,
-        $directedGraph = false,
-        $hasReverseCost = false)
-    {
-        $db = $this->getConnection();
-        $waysTableName = $db->quoteIdentifier($waysTableName);
-        $geomFieldName = $db->quoteIdentifier($waysGeomFieldName);
-        $directedGraph = $directedGraph ? 'TRUE' : 'FALSE'; // directed graph [true|false]
-        $hasReverseCost = $hasReverseCost && $directedGraph ? 'TRUE' : 'FALSE'; // directed graph [true|false]
-        $results = $db->query("SELECT
-                route.seq as orderId,
-                route.id1 as startNodeId,
-                route.id2 as endNodeId,
-                route.cost as distance,
-                ST_AsEWKT ($waysTableName.$geomFieldName) AS geom
-            FROM
-                pgr_dijkstra (
-                    'SELECT gid AS id, source, target, length AS cost FROM $waysTableName',
-                    $startNodeId,
-                    $endNodeId,
-                    $directedGraph,
-                    $hasReverseCost
-                ) AS route
-            LEFT JOIN $waysTableName ON route.id2 = $waysTableName.gid")->fetchAll();
-        return $this->repository->prepareResults($results);
-    }
-
-    /**
      * @return array
      */
     public function listDatabases()
@@ -313,5 +237,16 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
             $sql .= ' AND "f_table_schema" = current_schema()';
         }
         return $connection->fetchColumn($sql, $params);
+    }
+
+    public function getNodeFromGeom($waysVerticesTableName, $waysGeomFieldName, $ewkt, $transformTo = null, $idKey = "id")
+    {
+        return LegacyPgRouting::nodeFromGeom($this->getConnection(), $waysVerticesTableName, $waysGeomFieldName, $ewkt, $transformTo, $idKey);
+    }
+
+    public function routeBetweenNodes($waysTableName, $waysGeomFieldName, $startNodeId, $endNodeId, $srid, $directedGraph = false, $hasReverseCost = false)
+    {
+        $results = LegacyPgRouting::route($this->getConnection(), $waysTableName, $waysGeomFieldName, $startNodeId, $endNodeId, $srid, $directedGraph, $hasReverseCost);
+        return $this->repository->prepareResults($results);
     }
 }
