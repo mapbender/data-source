@@ -278,7 +278,7 @@ class FeatureType extends DataStore
      * @return Feature
      * @throws \Exception
      */
-    protected function insertItem(DataItem $feature)
+    public function insertItem(DataItem $feature)
     {
         /** @var Feature $feature */
         if (isset($this->events[self::EVENT_ON_BEFORE_INSERT]) || isset($this->events[self::EVENT_ON_AFTER_INSERT])) {

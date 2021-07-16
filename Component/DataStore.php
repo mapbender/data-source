@@ -434,7 +434,7 @@ class DataStore
      * @param DataItem $item
      * @return DataItem
      */
-    protected function insertItem(DataItem $item)
+    public function insertItem(DataItem $item)
     {
         $values = $this->getSaveData($item);
         $idName = $this->getUniqueId();
