@@ -712,10 +712,11 @@ class FeatureType extends DataStore
      */
     public function routeBetweenGeom($sourceGeom, $targetGeom)
     {
+        $connection = $this->getConnection();
         $srid = $this->getSrid();
-        $sourceId = LegacyPgRouting::nodeFromGeom($this->connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $sourceGeom, $srid, 'id');
-        $targetId = LegacyPgRouting::nodeFromGeom($this->connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $targetGeom, $srid, 'id');
-        $rows = LegacyPgRouting::route($this->connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $sourceId, $targetId, $srid);
+        $sourceId = LegacyPgRouting::nodeFromGeom($connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $sourceGeom, $srid, 'id');
+        $targetId = LegacyPgRouting::nodeFromGeom($connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $targetGeom, $srid, 'id');
+        $rows = LegacyPgRouting::route($connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $sourceId, $targetId, $srid);
         return $this->prepareResults($rows);
     }
 
