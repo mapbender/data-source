@@ -64,20 +64,19 @@ class DataStoreServiceTest extends SymfonyTest
 
             // Test create method
             $testTitle = "test#".rand(0,1000000);
-            $dataItem  = $dataStore->create(array("title" => $testTitle));
+            $dataItem  = $dataStore->itemFromArray(array("title" => $testTitle));
             $this->assertTrue($dataItem instanceof DataItem);
             $this->assertTrue($dataItem->getAttribute("title") == $testTitle);
 
-            // Test save method
-            $dataStore->save($dataItem);
+            $dataStore->insertItem($dataItem);
             $this->assertTrue($dataItem->getId() > 0);
 
             // Test get method
-            $dataItem = $dataStore->get($dataItem->getId());
+            $dataItem = $dataStore->getById($dataItem->getId());
 
             // Test remove method
             $this->assertTrue($dataItem->getId() > 0);
-            $this->assertTrue($dataStore->remove($dataItem));
+            $this->assertTrue(!!$dataStore->remove($dataItem));
         }
     }
 }
