@@ -1,10 +1,7 @@
 <?php
 namespace Mapbender\DataSourceBundle\Tests;
 
-use Doctrine\Bundle\DoctrineBundle\Registry;
-use Mapbender\DataSourceBundle\Component\FeatureType;
 use Mapbender\DataSourceBundle\Entity\Feature;
-use Mapbender\DataSourceBundle\Utils\WktUtility;
 
 /**
  * @author  Andriy Oblivantsev <eslider@gmail.com>
@@ -40,18 +37,10 @@ class FeatureTypeTest extends SymfonyTest
 
 
     /**
-     * Test save and recognize geometries
+     * Test Feature constructor and geometry getter
      */
     public function testGeometries()
     {
-        // @todo: use a fixture for read / write database tests
-        /** @var Registry $doctrine */
-        $container      = self::$container;
-        $doctrine       = $container->get("doctrine");
-        $container->get("features");
-        $connectionName = $this->configuration['connection'];
-        $doctrine->getConnection($connectionName);
-
         foreach (array(
                      self::WKT_POINT,
                      self::WKT_POLYGON,
@@ -62,35 +51,15 @@ class FeatureTypeTest extends SymfonyTest
                      self::WKT_GEOMETRYCOLLECTION,
                  ) as $wkt) {
 
-            $type = WktUtility::getGeometryType($wkt);
-            $tableName     = "test_" . strtolower($type);
             $srid          = 4326;
             $geomFieldName = 'geom';
             $uniqueIdField = 'id';
-            $featureType   = new FeatureType($container, array(
-                'connection' => $connectionName,
-                'table'      => $tableName,
-                'srid'       => $srid,
-                'geomField'  => $geomFieldName
-            ));
-            $driver        = $featureType->getDriver();
             $feature       = new Feature(array(
                 'geometry'   => $wkt,
                 'properties' => array()
             ), $srid, $uniqueIdField, $geomFieldName);
 
-            $driver->createTable($tableName, $uniqueIdField, true);
-            $featureType->addGeometryColumn($tableName, $type, $srid, $geomFieldName);
-
-            for ($i = 0; $i < 10; $i++) {
-                $savedFeature = $featureType->save($feature);
-                $feature->setId(null);
-                $this->assertEquals($savedFeature->getGeom(), $wkt);
-            }
-
-            if(self::REMOVE_TEST_TABLES){
-                $driver->dropTable($tableName);
-            }
+            $this->assertEquals($feature->getGeom(), $wkt);
         }
     }
 }
