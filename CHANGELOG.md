@@ -1,3 +1,9 @@
+## 0.1.21
+* PostgreSQL: fix mistyped update / insert column value when submitting an empty string to column of ~numeric type
+* PostgreSQL: fix mistyped column values on insert / errors inserting incomplete data in row with incomplete defaults definition
+* Make DataStore insertItem method public (like updateItem)
+* Resolve / mark misc internal deprecations
+
 ## 0.1.20
 - Extend file upload support to both DataStore and FeatureType (previously only FeatureType)
 
