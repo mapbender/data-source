@@ -54,25 +54,4 @@ abstract class SymfonyTest extends WebTestCase
     {
         return static::$container->getParameter($name);
     }
-
-    /**
-     * Get method configuration if available
-     *
-     * @return mixed|null
-     */
-    protected function getConfiguration()
-    {
-        $trace         = debug_backtrace();
-        $caller        = $trace[1];
-        $methodName    = preg_replace("/^test/", "", $caller["function"]);
-        $methodName[0] = strtolower($methodName[0]);
-        $path = "test/" . $caller["class"] . "/" . $methodName;
-
-        $names = explode("/", $path);
-        $r = self::$container->getParameter($names[0]);
-        foreach (array_slice($names, 1) as $name) {
-            $r = $r[$name];
-        }
-        return $r;
-    }
 }
