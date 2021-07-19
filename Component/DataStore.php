@@ -36,6 +36,10 @@ class DataStore
     const EVENT_ON_AFTER_REMOVE  = 'onAfterRemove';
     const EVENT_ON_BEFORE_SEARCH = 'onBeforeSearch';
     const EVENT_ON_AFTER_SEARCH  = 'onAfterSearch';
+    const EVENT_ON_BEFORE_UPDATE = 'onBeforeUpdate';
+    const EVENT_ON_AFTER_UPDATE  = 'onAfterUpdate';
+    const EVENT_ON_BEFORE_INSERT = 'onBeforeInsert';
+    const EVENT_ON_AFTER_INSERT  = 'onAfterInsert';
 
     /** @var ContainerInterface */
     protected $container;
@@ -62,6 +66,9 @@ class DataStore
     protected $sqlFilter;
     /** @var string|null */
     protected $tableName;
+
+    /** @var bool only used during event handling */
+    protected $allowInsert;
 
     /**
      * @var array file info list
@@ -433,15 +440,49 @@ class DataStore
     /**
      * @param DataItem $item
      * @return DataItem
-     * @since 0.1.17
+     * @since 0.1.21
      */
     public function insertItem(DataItem $item)
     {
+        // @todo: fix inconsistent event processing DataStore vs FeatureType...?
+        return $this->insertItemInternal($item, null, null);
+    }
+
+    /**
+     * @param DataItem $item
+     * @param null $eventNameBefore
+     * @param null $eventNameAfter
+     * @return DataItem
+     */
+    protected function insertItemInternal(DataItem $item, $eventNameBefore = null, $eventNameAfter = null)
+    {
         $values = $this->getSaveData($item);
-        $idName = $this->getUniqueId();
-        unset($values[$idName]);
-        $id = $this->getDriver()->insert($this->getTableName(), $values);
-        $item->setId($id);
+
+        if ($eventNameBefore && isset($this->events[$eventNameBefore]) || $eventNameAfter && isset($this->events[$eventNameAfter])) {
+            $eventData = $this->getSaveEventData($item, $values);
+        } else {
+            $eventData = null;
+        }
+
+        if (isset($this->events[$eventNameBefore])) {
+            $this->allowInsert = true;
+            $this->secureEval($this->events[$eventNameBefore], $eventData);
+            $doInsert = $this->allowInsert;
+        } else {
+            $doInsert = true;
+        }
+
+        if ($doInsert) {
+            $idName = $this->getUniqueId();
+            unset($values[$idName]);
+            $id = $this->getDriver()->insert($this->getTableName(), $values);
+            $item->setId($id);
+        }
+
+        if ($eventNameAfter && isset($this->events[$eventNameAfter])) {
+            $this->secureEval($this->events[$eventNameAfter], $eventData);
+        }
+
         return $item;
     }
 

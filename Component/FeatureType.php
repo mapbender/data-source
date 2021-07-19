@@ -39,14 +39,6 @@ class FeatureType extends DataStore
     const UPLOAD_DIR_NAME = "featureTypes";
 
     /**
-     * Events
-     */
-    const EVENT_ON_BEFORE_UPDATE = 'onBeforeUpdate';
-    const EVENT_ON_AFTER_UPDATE  = 'onAfterUpdate';
-    const EVENT_ON_BEFORE_INSERT = 'onBeforeInsert';
-    const EVENT_ON_AFTER_INSERT  = 'onAfterInsert';
-
-    /**
      * @var string Geometry field name
      */
     protected $geomField = 'geom';
@@ -71,10 +63,6 @@ class FeatureType extends DataStore
      */
     protected $waysGeomFieldName = "the_geom";
 
-    /**
-     * @var bool Allow insert feature flag
-     */
-    protected $allowInsert;
 
     /**
      * @var bool Allow update feature flag
@@ -281,28 +269,7 @@ class FeatureType extends DataStore
     public function insertItem(DataItem $feature)
     {
         /** @var Feature $feature */
-        if (isset($this->events[self::EVENT_ON_BEFORE_INSERT]) || isset($this->events[self::EVENT_ON_AFTER_INSERT])) {
-            $data = $this->getSaveData($feature);
-            $eventData = $this->getSaveEventData($feature, $data);
-        } else {
-            $eventData = null;
-        }
-
-        $this->allowInsert             = true;
-
-        if (isset($this->events[self::EVENT_ON_BEFORE_INSERT])) {
-            $this->secureEval($this->events[self::EVENT_ON_BEFORE_INSERT], $eventData);
-        }
-
-        if ($this->allowInsert) {
-            $feature = parent::insertItem($feature);
-        } else {
-            $feature->setId(null);
-        }
-
-        if (isset($this->events[ self::EVENT_ON_AFTER_INSERT ])) {
-            $this->secureEval($this->events[ self::EVENT_ON_AFTER_INSERT ], $eventData);
-        }
+        $feature = $this->insertItemInternal($feature, self::EVENT_ON_BEFORE_INSERT, self::EVENT_ON_AFTER_INSERT);
         return $feature;
     }
 
