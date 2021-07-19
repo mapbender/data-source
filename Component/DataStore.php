@@ -21,7 +21,7 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 /**
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class DataStore
+class DataStore extends DataRepository
 {
     const ORACLE_PLATFORM        = 'oracle';
     const POSTGRESQL_PLATFORM    = 'postgresql';
@@ -54,17 +54,11 @@ class DataStore
 
     protected $parentField;
     protected $mapping;
-    /** @var Connection|null */
-    protected $connection;
     protected $connectionName;
     protected $fields;
 
-    protected $uniqueIdFieldName = 'id';
-
     /** @var string SQL where filter */
     protected $sqlFilter;
-    /** @var string|null */
-    protected $tableName;
 
     /** @var bool only used during event handling */
     protected $allowInsert;
@@ -81,12 +75,18 @@ class DataStore
      */
     public function __construct(ContainerInterface $container, $args = array())
     {
+        // Extract parent constructor arguments
+        $uniqueId = (!empty($args['uniqueId'])) ? $args['uniqueId'] : 'id';
+        $connectionName = (!empty($args["connection"])) ? $args["connection"] : "default";
+        /** @var RegistryInterface $connectionRegistry */
+        $connectionRegistry = $container->get('doctrine');
+        /** @var Connection $connection */
+        $connection = $connectionRegistry->getConnection($connectionName);
+        parent::__construct($connection, $args['table'], $uniqueId);
+
+        // Rest
         $this->container = $container;
         $this->filesystem = $container->get('filesystem');
-        $this->connectionName = isset($args["connection"]) ? $args["connection"] : "default";
-        if (!empty($args['table'])) {
-            $this->tableName = $args['table'];
-        }
         $this->events = isset($args["events"]) ? $args["events"] : array();
         $args = $this->lcfirstKeys($args ?: array());
         $this->configure($args);
@@ -96,9 +96,6 @@ class DataStore
 
     protected function configure(array $args)
     {
-        if (!empty($args['uniqueId'])) {
-            $this->uniqueIdFieldName = $args['uniqueId'];
-        }
         if (array_key_exists('filter', $args)) {
             $this->setFilter($args['filter']);
         }
@@ -586,24 +583,6 @@ class DataStore
     }
 
     /**
-     * Get unique ID field name
-     *
-     * @return string
-     */
-    public function getUniqueId()
-    {
-        return $this->uniqueIdFieldName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getTableName()
-    {
-        return $this->tableName;
-    }
-
-    /**
      * Add custom (non-Doctrineish) criteria to passed query builder.
      * Override hook for customization
      *
@@ -762,19 +741,6 @@ class DataStore
     public function getPlatformName()
     {
         return $this->getConnection()->getDatabasePlatform()->getName();
-    }
-
-    /**
-     * Get DBAL Connection
-     *
-     * @return Connection
-     */
-    public function getConnection()
-    {
-        if (!$this->connection) {
-            $this->connection = $this->getDbalConnectionByName($this->connectionName);
-        }
-        return $this->connection;
     }
 
     /** @noinspection PhpUnused */
@@ -969,22 +935,6 @@ class DataStore
             @trigger_error("DEPRECATED: passed miscapitalized config key(s) " . implode(', ', $modifiedKeys) . ' to ' . get_class($this) . '. This will be an error in 0.2.0', E_USER_DEPRECATED);
         }
         return $argsOut;
-    }
-
-    /**
-     * @param string $name
-     * @return Connection
-     * @internal
-     * @todo: after injecting owning DataStoreService / FeatureType, remove this
-     *        method and delegate to equivalent (but public) owner method
-     */
-    protected function getDbalConnectionByName($name)
-    {
-        /** @var RegistryInterface $registry */
-        $registry = $this->container->get('doctrine');
-        /** @var Connection $connection */
-        $connection = $registry->getConnection($name);
-        return $connection;
     }
 
     /**
