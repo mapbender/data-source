@@ -72,8 +72,17 @@ class FeatureType extends DataStore
     /** @var array|null */
     protected $exportFields;
 
+    /** @var array|null */
+    private $toArrayData;
+
+
     protected function configure(array $args)
     {
+        $this->toArrayData = array(
+            'type' => 'doctrine',
+            'connection' => $args['connection'],
+        );
+
         if (array_key_exists('geomField', $args)) {
             $this->setGeomField($args['geomField']);
         }
@@ -695,9 +704,7 @@ class FeatureType extends DataStore
     public function toArray()
     {
         $tableName = $this->getTableName();
-        return array(
-            'type' => 'doctrine',
-            'connection'  => $this->connectionName,
+        return $this->toArrayData + array(
             'table'       => $tableName,
             'geomType'    => $this->getGeomType($tableName),
             'fields'      => $this->fields,

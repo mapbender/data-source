@@ -54,7 +54,6 @@ class DataStore extends DataRepository
 
     protected $parentField;
     protected $mapping;
-    protected $connectionName;
     protected $fields;
 
     /** @var string SQL where filter */
@@ -76,13 +75,16 @@ class DataStore extends DataRepository
     public function __construct(ContainerInterface $container, $args = array())
     {
         // Extract parent constructor arguments
-        $uniqueId = (!empty($args['uniqueId'])) ? $args['uniqueId'] : 'id';
-        $connectionName = (!empty($args["connection"])) ? $args["connection"] : "default";
+        $defaults = array(
+            'uniqueId' => 'id',
+            'connection' => 'default',  // Uh-oh!
+        );
+        $args += $defaults;
         /** @var RegistryInterface $connectionRegistry */
         $connectionRegistry = $container->get('doctrine');
         /** @var Connection $connection */
-        $connection = $connectionRegistry->getConnection($connectionName);
-        parent::__construct($connection, $args['table'], $uniqueId);
+        $connection = $connectionRegistry->getConnection($args['connection']);
+        parent::__construct($connection, $args['table'], $args['uniqueId']);
 
         // Rest
         $this->container = $container;
