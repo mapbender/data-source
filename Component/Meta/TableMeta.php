@@ -44,8 +44,7 @@ class TableMeta
         foreach ($columnNames as $columnName) {
             $column = $this->getColumn($columnName);
             if (!$column->hasDefault()) {
-                $aliases = $this->getAliases($columnName, true);
-                if (!\array_diff($aliases, \array_keys($data))) {
+                if (!\array_key_exists($columnName, $data)) {
                     $data[$columnName] = $column->getSafeDefault();
                 }
             }
