@@ -6,11 +6,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * @author    Andriy Oblivantsev <eslider@gmail.com>
+ *
+ * @method DataStore getDataStoreByName(string $name)
  */
 class DataStoreService extends RepositoryRegistry
 {
-    /** @var DataStore[] */
-    protected $storeList = array();
     /** @var ContainerInterface */
     protected $container;
 
@@ -44,19 +44,6 @@ class DataStoreService extends RepositoryRegistry
     }
 
     /**
-     * @param string $name
-     * @return DataStore
-     * @since 0.1.15
-     */
-    public function getDataStoreByName($name)
-    {
-        if (!isset($this->storeList[$name])) {
-            $this->storeList[$name] = $this->dataStoreFactory($this->repositoryConfigs[$name]);
-        }
-        return $this->storeList[$name];
-    }
-
-    /**
      * @param mixed[] $config
      * @return DataStore
      * @since 0.1.15
@@ -79,13 +66,5 @@ class DataStoreService extends RepositoryRegistry
             'YAML',
             'JSON'
         );
-    }
-
-    /**
-     * @return mixed[][]
-     */
-    public function getDataStoreDeclarations()
-    {
-        return $this->repositoryConfigs;
     }
 }

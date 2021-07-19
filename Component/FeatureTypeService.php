@@ -9,12 +9,13 @@ use Symfony\Component\Yaml\Yaml;
  *
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  * @copyright 18.03.2015 by WhereGroup GmbH & Co. KG
+ *
+ * @method FeatureType getDataStoreByName(string $name)
+ * @method FeatureType get(string $name)
+ * @property FeatureType[] $repositories
  */
 class FeatureTypeService extends DataStoreService
 {
-    /** @var FeatureType[] */
-    protected $featureTypes;
-
     /**
      * @param ContainerInterface $container
      * @param mixed[][]|string $declarations array of feature type configs OR container param key OR file name
@@ -36,42 +37,40 @@ class FeatureTypeService extends DataStoreService
     }
 
     /**
-     * Get feature type by name
+     * Alias for getDataStoreByName
      *
      * @param string $name
      * @return FeatureType
-     */
-    public function get($name)
-    {
-        return $this->getFeatureTypeByName($name);
-    }
-
-    /**
-     * @param string $name
-     * @return FeatureType
      * @since 0.1.15
+     * @deprecated use aliased method directly
      */
     public function getFeatureTypeByName($name)
     {
-        if (empty($this->featureTypes[$name])) {
-            $declarations = $this->repositoryConfigs;
-            if (empty($declarations[$name])) {
-                throw new \RuntimeException("No FeatureType with id " . var_export($name, true));
-            }
-            $this->featureTypes[$name] = $this->featureTypeFactory($declarations[$name]);
-        }
-        return $this->featureTypes[$name];
+        return $this->getDataStoreByName($name);
     }
 
     /**
-     * @param mixed[] $config
+     * @param array $config
      * @return FeatureType
-     * @since 0.1.15
+     * @since 0.1.22
      */
-    public function featureTypeFactory(array $config)
+    public function dataStoreFactory(array $config)
     {
         // @todo: stop injecting full container into FeatureType
         return new FeatureType($this->container, $config);
+    }
+
+    /**
+     * Alias for dataStoreFactory
+     *
+     * @param mixed[] $config
+     * @return FeatureType
+     * @since 0.1.15
+     * @deprecated use aliased method directly
+     */
+    public function featureTypeFactory(array $config)
+    {
+        return $this->dataStoreFactory($config);
     }
 
     /**
@@ -84,11 +83,11 @@ class FeatureTypeService extends DataStoreService
     public function search()
     {
         foreach ($this->repositoryConfigs as $id => $declaration) {
-            if (empty($this->featureTypes[$id])) {
-                $this->featureTypes[$id] = $this->featureTypeFactory($declaration);
+            if (empty($this->repositories[$id])) {
+                $this->repositories[$id] = $this->dataStoreFactory($declaration);
             }
         }
-        return $this->featureTypes;
+        return $this->repositories;
     }
 
     /**
@@ -108,8 +107,10 @@ class FeatureTypeService extends DataStoreService
     }
 
     /**
+     * Alias for getDataStoreDeclarations
+     *
      * @return array
-     * @deprecated same as getDataStoreDeclarations
+     * @deprecated use aliased method directly
      */
     public function getFeatureTypeDeclarations()
     {

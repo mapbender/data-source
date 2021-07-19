@@ -12,12 +12,14 @@ use Doctrine\Persistence\ConnectionRegistry;
  *
  * @since 0.1.22
  */
-class RepositoryRegistry
+abstract class RepositoryRegistry
 {
     /** @var ConnectionRegistry */
     protected $connectionRegistry;
     /** @var mixed[][] */
     protected $repositoryConfigs;
+    /** @var object[] */
+    protected $repositories;
 
     /**
      * @param ConnectionRegistry $connectionRegistry
@@ -39,5 +41,32 @@ class RepositoryRegistry
         /** @var Connection $connection */
         $connection = $this->connectionRegistry->getConnection($name);
         return $connection;
+    }
+
+    abstract public function dataStoreFactory(array $config);
+
+    /**
+     * @param string $name
+     * @return object
+     * @since 0.1.15
+     */
+    public function getDataStoreByName($name)
+    {
+        if (!$name) {
+            throw new \InvalidArgumentException("Empty dataStore / featureType name " . var_export($name, true));
+        }
+        if (!\array_key_exists($name, $this->repositories)) {
+            $this->repositories[$name] = $this->dataStoreFactory($this->repositoryConfigs[$name]);
+        }
+        return $this->repositories[$name];
+    }
+
+    /**
+     * @return mixed[][]
+     * @since 0.1.8
+     */
+    public function getDataStoreDeclarations()
+    {
+        return $this->repositoryConfigs;
     }
 }
