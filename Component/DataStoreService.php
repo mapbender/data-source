@@ -1,14 +1,13 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component;
 
-use Doctrine\DBAL\Connection;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  */
-class DataStoreService
+class DataStoreService extends RepositoryRegistry
 {
     /** @var DataStore[] */
     protected $storeList = array();
@@ -23,6 +22,10 @@ class DataStoreService
      */
     public function __construct(ContainerInterface $container, $declarationPath = 'dataStores')
     {
+        /** @var RegistryInterface $registry */
+        $registry = $container->get('doctrine');
+        parent::__construct($registry);
+
         $this->container = $container;
         $this->declarationPath = $declarationPath;
     }
@@ -81,19 +84,5 @@ class DataStoreService
     {
         $paramKey = $this->declarationPath;
         return $this->container->getParameter($paramKey);
-    }
-
-    /**
-     * @param string $name
-     * @return Connection
-     * @since 0.0.16
-     */
-    public function getDbalConnectionByName($name)
-    {
-        /** @var RegistryInterface $registry */
-        $registry = $this->container->get('doctrine');
-        /** @var Connection $connection */
-        $connection = $registry->getConnection($name);
-        return $connection;
     }
 }
