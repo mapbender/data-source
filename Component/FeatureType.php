@@ -689,12 +689,14 @@ class FeatureType extends DataStore
 
     /**
      * @return array
+     * @todo 0.2.0: remove this method
+     * @deprecated
      */
     public function toArray()
     {
         $tableName = $this->getTableName();
         return array(
-            'type'        => $this->connectionType,
+            'type' => 'doctrine',
             'connection'  => $this->connectionName,
             'table'       => $tableName,
             'geomType'    => $this->getGeomType($tableName),

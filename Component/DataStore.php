@@ -57,7 +57,6 @@ class DataStore
     /** @var Connection|null */
     protected $connection;
     protected $connectionName;
-    protected $connectionType;
     protected $fields;
 
     protected $uniqueIdFieldName = 'id';
@@ -84,7 +83,6 @@ class DataStore
     {
         $this->container = $container;
         $this->filesystem = $container->get('filesystem');
-        $this->connectionType = isset($args["type"]) ? $args["type"] : "doctrine";
         $this->connectionName = isset($args["connection"]) ? $args["connection"] : "default";
         if (!empty($args['table'])) {
             $this->tableName = $args['table'];
