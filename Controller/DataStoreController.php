@@ -33,7 +33,7 @@ class DataStoreController extends Controller
     {
         /** @var FeatureTypeService $featureService */
         $featureService = $this->container->get("features");
-        $featureTypes   = $featureService->getFeatureTypeDeclarations();
+        $featureTypes = $featureService->getDataStoreDeclarations();
 
         return new JsonResponse(array(
             'list' => $featureTypes,

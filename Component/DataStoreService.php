@@ -13,21 +13,23 @@ class DataStoreService extends RepositoryRegistry
     protected $storeList = array();
     /** @var ContainerInterface */
     protected $container;
-    /** @var null|string */
-    protected $declarationPath;
 
     /**
      * @param ContainerInterface $container
-     * @param string $declarationPath container param key for data store configuration array
+     * @param mixed[][]|string $declarations repository configs, or container param key for lookup
      */
-    public function __construct(ContainerInterface $container, $declarationPath = 'dataStores')
+    public function __construct(ContainerInterface $container, $declarations = 'dataStores')
     {
         /** @var RegistryInterface $registry */
         $registry = $container->get('doctrine');
-        parent::__construct($registry);
+        $declarations = $declarations ?: array();
+        if ($declarations && \is_string($declarations)) {
+            $declarations = $container->getParameter($declarations);
+        }
+
+        parent::__construct($registry, $declarations ?: array());
 
         $this->container = $container;
-        $this->declarationPath = $declarationPath;
     }
 
     /**
@@ -49,8 +51,7 @@ class DataStoreService extends RepositoryRegistry
     public function getDataStoreByName($name)
     {
         if (!isset($this->storeList[$name])) {
-            $configs = $this->getDataStoreDeclarations();
-            $this->storeList[$name] = $this->dataStoreFactory($configs[$name]);
+            $this->storeList[$name] = $this->dataStoreFactory($this->repositoryConfigs[$name]);
         }
         return $this->storeList[$name];
     }
@@ -80,9 +81,11 @@ class DataStoreService extends RepositoryRegistry
         );
     }
 
+    /**
+     * @return mixed[][]
+     */
     public function getDataStoreDeclarations()
     {
-        $paramKey = $this->declarationPath;
-        return $this->container->getParameter($paramKey);
+        return $this->repositoryConfigs;
     }
 }

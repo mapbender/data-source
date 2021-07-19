@@ -16,13 +16,17 @@ class RepositoryRegistry
 {
     /** @var ConnectionRegistry */
     protected $connectionRegistry;
+    /** @var mixed[][] */
+    protected $repositoryConfigs;
 
     /**
      * @param ConnectionRegistry $connectionRegistry
+     * @param mixed[][] $repositoryConfigs
      */
-    public function __construct(ConnectionRegistry $connectionRegistry)
+    public function __construct(ConnectionRegistry $connectionRegistry, array $repositoryConfigs)
     {
         $this->connectionRegistry = $connectionRegistry;
+        $this->repositoryConfigs = $repositoryConfigs;
     }
 
     /**

@@ -12,18 +12,27 @@ use Symfony\Component\Yaml\Yaml;
  */
 class FeatureTypeService extends DataStoreService
 {
-    /** @var mixed */
-    protected $declarations;
     /** @var FeatureType[] */
     protected $featureTypes;
 
     /**
      * @param ContainerInterface $container
-     * @param string $declarationPath container param key or file name; treated as file name if it contains slash(es)
+     * @param mixed[][]|string $declarations array of feature type configs OR container param key OR file name
      */
-    public function __construct(ContainerInterface $container, $declarationPath = 'featureTypes')
+    public function __construct(ContainerInterface $container, $declarations)
     {
-        parent::__construct($container, $declarationPath);
+        if ((!$declarations && !\is_array($declarations)) || (\is_string($declarations) && false !== strpos($declarations, '/'))) {
+            if (!$declarations) {
+                $declarations = $container->getParameter('kernel.root_dir') . '/config/featureTypes.yaml';
+            }
+            if (@\file_exists($declarations)) {
+                @trigger_error("DEPRECATED: Loading featureType config from a standalone file ({$declarations}) is deprecated; pass the config array.", E_USER_DEPRECATED);
+                $declarations = Yaml::parse(\file_get_contents($declarations));
+            } else {
+                throw new \RuntimeException("Cannot access file {$declarations}");
+            }
+        }
+        parent::__construct($container, $declarations);
     }
 
     /**
@@ -45,7 +54,7 @@ class FeatureTypeService extends DataStoreService
     public function getFeatureTypeByName($name)
     {
         if (empty($this->featureTypes[$name])) {
-            $declarations = $this->getFeatureTypeDeclarations();
+            $declarations = $this->repositoryConfigs;
             if (empty($declarations[$name])) {
                 throw new \RuntimeException("No FeatureType with id " . var_export($name, true));
             }
@@ -69,10 +78,12 @@ class FeatureTypeService extends DataStoreService
      * Search feature types
      *
      * @return FeatureType[]
+     * @deprecated
+     * @todo 0.2.0: remove this method
      */
     public function search()
     {
-        foreach ($this->getFeatureTypeDeclarations() as $id => $declaration) {
+        foreach ($this->repositoryConfigs as $id => $declaration) {
             if (empty($this->featureTypes[$id])) {
                 $this->featureTypes[$id] = $this->featureTypeFactory($declaration);
             }
@@ -83,60 +94,25 @@ class FeatureTypeService extends DataStoreService
     /**
      * @param FeatureType $featureType
      * @return int
+     * @deprecated perform your file editing with file editing tools
+     * @todo 0.2.0: remove this method
      */
     public function save(FeatureType $featureType)
     {
-        $dbPath      = $this->getDbPath();
-        $definitions = array();
-
-        $this->getFeatureTypeDeclarations();
-        $declaration   = $featureType->toArray();
-        $definitions[] = $declaration;
+        $dbPath = $this->container->getParameter('kernel.root_dir') . '/config/featureTypes.yaml';
 
         return file_put_contents(
             $dbPath,
-            Yaml::dump($definitions)
+            Yaml::dump(array($featureType->toArray()))
         );
     }
 
     /**
-     * @return string
-     */
-    protected function getConfigurationPath()
-    {
-        $kernel     = $this->container->get("kernel");
-        $configPath = $kernel->getRootDir() . "/config";
-        return $configPath;
-    }
-
-    /**
-     * @return string
-     */
-    protected function getDbPath()
-    {
-        return $this->getConfigurationPath() . "/featureTypes.yaml";
-    }
-
-    /**
      * @return array
-     * @todo: alias to getDataStoreDeclarations
+     * @deprecated same as getDataStoreDeclarations
      */
     public function getFeatureTypeDeclarations()
     {
-        if ($this->declarations === null) {
-            if ($this->declarationPath && $this->container->hasParameter($this->declarationPath)) {
-                $this->declarations = $this->container->getParameter($this->declarationPath);
-            } else {
-                $this->declarations = array();
-            }
-
-            if (!$this->declarationPath || false !== strpos($this->declarationPath, '/')) {
-                $filePath = $this->declarationPath ?: $this->getDbPath();
-                if (\is_file($filePath)) {
-                    $this->declarations = array_merge($this->declarations, Yaml::parse(file_get_contents($filePath)));
-                }
-            }
-        }
-        return $this->declarations;
+        return $this->getDataStoreDeclarations();
     }
 }
