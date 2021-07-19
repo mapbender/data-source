@@ -110,6 +110,7 @@ class FeatureType extends DataStore
             'geomField',
             'geomType',     // driver scope
             'srid',
+            'export',
             'waysTableName',
             'waysGeomFieldName',
             'waysVerticesTableName',
