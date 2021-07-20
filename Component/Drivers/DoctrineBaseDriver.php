@@ -142,22 +142,12 @@ abstract class DoctrineBaseDriver extends BaseDriver
     }
 
     /**
-     * Get table fields
-     *
-     * Info: $schemaManager->listTableColumns($this->tableName) doesn't work if fields are geometries!
-     *
-     * @throws \Doctrine\DBAL\DBALException
-     * @return string[] field names
+     * @param string $tableName
+     * @return string[]
      */
-    public function getStoreFields()
+    public function getColumnNames($tableName)
     {
-        $schemaManager = $this->connection->getDriver()->getSchemaManager($this->connection);
-        $columns       = array();
-        $sql = $schemaManager->getDatabasePlatform()->getListTableColumnsSQL($this->repository->getTableName(), $this->connection->getDatabase());
-        foreach ($this->connection->fetchAll($sql) as $fieldInfo) {
-            $columns[] = $fieldInfo["field"];
-        }
-        return $columns;
+        return $this->metaDataLoader->getTableMeta($tableName)->getColumNames();
     }
 
     /**

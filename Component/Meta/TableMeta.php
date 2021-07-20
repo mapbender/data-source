@@ -24,6 +24,14 @@ class TableMeta
         }
     }
 
+    /**
+     * @return string[]
+     */
+    public function getColumNames()
+    {
+        return \array_keys($this->columns);
+    }
+
     public function prepareUpdateData(array $data)
     {
         foreach ($data as $columnName => $value) {

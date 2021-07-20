@@ -18,11 +18,6 @@ abstract class BaseDriver implements Base
     protected $repository;
 
     /**
-     * @var array Field to select from the table
-     */
-    protected $fields = array();
-
-    /**
      * @param DataStore $repository
      *
      * @todo 0.2.0: remove repository binding and all methods requiring repository inflection

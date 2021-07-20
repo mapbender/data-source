@@ -175,17 +175,18 @@ class DataStore extends DataRepository
 
     protected function initializeFields(DoctrineBaseDriver $driver, $args)
     {
-        if (!empty($args['fields'])) {
+        if (isset($args['fields'])) {
             if (!is_array($args['fields'])) {
                 throw new \InvalidArgumentException("Unexpected type " . gettype($args['fields']) . " for 'fields'. Expected array.");
             }
             $fields = $args['fields'];
             if (!empty($args['parentField']) && !in_array($args['parentField'], $fields)) {
+                @trigger_error("DEPRECATED: parentField / getParent / getTree are deprecated and will be removed in 0.2.0", E_USER_DEPRECATED);
                 $fields[] = $args['parentField'];
             }
             return $fields;
         } else {
-            return $driver->getStoreFields();
+            return $driver->getColumnNames($this->tableName);
         }
     }
 
