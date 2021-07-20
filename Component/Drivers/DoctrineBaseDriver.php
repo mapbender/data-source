@@ -6,6 +6,7 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Component\Expression;
 use Mapbender\DataSourceBundle\Component\Meta\Loader\AbstractMetaLoader;
+use Mapbender\DataSourceBundle\Component\Meta\Loader\OracleMetaLoader;
 use Mapbender\DataSourceBundle\Component\Meta\Loader\PostgreSqlMetaLoader;
 use Mapbender\DataSourceBundle\Component\Meta\Loader\SqliteMetaLoader;
 use Mapbender\DataSourceBundle\Entity\DataItem;
@@ -424,8 +425,10 @@ abstract class DoctrineBaseDriver extends BaseDriver
             return new PostgreSqlMetaLoader($connection);
         } elseif ($platform instanceof \Doctrine\DBAL\Platforms\SqlitePlatform) {
             return new SqliteMetaLoader($connection);
+        } elseif ($platform instanceof \Doctrine\DBAL\Platforms\OraclePlatform) {
+            return new OracleMetaLoader($connection);
         } else {
-            // Uh-oh. Oracle? MySQL?
+            // Uh-oh. MySQL?
             return null;
         }
     }

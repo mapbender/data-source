@@ -6,7 +6,6 @@ use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Manageble;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Routable;
 use Mapbender\DataSourceBundle\Component\LegacyPgRouting;
-use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
  * @package Mapbender\DataSourceBundle\Component\Drivers
