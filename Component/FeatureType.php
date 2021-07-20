@@ -86,9 +86,6 @@ class FeatureType extends DataStore
         if (array_key_exists('geomField', $args)) {
             $this->setGeomField($args['geomField']);
         }
-        if (array_key_exists('srid', $args)) {
-            $this->setSrid($args['srid']);
-        }
         if (array_key_exists('waysTableName', $args)) {
             $this->setWaysTableName($args['waysTableName']);
         }
@@ -127,7 +124,7 @@ class FeatureType extends DataStore
     protected function driverFactory(array $args)
     {
         $driver = parent::driverFactory($args);
-        if ($driver instanceof Geographic) {
+        if (!$driver instanceof Geographic) {
             // Reset and ignore srid from featureType configuration if driver can auto-detect field CRS
             $driverSrid = $driver->findGeometryFieldSrid($this->getTableName(), $this->getGeomField());
             if ($driverSrid) {
@@ -154,14 +151,6 @@ class FeatureType extends DataStore
     public function setGeomField($geomField)
     {
         $this->geomField = $geomField;
-    }
-
-    /**
-     * @param int $srid
-     */
-    public function setSrid($srid)
-    {
-        $this->srid = $srid;
     }
 
     /**
@@ -489,7 +478,7 @@ class FeatureType extends DataStore
     public function getSrid()
     {
         $driver = $this->getDriver();
-        if (!$this->srid  && $driver instanceof Geographic) {
+        if (!$this->srid && ($driver instanceof Geographic)) {
             /** @var PostgreSQL|Geographic $driver */
             $this->srid = $driver->findGeometryFieldSrid($this->getTableName(), $this->geomField);
         }
