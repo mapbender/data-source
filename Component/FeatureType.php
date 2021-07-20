@@ -272,12 +272,6 @@ class FeatureType extends DataStore
         return $feature;
     }
 
-    protected function cleanDataOnSave()
-    {
-        // avoid calling cleanData when inserting / updating; it would actually remove the geometry!
-        return false;
-    }
-
     /**
      * @param DataItem $feature
      * @return Feature

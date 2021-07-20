@@ -352,27 +352,7 @@ class DataStore extends DataRepository
      */
     protected function getSaveData(DataItem $item)
     {
-        $data = $item->toArray();
-        if ($this->cleanDataOnSave()) {
-            $data = $this->cleanSaveData($data);
-        }
-        return $data;
-    }
-
-    /**
-     * Removes values from $data array that cannot be saved.
-     *
-     * @param mixed[] $data
-     * @return mixed[]
-     * @todo 0.2: remove data cleaning; configurations containing invalid data fields need fixing, and they should absolutely cause errors
-     */
-    protected function cleanSaveData($data)
-    {
-        $removeFields = array_diff(array_keys($data), $this->fields);
-        foreach ($removeFields as $removeField) {
-            unset($data[$removeField]);
-        }
-        return $data;
+        return $item->toArray();
     }
 
     /**
@@ -510,11 +490,6 @@ class DataStore extends DataRepository
         );
         $this->getDriver()->update($this->getTableName(), $data, $identifier);
         return $item;
-    }
-
-    protected function cleanDataOnSave()
-    {
-        return true;
     }
 
     /**
