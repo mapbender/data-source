@@ -55,10 +55,9 @@ class Oracle extends DoctrineBaseDriver implements Geographic
      * Get table geometry type
      *
      * @param string $tableName
-     * @param string $schema
      * @return mixed
      */
-    public function getTableGeomType($tableName, $schema = null)
+    public function getTableGeomType($tableName)
     {
         // TODO: Implement getTableGeomType() method.
         throw new \RuntimeException("Method not implemented");

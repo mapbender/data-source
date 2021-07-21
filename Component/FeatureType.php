@@ -636,18 +636,16 @@ class FeatureType extends DataStore
 
     /**
      * @param string $tableName
-     * @param string $schema
      * @return mixed|null
      */
-    public function getGeomType($tableName, $schema = null)
+    public function getGeomType($tableName)
     {
         $driver = $this->getDriver();
-        $type   = null;
         if ($driver instanceof Geographic) {
-            /** @var Geographic|PostgreSQL $driver */
-            $type = $driver->getTableGeomType($tableName, $schema);
+            return $driver->getTableGeomType($tableName);
+        } else {
+            return null;
         }
-        return $type;
     }
 
     /**

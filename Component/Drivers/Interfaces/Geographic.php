@@ -26,10 +26,9 @@ interface Geographic
      * Get table geometry type
      *
      * @param string $tableName
-     * @param string $schema
      * @return mixed
      */
-    public function getTableGeomType($tableName, $schema = null);
+    public function getTableGeomType($tableName);
 
     /**
      * Returns an sql expression string reprojecting $data to $sridTo

@@ -120,21 +120,24 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
      * Get table geom type
      *
      * @param string $tableName Table name. The name can contains schema name splited by dot.
-     * @param string $schema
      * @return string
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function getTableGeomType($tableName, $schema = null)
+    public function getTableGeomType($tableName)
     {
         $connection = $this->connection;
         if (strpos($tableName, '.')) {
-            list($schema, $tableName) = explode('.', $tableName);
+            $parts = explode('.', $tableName, 2);
+            $schema = $parts[0];
+            $tableName = $parts[1];
+        } else {
+            $schema = null;
         }
-        $_schema = $schema ? $connection->quote($schema) : 'current_schema()';
-        $type = $connection->query("SELECT \"type\"
-                FROM geometry_columns
-                WHERE f_table_schema = " . $_schema . "
-                AND f_table_name = " . $connection->quote($tableName))->fetchColumn();
+        $sql = 'SELECT "type" FROM geometry_columns WHERE'
+             . ' f_table_schema = ' . ($schema ? $connection->quote($schema) : 'current_schema()')
+             . ' AND f_table_name = ' . $connection->quote($tableName)
+        ;
+        $type = $connection->query($sql)->fetchColumn();
         return $type;
     }
 
