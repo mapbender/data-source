@@ -2,7 +2,6 @@
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Query\QueryBuilder;
 use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Component\Expression;
 use Mapbender\DataSourceBundle\Component\Meta\Loader\AbstractMetaLoader;
@@ -40,34 +39,6 @@ abstract class DoctrineBaseDriver extends BaseDriver
     public function getConnection()
     {
         return $this->connection;
-    }
-
-    /**
-     * Get by ID, array or object
-     *
-     * @param mixed $args
-     * @return DataItem
-     * @deprecated
-     * @todo 0.2: remove this method
-     */
-    public function get($args)
-    {
-        return $this->repository->get($args);
-    }
-
-    /**
-     * Auto-inflect insert or update, depending on prepopulated id in the given $data
-     * @deprecated use method on DataStore / FeatureType ("repository")
-     * @todo 0.2: remove this method
-     *
-     * @param mixed $data
-     * @param bool  $autoUpdate update instead of insert if ID given
-     * @return DataItem
-     * @throws \Exception
-     */
-    public function save($data, $autoUpdate = true)
-    {
-        return $this->repository->save($data, $autoUpdate);
     }
 
     /**
@@ -161,45 +132,6 @@ abstract class DoctrineBaseDriver extends BaseDriver
     }
 
     /**
-     * Get query builder prepared to select from the source table
-     *
-     * @param array $fields
-     * @return QueryBuilder
-     * @deprecated use implementation in DataStore / FeatureType
-     * @todo 0.2.0: remove this method
-     */
-    public function getSelectQueryBuilder(array $fields = array())
-    {
-        @trigger_error("DEPRECATED: " . get_class($this) . '::getSelectQueryBuilder does nothing but delegate to DataStore / FeatureType::getSelectQueryBuilder and will be removed in 0.2.0', E_USER_DEPRECATED);
-        return $this->repository->getSelectQueryBuilder($fields);
-    }
-
-    /**
-     * Search by criteria
-     *
-     * @param array $criteria
-     * @return DataItem[]
-     * @deprecated this method's body has been baked into DataStore::search, where it belongs; FeatureType doesn't even use this
-     * @todo 0.2.0: remove this method
-     */
-    public function search(array $criteria = array())
-    {
-        @trigger_error("DEPRECATED: " . get_class($this) . '::search does nothing but delegate to DataStore / FeatureType::search and will be removed in 0.2.0', E_USER_DEPRECATED);
-        return $this->repository->search($criteria);
-    }
-
-    /**
-     * Does absolutely nothing
-     *
-     * @deprecated does nothing
-     * @todo 0.2.0: remove this method
-     */
-    public function setFilter()
-    {
-        @trigger_error("DEPRECATED: " . get_class($this) . '::setFilter does nothing and will be removed in 0.2.0', E_USER_DEPRECATED);
-    }
-
-    /**
      * @return string
      *
      * @todo 0.2.0: remove repository binding and all methods requiring repository inflection
@@ -207,20 +139,6 @@ abstract class DoctrineBaseDriver extends BaseDriver
     public function getTableName()
     {
         return $this->repository->getTableName();
-    }
-
-    /**
-     * Get data item by id
-     *
-     * @param integer|string $id
-     * @return DataItem
-     * @deprecated previously only used by / only works for DataStore (doesn't pass srid to FeatureType)
-     * @todo 0.2.0: remove this method
-     */
-    public function getById($id)
-    {
-        @trigger_error("DEPRECATED: " . get_class($this) . '::getById does nothing but delegate to DataStore / FeatureType::getById and will be removed in 0.2.0', E_USER_DEPRECATED);
-        return $this->repository->getById($id);
     }
 
     /**
@@ -321,21 +239,6 @@ abstract class DoctrineBaseDriver extends BaseDriver
 
 
     /**
-     * Remove data item
-     *
-     * @param DataItem|array|int $arg
-     * @return bool
-     * @deprecated Driver does not care about DataItems, use delete (same API semantics as DBAL Connection)
-     * @todo 0.2: remove this method
-     */
-    public function remove($arg)
-    {
-        $identifier = $this->anythingToIdentifier($arg);
-        // @todo: empty id should be an error
-        return $this->delete($this->repository->getTableName(), $identifier) > 0;
-    }
-
-    /**
      * Delete rows
      * @see \Doctrine\DBAL\Connection::delete
      *
@@ -348,26 +251,6 @@ abstract class DoctrineBaseDriver extends BaseDriver
     public function delete($tableName, array $identifier)
     {
         return $this->getConnection()->delete($tableName, $identifier);
-    }
-
-    /**
-     * List objects by criteria
-     *
-     * @param string|integer $criteria
-     * @param string $fieldName
-     * @return DataItem[]
-     * @deprecated no remaining usages
-     * @todo 0.2.0: remove this method
-     */
-    public function getByCriteria($criteria, $fieldName)
-    {
-        $queryBuilder = $this->repository->getSelectQueryBuilder();
-        $queryBuilder->where($fieldName . " = :criteria");
-        $queryBuilder->setParameter('criteria', $criteria);
-
-        $statement = $queryBuilder->execute();
-        $rows      = $statement->fetchAll();
-        return $this->repository->prepareResults($rows);
     }
 
     /**
