@@ -5,7 +5,9 @@ namespace Mapbender\DataSourceBundle\Component\Drivers;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Manageble;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Routable;
+use Mapbender\DataSourceBundle\Component\FeatureType;
 use Mapbender\DataSourceBundle\Component\LegacyPgRouting;
+use Mapbender\DataSourceBundle\Entity\Feature;
 
 /**
  * @package Mapbender\DataSourceBundle\Component\Drivers
@@ -249,6 +251,13 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     public function routeBetweenNodes($waysTableName, $waysGeomFieldName, $startNodeId, $endNodeId, $srid, $directedGraph = false, $hasReverseCost = false)
     {
         $results = LegacyPgRouting::route($this->getConnection(), $waysTableName, $waysGeomFieldName, $startNodeId, $endNodeId, $srid, $directedGraph, $hasReverseCost);
-        return $this->repository->prepareResults($results);
+        $features = array();
+        $geomName = ($this->repository instanceof FeatureType) ? $this->repository->getGeomField() : null;
+        foreach ($results as $row) {
+            $feature = new Feature(array(), $srid, $this->repository->getUniqueId(), $geomName);
+            $feature->setAttributes($row);
+            $features[] = $feature;
+        }
+        return $features;
     }
 }

@@ -56,8 +56,7 @@ class FeaturesTest extends WebTestCase
     {
         $qb = self::$featureType->getSelectQueryBuilder();
         $qb->setMaxResults(1);
-        $rows = $qb->execute()->fetchAll();
-        $results = self::$featureType->prepareResults($rows);
+        $results = $qb->execute()->fetchAll();
         $this->assertTrue(is_array($results));
     }
 

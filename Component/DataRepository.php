@@ -51,4 +51,12 @@ class DataRepository
     {
         return $this->uniqueIdFieldName;
     }
+
+    /**
+     * @return \Doctrine\DBAL\Query\QueryBuilder
+     */
+    public function createQueryBuilder()
+    {
+        return $this->connection->createQueryBuilder();
+    }
 }

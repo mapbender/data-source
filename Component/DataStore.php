@@ -199,7 +199,7 @@ class DataStore extends DataRepository
         $qb = $this->getSelectQueryBuilder()->setMaxResults(1);
         $qb->where($this->getUniqueId() . ' = :id');
         $qb->setParameter(':id', $id);
-        $items = $this->prepareResults($qb->execute()->fetchAll());
+        $items = $this->prepareResults($qb);
         if ($items) {
             return $items[0];
         } else {
@@ -220,20 +220,13 @@ class DataStore extends DataRepository
      *
      * @param integer|string $id
      * @return DataItem|null
+     * @deprecated use getById (twice)
+     * @todo 0.2: remove this method
      */
     public function getParent($id)
     {
         $dataItem = $this->getById($id);
-        $queryBuilder = $this->getSelectQueryBuilder();
-        $queryBuilder->andWhere($this->getUniqueId() . " = " . $dataItem->getAttribute($this->getParentField()));
-        $queryBuilder->setMaxResults(1);
-        $statement  = $queryBuilder->execute();
-        $rows = $this->prepareResults($statement->fetchAll());
-        if ($rows) {
-            return $rows[0];
-        } else {
-            return null;
-        }
+        return $this->getById($dataItem->getAttribute($this->getParentField()));
     }
 
     /**
@@ -253,8 +246,8 @@ class DataStore extends DataRepository
         } else {
             $queryBuilder->andWhere($this->getParentField() . " = " . $parentId);
         }
-        $statement  = $queryBuilder->execute();
-        $rows = $this->prepareResults($statement->fetchAll());
+
+        $rows = $this->prepareResults($queryBuilder);
 
         if ($recursive) {
             foreach ($rows as $dataItem) {
@@ -547,8 +540,7 @@ class DataStore extends DataRepository
             $queryBuilder->setMaxResults(intval($criteria['maxResults']));
         }
 
-        $statement  = $queryBuilder->execute();
-        $results = $this->prepareResults($statement->fetchAll());
+        $results = $this->prepareResults($queryBuilder);
 
         if (isset($this->events[ self::EVENT_ON_AFTER_SEARCH ])) {
             $this->secureEval($this->events[ self::EVENT_ON_AFTER_SEARCH ], array(
@@ -589,14 +581,14 @@ class DataStore extends DataRepository
     /**
      * Convert database rows to DataItem objects
      *
-     * @param array[] $rows
+     * @param QueryBuilder $queryBuilder
      * @return DataItem[]
      */
-    public function prepareResults($rows)
+    protected function prepareResults(QueryBuilder $queryBuilder)
     {
         $uniqueId = $this->getUniqueId();
         $items = array();
-        foreach ($rows as $key => $row) {
+        foreach ($queryBuilder->execute()->fetchAll() as $row) {
             $item = new DataItem(array(), $uniqueId);
             $item->setAttributes($row);
             $items[] = $item;
@@ -607,16 +599,14 @@ class DataStore extends DataRepository
     /**
      * Get query builder prepared to select from the source table
      *
-     * @param array $fields
      * @return QueryBuilder
      */
-    public function getSelectQueryBuilder(array $fields = array())
+    public function getSelectQueryBuilder()
     {
         $connection = $this->getConnection();
-        $qb = $connection->createQueryBuilder();
+        $qb = $this->createQueryBuilder();
         $qb->from($this->getTableName(), 't');
-        $fields = array_merge($this->getFields(), $fields);
-        $fields = array_merge(array($this->getUniqueId()), $fields);
+        $fields = array_merge(array($this->getUniqueId()), $this->getFields());
 
         foreach ($fields as $field) {
             if (is_array($field)) {
@@ -881,8 +871,7 @@ class DataStore extends DataRepository
         $queryBuilder->where($externalFieldName . " = :criteria");
         $queryBuilder->setParameter('criteria', $criteria);
 
-        $statement = $queryBuilder->execute();
-        return $this->prepareResults($statement->fetchAll());
+        return $this->prepareResults($queryBuilder);
     }
 
     /**

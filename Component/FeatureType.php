@@ -162,12 +162,16 @@ class FeatureType extends DataStore
      */
     public function getById($id, $srid = null)
     {
-        $rows = $this->getSelectQueryBuilder(array(),$srid)->setMaxResults(1)
+        $qb = $this->getSelectQueryBuilder();
+        if ($srid) {
+            $qb->setTargetSrid($srid);
+        }
+        $qb
+            ->setMaxResults(1)
             ->where($this->getUniqueId() . " = :id")
             ->setParameter('id', $id)
-            ->execute()
-            ->fetchAll();
-        $features = $this->prepareResults($rows, $srid);
+        ;
+        $features = $this->prepareResults($qb);
         if ($features) {
             return $features[0];
         } else {
@@ -314,8 +318,10 @@ class FeatureType extends DataStore
      */
     public function search(array $criteria = array())
     {
-        $srid            = isset($criteria['srid']) ? $criteria['srid'] : $this->getSrid();
-        $queryBuilder    = $this->getSelectQueryBuilder(array(),$srid);
+        $queryBuilder = $this->getSelectQueryBuilder();
+        if (!empty($criteria['srid'])) {
+            $queryBuilder->setTargetSrid($criteria['srid']);
+        }
 
         $this->addCustomSearchCritera($queryBuilder, $criteria);
 
@@ -323,9 +329,7 @@ class FeatureType extends DataStore
             $queryBuilder->setMaxResults(intval($criteria['maxResults']));
         }
 
-        $statement  = $queryBuilder->execute();
-        $rows = $statement->fetchAll();
-        $features = $this->prepareResults($rows, $srid);
+        $features = $this->prepareResults($queryBuilder);
 
         if (!empty($criteria['returnType']) && $criteria['returnType'] === 'FeatureCollection') {
             @trigger_error("DEPRECATED: passed 'returnType' => 'FeatureCollection' to search. This path will be removed in 0.2.0. Change your code to use the default WKT format.", E_USER_DEPRECATED);
@@ -377,15 +381,15 @@ class FeatureType extends DataStore
     /**
      * Convert results to Feature objects
      *
-     * @param array[] $rows
-     * @param null      $srid
+     * @param QueryBuilder $queryBuilder
      * @return Feature[]
      */
-    public function prepareResults($rows, $srid = null)
+    protected function prepareResults(QueryBuilder $queryBuilder)
     {
+        /** @var FeatureQueryBuilder $queryBuilder */
         $driver = $this->getDriver();
-        $srid = $srid ?: $this->getSrid();
 
+        $rows = $queryBuilder->execute()->fetchAll();
         if ($driver instanceof Oracle) {
             // @todo: this logic belongs in the driver, not here
             // @todo: this behaviour may cause more trouble than it solves. There should be an option
@@ -393,7 +397,8 @@ class FeatureType extends DataStore
             Oracle::transformColumnNames($rows);
         }
         $features = array();
-        foreach ($rows as $key => $row) {
+        $srid = $queryBuilder->getTargetSrid();
+        foreach ($rows as $row) {
             $feature = new Feature($row, $srid, $this->getUniqueId(), $this->getGeomField());
             $features[] = $feature;
         }
@@ -403,16 +408,13 @@ class FeatureType extends DataStore
     /**
      * Get query builder prepared to select from the source table
      *
-     * @param array $fields
-     * @param null $srid
-     * @return QueryBuilder
+     * @return FeatureQueryBuilder
      */
-    public function getSelectQueryBuilder(array $fields = array(),$srid = null)
+    public function getSelectQueryBuilder()
     {
-        $driver = $this->getDriver();
-        $geomFieldCondition = $driver->getGeomAttributeAsWkt($this->geomField, $srid ? $srid : $this->getSrid());
-        $queryBuilder = parent::getSelectQueryBuilder($fields);
-        $queryBuilder->addSelect($geomFieldCondition);
+        /** @var FeatureQueryBuilder $queryBuilder */
+        $queryBuilder = parent::getSelectQueryBuilder();
+        $queryBuilder->addGeomSelect($this->geomField);
         return $queryBuilder;
     }
 
@@ -675,7 +677,13 @@ class FeatureType extends DataStore
         $sourceId = LegacyPgRouting::nodeFromGeom($connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $sourceGeom, $srid, 'id');
         $targetId = LegacyPgRouting::nodeFromGeom($connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $targetGeom, $srid, 'id');
         $rows = LegacyPgRouting::route($connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $sourceId, $targetId, $srid);
-        return $this->prepareResults($rows);
+        $features = array();
+        foreach ($rows as $row) {
+            $feature = new Feature(array(), $srid, $this->getUniqueId(), $this->getGeomField());
+            $feature->setAttributes($row);
+            $features[] = $feature;
+        }
+        return $features;
     }
 
     /**
@@ -710,12 +718,12 @@ class FeatureType extends DataStore
         $queryBuilder = $this->getSelectQueryBuilder();
         $connection   = $queryBuilder->getConnection();
         $condition = $queryBuilder->expr()->in($this->getUniqueId(), array_map(array($connection, 'quote'), $ids));
-        $rows = $queryBuilder->where($condition)->execute()->fetchAll();
+        $queryBuilder->where($condition);
 
         if ($prepareResults) {
-            return $this->prepareResults($rows);
+            return $this->prepareResults($queryBuilder);
         } else {
-            return $rows;
+            return $queryBuilder->execute()->fetchAll();
         }
     }
 
@@ -789,5 +797,13 @@ class FeatureType extends DataStore
     public function getUploadsDirectoryName()
     {
         return 'featureTypes';
+    }
+
+    /**
+     * @return FeatureQueryBuilder
+     */
+    public function createQueryBuilder()
+    {
+        return new FeatureQueryBuilder($this->connection, $this->getDriver(), $this->getSrid());
     }
 }
