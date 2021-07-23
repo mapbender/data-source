@@ -503,34 +503,6 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Add geometry column
-     *
-     * @param string $tableName
-     * @param string $type
-     * @param string $srid
-     * @param string $geomFieldName
-     * @param string $schemaName
-     * @param int    $dimensions
-     * @return bool
-     * @throws \Doctrine\DBAL\DBALException
-     * @deprecated remove in 0.2.0; this isn't a schema manager utility, find a DBA
-     */
-    public function addGeometryColumn($tableName,
-        $type,
-        $srid,
-        $geomFieldName = "geom",
-        $schemaName = "public",
-        $dimensions = 2)
-    {
-        $driver = $this->getDriver();
-        if ($driver instanceof Geographic) {
-            $driver->addGeometryColumn($tableName, $type, $srid, $geomFieldName, $schemaName, $dimensions);
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * @param string $waysTableName
      */
     public function setWaysTableName($waysTableName)

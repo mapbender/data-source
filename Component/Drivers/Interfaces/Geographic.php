@@ -4,25 +4,6 @@ namespace Mapbender\DataSourceBundle\Component\Drivers\Interfaces;
 interface Geographic
 {
     /**
-     * Add geometry column
-     *
-     * @param string $tableName
-     * @param string $type
-     * @param string $srid
-     * @param string $geomFieldName
-     * @param string $schemaName
-     * @param int    $dimensions
-     * @return mixed
-     * @deprecated remove in 0.2.0 this is DBA work
-     */
-    public function addGeometryColumn($tableName,
-        $type,
-        $srid,
-        $geomFieldName = "geom",
-        $schemaName = "public",
-        $dimensions = 2);
-
-    /**
      * Get table geometry type
      *
      * @param string $tableName
