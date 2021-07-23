@@ -183,7 +183,7 @@ class DataStore extends DataRepository
             }
             return $fields;
         } else {
-            return $driver->getColumnNames($this->tableName);
+            return $this->getTableMetaData()->getColumNames();
         }
     }
 

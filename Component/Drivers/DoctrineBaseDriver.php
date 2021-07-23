@@ -69,15 +69,6 @@ abstract class DoctrineBaseDriver extends BaseDriver
     }
 
     /**
-     * @param string $tableName
-     * @return string[]
-     */
-    public function getColumnNames($tableName)
-    {
-        return $this->getTableMeta($tableName)->getColumNames();
-    }
-
-    /**
      * @param Connection $connection
      * @param string $tableName
      * @param array $data
