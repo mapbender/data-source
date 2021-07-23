@@ -478,9 +478,7 @@ class DataStore extends DataRepository
     public function updateItem(DataItem $item)
     {
         $data = $this->getSaveData($item);
-        $identifier = array(
-            $this->getUniqueId() => $item->getId(),
-        );
+        $identifier = $this->idToIdentifier($item->getId());
         $this->getDriver()->update($this->connection, $this->getTableName(), $data, $identifier);
         return $item;
     }
@@ -510,7 +508,7 @@ class DataStore extends DataRepository
             $this->secureEval($this->events[self::EVENT_ON_BEFORE_REMOVE], $eventData);
         }
         if ($this->allowRemove) {
-            $result = !!$this->getDriver()->delete($this->getTableName(), $this->idToIdentifier($itemId));
+            $result = !!$this->connection->delete($this->tableName, $this->idToIdentifier($itemId));
         }
         if (isset($this->events[self::EVENT_ON_AFTER_REMOVE])) {
             $this->secureEval($this->events[self::EVENT_ON_AFTER_REMOVE], $eventData);
@@ -908,7 +906,7 @@ class DataStore extends DataRepository
      * @param mixed $id
      * @return array
      */
-    private function idToIdentifier($id)
+    protected function idToIdentifier($id)
     {
         $uniqueId = $this->getUniqueId();
         return array($uniqueId => $id);
