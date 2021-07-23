@@ -20,8 +20,8 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
 
     public function insert(Connection $connection, $tableName, array $data, $identifier)
     {
-        $data = $this->getTableMeta($tableName)->prepareInsertData($data);
         $pData = $this->prepareInsertData($connection, $data);
+        $tableName = $connection->quoteIdentifier($tableName);
 
         $sql = $this->getInsertSql($tableName, $pData[0], $pData[1])
             . ' RETURNING ' . $connection->quoteIdentifier($identifier)

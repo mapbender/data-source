@@ -78,6 +78,7 @@ abstract class DoctrineBaseDriver extends BaseDriver
     public function insert(Connection $connection, $tableName, array $data, $identifier)
     {
         $pData = $this->prepareInsertData($connection, $data);
+        $tableName = $connection->quoteIdentifier($tableName);
 
         $sql = $this->getInsertSql($tableName, $pData[0], $pData[1]);
         $connection->executeQuery($sql, $pData[2]);
@@ -114,7 +115,7 @@ abstract class DoctrineBaseDriver extends BaseDriver
     protected function getInsertSql($tableName, $columns, $values)
     {
         return
-            'INSERT INTO ' . $this->getConnection()->quoteIdentifier($tableName)
+            'INSERT INTO ' . $tableName
             . ' (' . implode(', ', $columns) . ')'
             . ' VALUES '
             . ' (' . implode(', ', $values) . ')'

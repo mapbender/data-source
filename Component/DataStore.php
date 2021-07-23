@@ -443,6 +443,7 @@ class DataStore extends DataRepository
         if ($doInsert) {
             $idName = $this->getUniqueId();
             unset($values[$idName]);
+            $values = $this->getTableMetaData()->prepareInsertData($values);
             $id = $this->getDriver()->insert($this->connection, $this->getTableName(), $values, $idName);
             $item->setId($id);
         }
