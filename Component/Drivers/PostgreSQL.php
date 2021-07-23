@@ -29,14 +29,6 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
         return $connection->fetchColumn($sql, $pData[2], 0);
     }
 
-    public function update(Connection $connection, $tableName, array $data, array $identifier)
-    {
-        $data = array_diff_key($data, $identifier);
-        $data = $this->getTableMeta($tableName)->prepareUpdateData($data);
-
-        return parent::update($connection, $tableName, $data, $identifier);
-    }
-
     protected function prepareParamValue($value)
     {
         if (\is_bool($value)) {

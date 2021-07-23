@@ -477,6 +477,7 @@ class DataStore extends DataRepository
     {
         $data = $this->getSaveData($item);
         $identifier = $this->idToIdentifier($item->getId());
+        $data = $this->getTableMetaData()->prepareUpdateData($data);
         $this->getDriver()->update($this->connection, $this->getTableName(), $data, $identifier);
         return $item;
     }

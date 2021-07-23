@@ -299,9 +299,8 @@ class FeatureType extends DataStore
             $this->secureEval($this->events[static::EVENT_ON_BEFORE_UPDATE], $eventData);
         }
         if ($this->allowUpdate) {
-            $identifier = array(
-                $this->getUniqueId() => $feature->getId(),
-            );
+            $identifier = $this->idToIdentifier($feature->getId());
+            $data = $this->getTableMetaData()->prepareUpdateData($data);
             $this->getDriver()->update($this->connection, $this->getTableName(), $data, $identifier);
         }
 
