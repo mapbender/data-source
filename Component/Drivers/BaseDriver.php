@@ -26,14 +26,4 @@ abstract class BaseDriver implements Base
     {
         $this->repository = $repository;
     }
-
-    /**
-     * @return array
-     *
-     * @todo 0.2.0: remove repository binding and all methods requiring repository inflection
-     */
-    public function getFields()
-    {
-        return $this->repository->getFields();
-    }
 }

@@ -8,7 +8,6 @@ use Mapbender\DataSourceBundle\Component\Meta\Loader\AbstractMetaLoader;
 use Mapbender\DataSourceBundle\Component\Meta\Loader\OracleMetaLoader;
 use Mapbender\DataSourceBundle\Component\Meta\Loader\PostgreSqlMetaLoader;
 use Mapbender\DataSourceBundle\Component\Meta\Loader\SqliteMetaLoader;
-use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
  * @package Mapbender\DataSourceBundle\Component\Drivers
@@ -119,26 +118,6 @@ abstract class DoctrineBaseDriver extends BaseDriver
     public function getColumnNames($tableName)
     {
         return $this->metaDataLoader->getTableMeta($tableName)->getColumNames();
-    }
-
-    /**
-     * Get platform name
-     *
-     * @return string
-     */
-    public function getPlatformName()
-    {
-        return $this->connection->getDatabasePlatform()->getName();
-    }
-
-    /**
-     * @return string
-     *
-     * @todo 0.2.0: remove repository binding and all methods requiring repository inflection
-     */
-    public function getTableName()
-    {
-        return $this->repository->getTableName();
     }
 
     /**
@@ -261,34 +240,6 @@ abstract class DoctrineBaseDriver extends BaseDriver
     {
         // Base driver: no transformation
         return $value;
-    }
-
-    /**
-     * Attempts to extract an identifier array from whatever $arg is
-     * Extracted id equivalent to DataStore::create($arg)->getId()
-     *
-     * @param mixed $arg
-     * @return mixed[]
-     */
-    private function anythingToIdentifier($arg)
-    {
-        $uniqueId = $this->repository->getUniqueId();
-        if (\is_numeric($arg)) {
-            return array($uniqueId => $arg);
-        } elseif (\is_object($arg)) {
-            if ($arg instanceof DataItem) {
-                return array($uniqueId => $arg->getId());
-            } else {
-                // self-delegate to array path
-                return $this->anythingToIdentifier(\get_object_vars($arg));
-            }
-        } elseif (\is_array($arg)) {
-            if (!empty($arg[$uniqueId])) {
-                return array($uniqueId => $arg[$uniqueId]);
-            }
-        }
-        // uh-oh!
-        return null;
     }
 
     protected function initMetaDataLoader(Connection $connection)

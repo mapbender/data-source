@@ -1,8 +1,6 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component\Drivers\Interfaces;
 
-use Mapbender\DataSourceBundle\Entity\DataItem;
-
 interface Base
 {
     /**
@@ -27,11 +25,4 @@ interface Base
      * @todo: this information belongs in the DataStore or FeatureType, not here
      */
     public function canWrite();
-
-    /**
-     * Get platform name
-     *
-     * @return string
-     */
-    public function getPlatformName();
 }

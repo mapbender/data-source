@@ -5,7 +5,6 @@ namespace Mapbender\DataSourceBundle\Component\Drivers;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Manageble;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Routable;
-use Mapbender\DataSourceBundle\Component\FeatureType;
 use Mapbender\DataSourceBundle\Component\LegacyPgRouting;
 use Mapbender\DataSourceBundle\Entity\Feature;
 
@@ -252,9 +251,10 @@ class PostgreSQL extends DoctrineBaseDriver implements Manageble, Routable, Geog
     {
         $results = LegacyPgRouting::route($this->getConnection(), $waysTableName, $waysGeomFieldName, $startNodeId, $endNodeId, $srid, $directedGraph, $hasReverseCost);
         $features = array();
-        $geomName = ($this->repository instanceof FeatureType) ? $this->repository->getGeomField() : null;
+        $geomName = 'geom'; // This is hard-coded in the routing query sql
+        $idName = 'orderId'; // This is hard-coded in the routing query sql
         foreach ($results as $row) {
-            $feature = new Feature(array(), $srid, $this->repository->getUniqueId(), $geomName);
+            $feature = new Feature(array(), $srid, $idName, $geomName);
             $feature->setAttributes($row);
             $features[] = $feature;
         }
