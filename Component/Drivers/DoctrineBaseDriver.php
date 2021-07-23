@@ -69,45 +69,6 @@ abstract class DoctrineBaseDriver extends BaseDriver
     }
 
     /**
-     * Prepares and executes an SQL query and returns the value of a single column
-     * of the first row of the result.
-     *
-     * @param string  $statement The SQL query to be executed.
-     * @param array   $params    The prepared statement params.
-     * @param integer $columnNum The 0-indexed column number to retrieve.
-     *
-     * @return mixed
-     */
-    public function fetchColumn($statement, array $params = array(), $columnNum = 0)
-    {
-        return $this->connection->fetchColumn($statement, $params, $columnNum);
-    }
-
-
-    /**
-     * Fetches single-column SQL result set.
-     *
-     * @param string $statement
-     * @return array
-     */
-    public function fetchList($statement)
-    {
-        $result = array();
-        foreach ($this->getConnection()->fetchAll($statement) as $row) {
-            $result[] = current($row);
-        }
-        return $result;
-    }
-
-    /**
-     * Get version
-     */
-    public function getVersion()
-    {
-        $this->fetchColumn("SELECT version()");
-    }
-
-    /**
      * @param string $tableName
      * @return string[]
      */
