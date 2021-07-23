@@ -2,13 +2,12 @@
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Mapbender\DataSourceBundle\Component\DataStore;
-use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Base;
 
 /**
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-abstract class BaseDriver implements Base
+abstract class BaseDriver
 {
     /**
      * Only used for inflecting misplaced methods

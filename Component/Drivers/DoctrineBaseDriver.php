@@ -35,38 +35,6 @@ abstract class DoctrineBaseDriver extends BaseDriver
     }
 
     /**
-     * Is the driver connected an ready to interact?
-     *
-     * @return bool
-     */
-    public function isReady()
-    {
-        return $this->connection && $this->connection->isConnected();
-    }
-
-    /**
-     * Has permission to read?
-     *
-     * @return bool
-     * @todo: this information belongs in the DataStore or FeatureType, not here
-     */
-    public function canRead()
-    {
-        return $this->isReady();
-    }
-
-    /**
-     * Has permission to write?
-     *
-     * @return bool
-     * @todo: this information belongs in the DataStore or FeatureType, not here
-     */
-    public function canWrite()
-    {
-        return $this->isReady();
-    }
-
-    /**
      * @param Connection $connection
      * @param string $tableName
      * @param array $data
