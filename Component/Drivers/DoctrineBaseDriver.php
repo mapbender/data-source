@@ -14,8 +14,6 @@ abstract class DoctrineBaseDriver extends BaseDriver
 {
     /** @var Connection */
     public $connection;
-    /** @var TableMeta[] */
-    protected $tables = array();
 
 
     public function __construct(Connection $connection, DataStore $repository)
@@ -191,13 +189,11 @@ abstract class DoctrineBaseDriver extends BaseDriver
         return $value;
     }
 
+    /**
+     * @param Connection $connection
+     * @param string $tableName
+     * @return TableMeta
+     */
     abstract public function loadTableMeta(Connection $connection, $tableName);
 
-    protected function getTableMeta($tableName)
-    {
-        if (empty($this->tables[$tableName])) {
-            $this->tables[$tableName] = $this->loadTableMeta($this->connection, $tableName);
-        }
-        return $this->tables[$tableName];
-    }
 }
