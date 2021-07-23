@@ -26,4 +26,15 @@ abstract class BaseDriver implements Base
     {
         $this->repository = $repository;
     }
+
+    /**
+     * @param mixed $x
+     * @return mixed
+     * @deprecated returns unchanged input value; remove invocations
+     * @todo: 0.2.0: remove this method (breaks mapbender/search)
+     */
+    final public static function roundGeometry($x)
+    {
+        return $x;
+    }
 }
