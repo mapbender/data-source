@@ -12,17 +12,26 @@ class Column
     protected $hasDefault;
     /** @var bool */
     protected $isNumeric;
+    /** @var string|null */
+    protected $geometryType;
+    /** @var int|null */
+    protected $srid;
 
     /**
      * @param boolean $nullable
      * @param boolean $hasDefault
      * @param boolean $isNumeric
+     * @param string|null $geometryType
+     * @param int|null $srid
      */
-    public function __construct($nullable, $hasDefault, $isNumeric)
+    public function __construct($nullable, $hasDefault, $isNumeric,
+                                $geometryType = null, $srid = null)
     {
         $this->nullable = $nullable;
         $this->hasDefault = $hasDefault;
         $this->isNumeric = $isNumeric;
+        $this->geometryType = $geometryType;
+        $this->srid = $srid;
     }
 
     /**
@@ -61,5 +70,21 @@ class Column
     public function isNumeric()
     {
         return $this->isNumeric;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getGeometryType()
+    {
+        return $this->geometryType;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getSrid()
+    {
+        return $this->srid;
     }
 }
