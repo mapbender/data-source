@@ -5,7 +5,6 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
-use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
 use Mapbender\DataSourceBundle\Utils\WktUtility;
@@ -70,7 +69,6 @@ class FeatureType extends DataStore
     /** @var array|null */
     private $toArrayData;
 
-
     protected function configure(array $args)
     {
         $this->toArrayData = array(
@@ -109,29 +107,12 @@ class FeatureType extends DataStore
         )));
 
         parent::configure($remaining);
+
     }
 
-    /**
-     * @param array $args
-     * @return Drivers\DoctrineBaseDriver
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    protected function driverFactory(array $args)
+    protected function initializeFields($args)
     {
-        $driver = parent::driverFactory($args);
-        if (!$driver instanceof Geographic) {
-            // Reset and ignore srid from featureType configuration if driver can auto-detect field CRS
-            $driverSrid = $driver->findGeometryFieldSrid($this->getTableName(), $this->getGeomField());
-            if ($driverSrid) {
-                $this->srid = $driverSrid;
-            }
-        }
-        return $driver;
-    }
-
-    protected function initializeFields(DoctrineBaseDriver $driver, $args)
-    {
-        $fields = parent::initializeFields($driver, $args);
+        $fields = parent::initializeFields($args);
         // filter geometry field from select fields, unless explicitly configured
         $geomField = $this->getGeomField();
         if (empty($args['fields']) || !in_array($geomField, $args['fields'])) {
@@ -447,11 +428,7 @@ class FeatureType extends DataStore
      */
     public function getSrid()
     {
-        $driver = $this->getDriver();
-        if (!$this->srid && ($driver instanceof Geographic)) {
-            /** @var PostgreSQL|Geographic $driver */
-            $this->srid = $driver->findGeometryFieldSrid($this->getTableName(), $this->geomField);
-        }
+        $this->srid = $this->srid ?: $this->getTableMetaData()->getColumn($this->geomField)->getSrid();
         return $this->srid;
     }
 

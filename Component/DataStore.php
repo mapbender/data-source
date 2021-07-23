@@ -93,8 +93,7 @@ class DataStore extends DataRepository
         $this->events = isset($args["events"]) ? $args["events"] : array();
         $args = $this->lcfirstKeys($args ?: array());
         $this->configure($args);
-        // @todo: lazy-init driver on first getDriver invocation
-        $this->driver = $this->driverFactory($args);
+        $this->fields = $this->initializeFields($args);
     }
 
     protected function configure(array $args)
@@ -144,37 +143,7 @@ class DataStore extends DataRepository
         }
     }
 
-    /**
-     * @param array $args
-     * @return DoctrineBaseDriver
-     * @throws \Doctrine\DBAL\DBALException
-     * @throws \RuntimeException on incompatible platform
-     */
-    protected function driverFactory(array $args)
-    {
-        // uniqueId ownership here
-        unset($args['uniqueId']);
-        $connection = $this->getConnection();
-
-        $platformName = $connection->getDatabasePlatform()->getName();
-        switch ($platformName) {
-            case self::SQLITE_PLATFORM;
-                $driver = new SQLite($connection, $this);
-                break;
-            case self::POSTGRESQL_PLATFORM;
-                $driver = new PostgreSQL($connection, $this);
-                break;
-            case self::ORACLE_PLATFORM;
-                $driver = new Oracle($connection, $this);
-                break;
-            default:
-                throw new \RuntimeException("Unsupported DBAL platform " . print_r($platformName, true));
-        }
-        $this->fields = $this->initializeFields($driver, $args);
-        return $driver;
-    }
-
-    protected function initializeFields(DoctrineBaseDriver $driver, $args)
+    protected function initializeFields($args)
     {
         if (isset($args['fields'])) {
             if (!is_array($args['fields'])) {

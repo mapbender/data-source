@@ -7,6 +7,9 @@ namespace Mapbender\DataSourceBundle\Component;
 use Doctrine\DBAL\Connection;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
+use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
+use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
+use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Component\Meta\TableMeta;
 
 /**
@@ -69,6 +72,9 @@ class DataRepository
      */
     public function getDriver()
     {
+        if (!$this->driver) {
+            $this->driver = $this->driverFactory($this->connection);
+        }
         return $this->driver;
     }
 
@@ -88,5 +94,30 @@ class DataRepository
     public function createQueryBuilder()
     {
         return $this->connection->createQueryBuilder();
+    }
+
+    /**
+     * @param Connection $connection
+     * @return DoctrineBaseDriver
+     * @throws \Doctrine\DBAL\DBALException
+     * @throws \RuntimeException on incompatible platform
+     */
+    protected function driverFactory(Connection $connection)
+    {
+        $platformName = $connection->getDatabasePlatform()->getName();
+        switch ($platformName) {
+            case 'sqlite';
+                $driver = new SQLite($connection);
+                break;
+            case 'postgresql';
+                $driver = new PostgreSQL($connection);
+                break;
+            case 'oracle';
+                $driver = new Oracle($connection);
+                break;
+            default:
+                throw new \RuntimeException("Unsupported DBAL platform " . print_r($platformName, true));
+        }
+        return $driver;
     }
 }

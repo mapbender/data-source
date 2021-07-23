@@ -2,7 +2,6 @@
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Doctrine\DBAL\Connection;
-use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Component\Expression;
 use Mapbender\DataSourceBundle\Component\Meta\TableMeta;
 
@@ -16,13 +15,9 @@ abstract class DoctrineBaseDriver
     public $connection;
 
 
-    public function __construct(Connection $connection, DataStore $repository)
+    public function __construct(Connection $connection)
     {
         $this->connection = $connection;
-
-        if (!$repository->getTableName()) {
-            throw new \LogicException("Cannot initialize " . get_class($this) . " with empty table name");
-        }
     }
 
     /**
