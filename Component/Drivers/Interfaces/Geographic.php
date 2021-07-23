@@ -4,14 +4,6 @@ namespace Mapbender\DataSourceBundle\Component\Drivers\Interfaces;
 interface Geographic
 {
     /**
-     * Get table geometry type
-     *
-     * @param string $tableName
-     * @return mixed
-     */
-    public function getTableGeomType($tableName);
-
-    /**
      * Returns an sql expression string reprojecting $data to $sridTo
      *
      * @param string $data column reference (should be passed pre-quoted) or sql expression

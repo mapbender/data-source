@@ -5,7 +5,6 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Mapbender\CoreBundle\Component\UploadsManager;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
-use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
@@ -46,8 +45,6 @@ class DataStore extends DataRepository
     /** @var Filesystem */
     protected $filesystem;
 
-    /** @var DoctrineBaseDriver */
-    protected $driver;
     public    $events;
     protected $allowSave;
     protected $allowRemove;
@@ -638,16 +635,6 @@ class DataStore extends DataRepository
         return ($this->getDriver()) instanceof Oracle;
     }
 
-
-    /**
-     * Get current driver instance
-     *
-     * @return DoctrineBaseDriver|Geographic
-     */
-    public function getDriver()
-    {
-        return $this->driver;
-    }
 
     /**
      * Is SQLite platform

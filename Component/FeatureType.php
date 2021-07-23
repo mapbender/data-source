@@ -236,7 +236,7 @@ class FeatureType extends DataStore
             $driver = $this->getDriver();
             $connection = $driver->getConnection();
             $geomSql = $driver->getTransformSql($driver->getReadEwktSql($connection->quote($ewkt)), $tableSrid);
-            if ($this->checkPromoteToCollection($ewkt)) {
+            if ($this->checkPromoteToCollection($ewkt, $geomField)) {
                 $geomSql = $driver->getPromoteToCollectionSql($geomSql);
             }
             $data[$geomField] = new Expression($geomSql);
@@ -248,17 +248,19 @@ class FeatureType extends DataStore
 
     /**
      * @param string $ewkt
+     * @param string|null $columnName
      * @return boolean
      */
-    protected function checkPromoteToCollection($ewkt)
+    protected function checkPromoteToCollection($ewkt, $columnName = null)
     {
-        $type = $this->getDriver()->getTableGeomType($this->getTableName());
+        $columnName = $columnName ?: $this->geomField;
+        $tableType = $this->getTableMetaData()->getColumn($columnName)->getGeometryType();
         $wktType = WktUtility::getGeometryType($ewkt);
 
         // @todo: document why we would want to promote to collection, and why we only have a Postgis implementation
-        return $type && $wktType != $type
+        return $tableType && $wktType != $tableType
             && in_array(strtoupper($wktType), Feature::$simpleGeometries)
-            && in_array(strtoupper($type), Feature::$complexGeometries)
+            && in_array(strtoupper($tableType), Feature::$complexGeometries)
         ;
     }
 
@@ -609,20 +611,6 @@ class FeatureType extends DataStore
     }
 
     /**
-     * @param string $tableName
-     * @return mixed|null
-     */
-    public function getGeomType($tableName)
-    {
-        $driver = $this->getDriver();
-        if ($driver instanceof Geographic) {
-            return $driver->getTableGeomType($tableName);
-        } else {
-            return null;
-        }
-    }
-
-    /**
      * Detect (E)WKT geometry type
      *
      * @param string $wkt
@@ -668,7 +656,7 @@ class FeatureType extends DataStore
         $tableName = $this->getTableName();
         return $this->toArrayData + array(
             'table'       => $tableName,
-            'geomType'    => $this->getGeomType($tableName),
+            'geomType' => $this->getTableMetaData()->getColumn($this->geomField)->getGeometryType(),
             'fields'      => $this->fields,
             'geomField'   => $this->geomField,
             'srid'        => $this->getSrid(),

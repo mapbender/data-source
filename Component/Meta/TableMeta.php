@@ -65,7 +65,7 @@ class TableMeta
      * @return Column
      * @throws \RuntimeException
      */
-    protected function getColumn($name)
+    public function getColumn($name)
     {
         foreach ($this->getAliases($name, true) as $alias) {
             if (\array_key_exists($alias, $this->columns)) {
