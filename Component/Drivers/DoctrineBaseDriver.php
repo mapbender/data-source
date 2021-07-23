@@ -4,10 +4,7 @@ namespace Mapbender\DataSourceBundle\Component\Drivers;
 use Doctrine\DBAL\Connection;
 use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Component\Expression;
-use Mapbender\DataSourceBundle\Component\Meta\Loader\AbstractMetaLoader;
-use Mapbender\DataSourceBundle\Component\Meta\Loader\OracleMetaLoader;
-use Mapbender\DataSourceBundle\Component\Meta\Loader\PostgreSqlMetaLoader;
-use Mapbender\DataSourceBundle\Component\Meta\Loader\SqliteMetaLoader;
+use Mapbender\DataSourceBundle\Component\Meta\TableMeta;
 
 /**
  * @package Mapbender\DataSourceBundle\Component\Drivers
@@ -17,14 +14,13 @@ abstract class DoctrineBaseDriver extends BaseDriver
 {
     /** @var Connection */
     public $connection;
+    /** @var TableMeta[] */
+    protected $tables = array();
 
-    /** @var AbstractMetaLoader|null */
-    protected $metaDataLoader;
 
     public function __construct(Connection $connection, DataStore $repository)
     {
         $this->connection = $connection;
-        $this->metaDataLoader = $this->initMetaDataLoader($connection);
 
         parent::__construct($repository);
         if (!$repository->getTableName()) {
@@ -117,7 +113,7 @@ abstract class DoctrineBaseDriver extends BaseDriver
      */
     public function getColumnNames($tableName)
     {
-        return $this->metaDataLoader->getTableMeta($tableName)->getColumNames();
+        return $this->getTableMeta($tableName)->getColumNames();
     }
 
     /**
@@ -242,18 +238,13 @@ abstract class DoctrineBaseDriver extends BaseDriver
         return $value;
     }
 
-    protected function initMetaDataLoader(Connection $connection)
+    abstract public function loadTableMeta(Connection $connection, $tableName);
+
+    protected function getTableMeta($tableName)
     {
-        $platform = $connection->getDatabasePlatform();
-        if ($platform instanceof \Doctrine\DBAL\Platforms\PostgreSqlPlatform) {
-            return new PostgreSqlMetaLoader($connection);
-        } elseif ($platform instanceof \Doctrine\DBAL\Platforms\SqlitePlatform) {
-            return new SqliteMetaLoader($connection);
-        } elseif ($platform instanceof \Doctrine\DBAL\Platforms\OraclePlatform) {
-            return new OracleMetaLoader($connection);
-        } else {
-            // Uh-oh. MySQL?
-            return null;
+        if (empty($this->tables[$tableName])) {
+            $this->tables[$tableName] = $this->loadTableMeta($this->connection, $tableName);
         }
+        return $this->tables[$tableName];
     }
 }

@@ -3,9 +3,12 @@
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DBALException;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Routable;
 use Mapbender\DataSourceBundle\Component\LegacyPgRouting;
+use Mapbender\DataSourceBundle\Component\Meta\Column;
+use Mapbender\DataSourceBundle\Component\Meta\TableMeta;
 use Mapbender\DataSourceBundle\Entity\Feature;
 
 /**
@@ -17,7 +20,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
 
     public function insert(Connection $connection, $tableName, array $data, $identifier)
     {
-        $data = $this->metaDataLoader->getTableMeta($tableName)->prepareInsertData($data);
+        $data = $this->getTableMeta($tableName)->prepareInsertData($data);
         $pData = $this->prepareInsertData($connection, $data);
 
         $sql = $this->getInsertSql($tableName, $pData[0], $pData[1])
@@ -29,7 +32,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
     public function update(Connection $connection, $tableName, array $data, array $identifier)
     {
         $data = array_diff_key($data, $identifier);
-        $data = $this->metaDataLoader->getTableMeta($tableName)->prepareUpdateData($data);
+        $data = $this->getTableMeta($tableName)->prepareUpdateData($data);
 
         return parent::update($connection, $tableName, $data, $identifier);
     }
@@ -158,5 +161,60 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
             $features[] = $feature;
         }
         return $features;
+    }
+
+    public function loadTableMeta(Connection $connection, $tableName)
+    {
+        // NOTE: cannot use Doctrine SchemaManager. SchemaManager will throw when encountering
+        // geometry type columns. Internal SchemaManager Column metadata APIs are
+        // closed to querying individual columns.
+        $platform = $connection->getDatabasePlatform();
+        $gcSql = 'SELECT f_geometry_column, srid, type FROM "public"."geometry_columns"'
+               . ' WHERE f_table_name = ?'
+        ;
+        $gcParams = array();
+        if (false !== strpos($tableName, ".")) {
+            $tableNameParts = explode('.', $tableName, 2);
+            $gcParams[] = $tableNameParts[1];
+            $gcSql .= ' AND "f_table_schema" = ?';
+            $gcParams[] = $tableNameParts[0];
+        } else {
+            $gcParams[] = $tableName;
+            $gcSql .= ' AND "f_table_schema" = current_schema()';
+        }
+        $gcInfos = array();
+        try {
+            foreach ($connection->executeQuery($gcSql, $gcParams) as $row) {
+                $gcInfos[$row['f_geometry_column']] = array($row['type'], $row['srid']);
+            }
+        } catch (DBALException $e) {
+            // Ignore (DataStore on PostgreSQL / no Postgis)
+        }
+
+        $sql = $platform->getListTableColumnsSQL($tableName);
+        $columns = array();
+        $aliases = array();
+        /** @see \Doctrine\DBAL\Platforms\PostgreSqlPlatform::getListTableColumnsSQL */
+        /** @see \Doctrine\DBAL\Schema\PostgreSqlSchemaManager::_getPortableTableColumnDefinition */
+        foreach ($connection->executeQuery($sql) as $row) {
+            $name = trim($row['field'], '"');   // Undo quote_ident
+
+            if ($name !== $row['field']) {
+                $aliases[$name] = $row['field'];
+            }
+            $notNull = !$row['isnotnull'];
+            $hasDefault = !!$row['default'];
+            $isNumeric = !!preg_match('#int|float|real|decimal|numeric#i', $row['complete_type']);
+            if (!empty($gcInfos[$name])) {
+                $geomType = $gcInfos[$name][0];
+                $srid = $gcInfos[$name][1];
+            } else {
+                $geomType = $srid = null;
+            }
+
+            $columns[$name] = new Column($notNull, $hasDefault, $isNumeric, $geomType, $srid);
+        }
+        $tableMeta = new TableMeta($columns, $aliases);
+        return $tableMeta;
     }
 }
