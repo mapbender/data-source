@@ -49,10 +49,10 @@ interface Geographic
     /**
      * Get WKB geometry attribute as WKT
      *
-     * @param string $geometryAttribute
+     * @param string $geomReference
      * @param string $sridTo SRID convert to
      * @return string SQL
      */
-    public function getGeomAttributeAsWkt($geometryAttribute, $sridTo);
+    public function getGeomAttributeAsWkt($geomReference, $sridTo);
 }
 

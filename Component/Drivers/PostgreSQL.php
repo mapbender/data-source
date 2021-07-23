@@ -83,12 +83,9 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
     /**
      * @inheritdoc
      */
-    public function getGeomAttributeAsWkt($geometryAttribute, $sridTo)
+    public function getGeomAttributeAsWkt($geomReference, $sridTo)
     {
-        $connection = $this->getConnection();
-        $geomFieldName = $connection->quoteIdentifier($geometryAttribute);
-        $sridTo = is_numeric($sridTo) ? intval($sridTo) : $connection->quote($sridTo);
-        return "ST_ASTEXT(ST_TRANSFORM($geomFieldName, $sridTo)) AS $geomFieldName";
+        return "ST_ASTEXT(ST_TRANSFORM($geomReference, $sridTo))";
     }
 
     public function getNodeFromGeom($waysVerticesTableName, $waysGeomFieldName, $ewkt, $transformTo = null, $idKey = "id")

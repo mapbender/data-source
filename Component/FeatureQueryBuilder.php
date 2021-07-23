@@ -81,7 +81,10 @@ class FeatureQueryBuilder extends QueryBuilder
             if ($this->driver instanceof Geographic) {
                 $sridTo = $this->getTargetSrid();
                 foreach ($this->geomNames as $geomName) {
-                    parent::addSelect($this->driver->getGeomAttributeAsWkt($geomName, $sridTo));
+                    $geomReference = $this->getConnection()->quoteIdentifier($geomName);
+                    $geomSql = $this->driver->getGeomAttributeAsWkt($geomReference, \intval($sridTo))
+                             . ' AS ' . $this->getConnection()->quoteIdentifier($geomName);
+                    parent::addSelect($geomSql);
                 }
             } else {
                 // Uh-oh

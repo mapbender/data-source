@@ -95,9 +95,9 @@ class Oracle extends DoctrineBaseDriver implements Geographic
     /**
      * @inheritdoc
      */
-    public function getGeomAttributeAsWkt($geometryAttribute, $sridTo)
+    public function getGeomAttributeAsWkt($geomReference, $sridTo)
     {
-      return "SDO_UTIL.TO_WKTGEOMETRY(SDO_CS.TRANSFORM($geometryAttribute, $sridTo)) AS $geometryAttribute";
+      return "SDO_UTIL.TO_WKTGEOMETRY(SDO_CS.TRANSFORM($geomReference, $sridTo))";
     }
 
     public function loadTableMeta(Connection $connection, $tableName)
