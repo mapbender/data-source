@@ -269,7 +269,7 @@ class FeatureType extends DataStore
     public function insertItem(DataItem $feature)
     {
         /** @var Feature $feature */
-        $feature = $this->insertItemInternal($feature, self::EVENT_ON_BEFORE_INSERT, self::EVENT_ON_AFTER_INSERT);
+        $feature = $this->storeItemInternal($feature, true, self::EVENT_ON_BEFORE_INSERT, self::EVENT_ON_AFTER_INSERT);
         return $feature;
     }
 
@@ -280,7 +280,7 @@ class FeatureType extends DataStore
     public function updateItem(DataItem $feature)
     {
         /** @var Feature $feature */
-        $feature = $this->updateItemInternal($feature, self::EVENT_ON_BEFORE_UPDATE, self::EVENT_ON_AFTER_UPDATE);
+        $feature = $this->storeItemInternal($feature, false, self::EVENT_ON_BEFORE_UPDATE, self::EVENT_ON_AFTER_UPDATE);
         return $feature;
     }
 
