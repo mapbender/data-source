@@ -46,7 +46,11 @@ class DataStore extends DataRepository
     protected $filesystem;
 
     public    $events;
+    /** @var bool only used during event handling */
     protected $allowSave;
+    /** @var bool only used during event handling */
+    protected $allowUpdate;
+
     protected $allowRemove;
 
     protected $parentField;
@@ -418,8 +422,9 @@ class DataStore extends DataRepository
 
     /**
      * @param DataItem $item
-     * @param null $eventNameBefore
-     * @param null $eventNameAfter
+     * @param string|null $eventNameBefore
+     * @param string|null $eventNameAfter
+     * @todo: fix vertical copy&paste updateItemInternal / insertItemInternal
      * @return DataItem
      */
     protected function insertItemInternal(DataItem $item, $eventNameBefore = null, $eventNameAfter = null)
@@ -435,12 +440,12 @@ class DataStore extends DataRepository
         if (isset($this->events[$eventNameBefore])) {
             $this->allowInsert = true;
             $this->secureEval($this->events[$eventNameBefore], $eventData);
-            $doInsert = $this->allowInsert;
+            $runQuery = $this->allowInsert;
         } else {
-            $doInsert = true;
+            $runQuery = true;
         }
 
-        if ($doInsert) {
+        if ($runQuery) {
             $idName = $this->getUniqueId();
             unset($values[$idName]);
             $values = $this->getTableMetaData()->prepareInsertData($values);
@@ -448,6 +453,42 @@ class DataStore extends DataRepository
             $item->setId($id);
         }
 
+        if ($eventNameAfter && isset($this->events[$eventNameAfter])) {
+            $this->secureEval($this->events[$eventNameAfter], $eventData);
+        }
+
+        return $item;
+    }
+
+    /**
+     * @param DataItem $item
+     * @param string|null $eventNameBefore
+     * @param string|null $eventNameAfter
+     * @return DataItem
+     * @todo: fix vertical copy&paste updateItemInternal / insertItemInternal
+     */
+    protected function updateItemInternal(DataItem $item, $eventNameBefore = null, $eventNameAfter = null)
+    {
+        $values = $this->getSaveData($item);
+
+        if ($eventNameBefore && isset($this->events[$eventNameBefore]) || $eventNameAfter && isset($this->events[$eventNameAfter])) {
+            $eventData = $this->getSaveEventData($item, $values);
+        } else {
+            $eventData = null;
+        }
+        if (isset($this->events[$eventNameBefore])) {
+            $this->allowUpdate = true;
+            $this->secureEval($this->events[$eventNameBefore], $eventData);
+            $runQuery = $this->allowUpdate;
+        } else {
+            $runQuery = true;
+        }
+
+        if ($runQuery) {
+            $identifier = $this->idToIdentifier($item->getId());
+            $values = $this->getTableMetaData()->prepareUpdateData($values);
+            $this->getDriver()->update($this->connection, $this->getTableName(), $values, $identifier);
+        }
         if ($eventNameAfter && isset($this->events[$eventNameAfter])) {
             $this->secureEval($this->events[$eventNameAfter], $eventData);
         }

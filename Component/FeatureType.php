@@ -64,11 +64,6 @@ class FeatureType extends DataStore
     protected $waysGeomFieldName = "the_geom";
 
 
-    /**
-     * @var bool Allow update feature flag
-     */
-    protected $allowUpdate;
-
     /** @var array|null */
     protected $exportFields;
 
@@ -281,32 +276,11 @@ class FeatureType extends DataStore
     /**
      * @param DataItem $feature
      * @return Feature
-     * @throws \Doctrine\DBAL\DBALException
      */
     public function updateItem(DataItem $feature)
     {
         /** @var Feature $feature */
-        $data = $this->getSaveData($feature);
-
-        $this->allowUpdate = true;
-        if (isset($this->events[self::EVENT_ON_BEFORE_UPDATE]) || isset($this->events[self::EVENT_ON_AFTER_UPDATE])) {
-            $eventData = $this->getSaveEventData($feature, $data);
-        } else {
-            $eventData = null;
-        }
-
-        if (isset($this->events[static::EVENT_ON_BEFORE_UPDATE])) {
-            $this->secureEval($this->events[static::EVENT_ON_BEFORE_UPDATE], $eventData);
-        }
-        if ($this->allowUpdate) {
-            $identifier = $this->idToIdentifier($feature->getId());
-            $data = $this->getTableMetaData()->prepareUpdateData($data);
-            $this->getDriver()->update($this->connection, $this->getTableName(), $data, $identifier);
-        }
-
-        if (isset($this->events[self::EVENT_ON_AFTER_UPDATE])) {
-            $this->secureEval($this->events[self::EVENT_ON_AFTER_UPDATE], $eventData);
-        }
+        $feature = $this->updateItemInternal($feature, self::EVENT_ON_BEFORE_UPDATE, self::EVENT_ON_AFTER_UPDATE);
         return $feature;
     }
 
