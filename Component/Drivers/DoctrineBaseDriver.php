@@ -121,27 +121,28 @@ abstract class DoctrineBaseDriver extends BaseDriver
     }
 
     /**
+     * @param Connection $connection
      * @param string $tableName
      * @param array $data
+     * @param string $identifier
      * @return int the last insert id
      */
-    public function insert($tableName, array $data)
+    public function insert(Connection $connection, $tableName, array $data, $identifier)
     {
-        $pData = $this->prepareInsertData($data);
+        $pData = $this->prepareInsertData($connection, $data);
 
         $sql = $this->getInsertSql($tableName, $pData[0], $pData[1]);
-        $connection = $this->getConnection();
         $connection->executeQuery($sql, $pData[2]);
         return $connection->lastInsertId();
     }
 
     /**
+     * @param Connection $connection
      * @param mixed[] $data
      * @return array numeric with 3 entries: first: quoted column names; second: sql value expressions; third: query parameters
      */
-    protected function prepareInsertData(array $data)
+    protected function prepareInsertData(Connection $connection, array $data)
     {
-        $connection = $this->connection;
         $columns = array();
         $sqlValues = array();
         $params = array();
@@ -173,16 +174,15 @@ abstract class DoctrineBaseDriver extends BaseDriver
     }
 
     /**
+     * @param Connection $connection
      * @param string $tableName
      * @param mixed[] $data
      * @param mixed[] $identifier
      * @return int rows affected
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function update($tableName, array $data, array $identifier)
+    public function update(Connection $connection, $tableName, array $data, array $identifier)
     {
-        $connection = $this->getConnection();
-
         $data = array_diff_key($data, $identifier);
         if (empty($data)) {
             throw new \Exception("Can't update row without data");

@@ -2,6 +2,7 @@
 
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
+use Doctrine\DBAL\Connection;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Routable;
 use Mapbender\DataSourceBundle\Component\LegacyPgRouting;
@@ -14,30 +15,23 @@ use Mapbender\DataSourceBundle\Entity\Feature;
 class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
 {
 
-    protected function getInsertSql($tableName, $columns, $values)
-    {
-        $idName = $this->repository->getUniqueId();
-        return parent::getInsertSql($tableName, $columns, $values)
-            . ' RETURNING ' . $this->getConnection()->quoteIdentifier($idName)
-        ;
-    }
-
-    public function insert($tableName, array $data)
+    public function insert(Connection $connection, $tableName, array $data, $identifier)
     {
         $data = $this->metaDataLoader->getTableMeta($tableName)->prepareInsertData($data);
-        $pData = $this->prepareInsertData($data);
+        $pData = $this->prepareInsertData($connection, $data);
 
-        $sql = $this->getInsertSql($tableName, $pData[0], $pData[1]);
-        $connection = $this->getConnection();
+        $sql = $this->getInsertSql($tableName, $pData[0], $pData[1])
+            . ' RETURNING ' . $connection->quoteIdentifier($identifier)
+        ;
         return $connection->fetchColumn($sql, $pData[2], 0);
     }
 
-    public function update($tableName, array $data, array $identifier)
+    public function update(Connection $connection, $tableName, array $data, array $identifier)
     {
         $data = array_diff_key($data, $identifier);
         $data = $this->metaDataLoader->getTableMeta($tableName)->prepareUpdateData($data);
 
-        return parent::update($tableName, $data, $identifier);
+        return parent::update($connection, $tableName, $data, $identifier);
     }
 
     protected function prepareParamValue($value)

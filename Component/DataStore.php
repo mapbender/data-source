@@ -446,7 +446,7 @@ class DataStore extends DataRepository
         if ($doInsert) {
             $idName = $this->getUniqueId();
             unset($values[$idName]);
-            $id = $this->getDriver()->insert($this->getTableName(), $values);
+            $id = $this->getDriver()->insert($this->connection, $this->getTableName(), $values, $idName);
             $item->setId($id);
         }
 
@@ -481,7 +481,7 @@ class DataStore extends DataRepository
         $identifier = array(
             $this->getUniqueId() => $item->getId(),
         );
-        $this->getDriver()->update($this->getTableName(), $data, $identifier);
+        $this->getDriver()->update($this->connection, $this->getTableName(), $data, $identifier);
         return $item;
     }
 

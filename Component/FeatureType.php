@@ -300,7 +300,7 @@ class FeatureType extends DataStore
             $identifier = array(
                 $this->getUniqueId() => $feature->getId(),
             );
-            $this->getDriver()->update($this->getTableName(), $data, $identifier);
+            $this->getDriver()->update($this->connection, $this->getTableName(), $data, $identifier);
         }
 
         if (isset($this->events[self::EVENT_ON_AFTER_UPDATE])) {
