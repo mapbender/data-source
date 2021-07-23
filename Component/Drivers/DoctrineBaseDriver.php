@@ -29,7 +29,7 @@ abstract class DoctrineBaseDriver extends BaseDriver
     /**
      * @return Connection
      */
-    public function getConnection()
+    protected function getConnection()
     {
         return $this->connection;
     }

@@ -229,8 +229,7 @@ class FeatureType extends DataStore
                 $ewkt = "SRID={$tableSrid};POINT EMPTY";
             }
             $driver = $this->getDriver();
-            $connection = $driver->getConnection();
-            $geomSql = $driver->getTransformSql($driver->getReadEwktSql($connection->quote($ewkt)), $tableSrid);
+            $geomSql = $driver->getTransformSql($driver->getReadEwktSql($this->connection->quote($ewkt)), $tableSrid);
             if ($this->checkPromoteToCollection($ewkt, $geomField)) {
                 $geomSql = $driver->getPromoteToCollectionSql($geomSql);
             }
