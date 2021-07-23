@@ -91,26 +91,6 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
         return "ST_ASTEXT(ST_TRANSFORM($geomFieldName, $sridTo)) AS $geomFieldName";
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function findGeometryFieldSrid($tableName, $geomFieldName)
-    {
-        $connection = $this->getConnection();
-        $sql = 'SELECT srid FROM "public"."geometry_columns" WHERE "f_geometry_column" = ? AND "f_table_name" = ?';
-        $params[] = $geomFieldName;
-        if (false !== strpos($tableName, ".")) {
-            $tableNameParts = explode('.', $tableName, 2);
-            $params[] = $tableNameParts[1];
-            $params[] = $tableNameParts[0];
-            $sql .= ' AND "f_table_schema" = ?';
-        } else {
-            $params[] = $tableName;
-            $sql .= ' AND "f_table_schema" = current_schema()';
-        }
-        return $connection->fetchColumn($sql, $params);
-    }
-
     public function getNodeFromGeom($waysVerticesTableName, $waysGeomFieldName, $ewkt, $transformTo = null, $idKey = "id")
     {
         return LegacyPgRouting::nodeFromGeom($this->getConnection(), $waysVerticesTableName, $waysGeomFieldName, $ewkt, $transformTo, $idKey);

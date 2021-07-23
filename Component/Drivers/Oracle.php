@@ -100,15 +100,6 @@ class Oracle extends DoctrineBaseDriver implements Geographic
       return "SDO_UTIL.TO_WKTGEOMETRY(SDO_CS.TRANSFORM($geometryAttribute, $sridTo)) AS $geometryAttribute";
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function findGeometryFieldSrid($tableName, $geomFieldName)
-    {
-        $connection = $this->getConnection();
-        return $connection->fetchColumn("SELECT {$tableName}.{$geomFieldName}.SDO_SRID FROM TABLE " . $tableName);
-    }
-
     public function loadTableMeta(Connection $connection, $tableName)
     {
         // NOTE: cannot use Doctrine SchemaManager. SchemaManager will throw when encountering

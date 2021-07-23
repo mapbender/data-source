@@ -54,15 +54,5 @@ interface Geographic
      * @return string SQL
      */
     public function getGeomAttributeAsWkt($geometryAttribute, $sridTo);
-
-
-    /**
-     * Get WKB geometry attribute as WKT
-     *
-     * @param  string $tableName
-     * @param  string $geomFieldName
-     * @return string SQL
-     */
-    public function findGeometryFieldSrid($tableName, $geomFieldName);
 }
 
