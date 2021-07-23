@@ -10,7 +10,7 @@ use Mapbender\DataSourceBundle\Component\Meta\TableMeta;
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-abstract class DoctrineBaseDriver extends BaseDriver
+abstract class DoctrineBaseDriver
 {
     /** @var Connection */
     public $connection;
@@ -20,7 +20,6 @@ abstract class DoctrineBaseDriver extends BaseDriver
     {
         $this->connection = $connection;
 
-        parent::__construct($repository);
         if (!$repository->getTableName()) {
             throw new \LogicException("Cannot initialize " . get_class($this) . " with empty table name");
         }
@@ -164,4 +163,14 @@ abstract class DoctrineBaseDriver extends BaseDriver
      */
     abstract public function loadTableMeta(Connection $connection, $tableName);
 
+    /**
+     * @param mixed $x
+     * @return mixed
+     * @deprecated returns unchanged input value; remove invocations
+     * @todo: 0.2.0: remove this method (breaks mapbender/search)
+     */
+    final public static function roundGeometry($x)
+    {
+        return $x;
+    }
 }
