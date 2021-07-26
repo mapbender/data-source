@@ -302,6 +302,7 @@ class DataStore extends DataRepository
 
         return array(
             'item' => &$dataArg,
+            'feature' => $dataArg,
             'originData' => $originData,
         );
     }

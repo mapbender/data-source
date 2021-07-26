@@ -156,30 +156,6 @@ class FeatureType extends DataStore
     }
 
     /**
-     * @param DataItem $feature
-     * @param Feature|array|mixed $dataArg original value passed to save method
-     * @return array
-     */
-    protected function getSaveEventData(DataItem $feature, &$dataArg)
-    {
-        // legacy quirk originData:
-        // 1) for inserts (no id), provide a blank, empty, Feature object (like ->get(array()))
-        // 2) for updates, reload the original item (incoming feature already carries new data!)
-        if ($feature->getId()) {
-            /** @var Feature $feature */
-            $originData = $this->reloadItem($feature);
-        } else {
-            $originData = $this->itemFactory();
-        }
-        /** @var Feature $feature */
-        return array(
-            'item' => &$dataArg,
-            'feature' => $feature,
-            'originData' => $originData,
-        );
-    }
-
-    /**
      * @param Feature $feature
      * @return Feature|null
      */
