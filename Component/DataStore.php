@@ -15,41 +15,20 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class DataStore extends DataRepository
+class DataStore extends EventAwareDataRepository
 {
     const ORACLE_PLATFORM        = 'oracle';
     const POSTGRESQL_PLATFORM    = 'postgresql';
     const SQLITE_PLATFORM        = 'sqlite';
 
-    /**
-     * Eval events
-     */
-    const EVENT_ON_AFTER_SAVE    = 'onAfterSave';
-    const EVENT_ON_BEFORE_SAVE   = 'onBeforeSave';
-    const EVENT_ON_BEFORE_REMOVE = 'onBeforeRemove';
-    const EVENT_ON_AFTER_REMOVE  = 'onAfterRemove';
-    const EVENT_ON_BEFORE_SEARCH = 'onBeforeSearch';
-    const EVENT_ON_AFTER_SEARCH  = 'onAfterSearch';
-    const EVENT_ON_BEFORE_UPDATE = 'onBeforeUpdate';
-    const EVENT_ON_AFTER_UPDATE  = 'onAfterUpdate';
-    const EVENT_ON_BEFORE_INSERT = 'onBeforeInsert';
-    const EVENT_ON_AFTER_INSERT  = 'onAfterInsert';
-
     /** @var ContainerInterface */
     protected $container;
-
-    public    $events;
-    /** @var bool only used during event handling */
-    protected $allowSave;
-    /** @var bool only used during event handling */
-    protected $allowUpdate;
-
-    protected $allowRemove;
+    /** @var EventProcessor */
+    protected $eventFilter;
 
     protected $parentField;
     protected $mapping;
@@ -58,8 +37,6 @@ class DataStore extends DataRepository
     /** @var string SQL where filter */
     protected $sqlFilter;
 
-    /** @var bool only used during event handling */
-    protected $allowInsert;
 
     /**
      * @var array file info list
@@ -83,11 +60,12 @@ class DataStore extends DataRepository
         $connectionRegistry = $container->get('doctrine');
         /** @var Connection $connection */
         $connection = $connectionRegistry->getConnection($args['connection']);
-        parent::__construct($connection, $args['table'], $args['uniqueId']);
+        $eventConfig = isset($args["events"]) ? $args["events"] : array();
+        $eventProcessor = new EventProcessor($container->get('security.authorization_checker'), $container->get('security.token_storage'));
+        parent::__construct($connection, $eventProcessor, $eventConfig, $args['table'], $args['uniqueId']);
 
         // Rest
         $this->container = $container;
-        $this->events = isset($args["events"]) ? $args["events"] : array();
         $args = $this->lcfirstKeys($args ?: array());
         $this->configure($args);
         $this->fields = $this->initializeFields($args);
@@ -300,10 +278,18 @@ class DataStore extends DataRepository
             $originData = $this->itemFactory();
         }
 
-        return array(
+        return $this->getCommonEventData() + array(
             'item' => &$dataArg,
             'feature' => $dataArg,
             'originData' => $originData,
+        );
+    }
+
+    protected function getCommonEventData()
+    {
+        return array(
+            'idKey' => $this->uniqueIdFieldName,
+            'connection' => $this->connection,
         );
     }
 
@@ -337,12 +323,13 @@ class DataStore extends DataRepository
             $eventData = null;
         }
 
-        $this->allowSave = true;
-
         if (isset($this->events[self::EVENT_ON_BEFORE_SAVE])) {
-            $this->secureEval($this->events[self::EVENT_ON_BEFORE_SAVE], $eventData);
+            $this->eventProcessor->runExpression($this->events[self::EVENT_ON_BEFORE_SAVE], $eventData);
+            $runSave = $this->eventProcessor->allowSave;
+        } else {
+            $runSave = true;
         }
-        if ($this->allowSave) {
+        if ($runSave) {
             if (!$autoUpdate || !$saveItem->getId()) {
                 $this->insertItem($saveItem);
             } else {
@@ -350,8 +337,8 @@ class DataStore extends DataRepository
             }
         }
 
-        if (isset($this->events[ self::EVENT_ON_AFTER_SAVE ])) {
-            $this->secureEval($this->events[self::EVENT_ON_AFTER_SAVE], $eventData);
+        if (isset($this->events[self::EVENT_ON_AFTER_SAVE])) {
+            $this->eventProcessor->runExpression($this->events[self::EVENT_ON_AFTER_SAVE], $eventData);
         }
         return $this->reloadItem($saveItem);
     }
@@ -406,10 +393,8 @@ class DataStore extends DataRepository
         }
 
         if (isset($this->events[$eventNameBefore])) {
-            $this->allowInsert = true;
-            $this->allowUpdate = true;
-            $this->secureEval($this->events[$eventNameBefore], $eventData);
-            $runQuery = $isInsert ? $this->allowInsert : $this->allowUpdate;
+            $this->eventProcessor->runExpression($this->events[$eventNameBefore], $eventData);
+            $runQuery = $isInsert ? $this->eventProcessor->allowInsert : $this->eventProcessor->allowUpdate;
         } else {
             $runQuery = true;
         }
@@ -429,7 +414,7 @@ class DataStore extends DataRepository
         }
 
         if ($eventNameAfter && isset($this->events[$eventNameAfter])) {
-            $this->secureEval($this->events[$eventNameAfter], $eventData);
+            $this->eventProcessor->runExpression($this->events[$eventNameAfter], $eventData);
         }
 
         return $item;
@@ -473,7 +458,7 @@ class DataStore extends DataRepository
         if (isset($this->events[self::EVENT_ON_BEFORE_REMOVE]) || isset($this->events[self::EVENT_ON_AFTER_REMOVE])) {
             // uh-oh
             $item = $this->getById($itemId);
-            $eventData = array(
+            $eventData = $this->getCommonEventData() + array(
                 'args' => &$args,
                 'method' => 'remove',
                 'originData' => $item,
@@ -481,16 +466,19 @@ class DataStore extends DataRepository
         } else {
             $eventData = null;
         }
-        $result = null;
-        $this->allowRemove = true;
         if (isset($this->events[ self::EVENT_ON_BEFORE_REMOVE ])) {
-            $this->secureEval($this->events[self::EVENT_ON_BEFORE_REMOVE], $eventData);
+            $this->eventProcessor->runExpression($this->events[self::EVENT_ON_BEFORE_REMOVE], $eventData);
+            $doRemove = $this->eventProcessor->allowRemove;
+        } else {
+            $doRemove = true;
         }
-        if ($this->allowRemove) {
+        if ($doRemove) {
             $result = !!$this->connection->delete($this->tableName, $this->idToIdentifier($itemId));
+        } else {
+            $result = null;
         }
         if (isset($this->events[self::EVENT_ON_AFTER_REMOVE])) {
-            $this->secureEval($this->events[self::EVENT_ON_AFTER_REMOVE], $eventData);
+            $this->eventProcessor->runExpression($this->events[self::EVENT_ON_AFTER_REMOVE], $eventData);
         }
         return $result;
     }
@@ -504,10 +492,15 @@ class DataStore extends DataRepository
     public function search(array $criteria = array())
     {
         $criteria['where'] = isset($criteria['where']) ? $criteria['where'] : '';
-        if (isset($this->events[ self::EVENT_ON_BEFORE_SEARCH ])) {
-            $this->secureEval($this->events[ self::EVENT_ON_BEFORE_SEARCH ], array(
+        if (!empty($this->events[self::EVENT_ON_BEFORE_SEARCH]) || !empty($this->events[self::EVENT_ON_AFTER_SEARCH])) {
+            $eventData = $this->getCommonEventData() + array(
                 'criteria' => &$criteria
-            ));
+            );
+        } else {
+            $eventData = null;
+        }
+        if (!empty($this->events[self::EVENT_ON_BEFORE_SEARCH])) {
+            $this->eventProcessor->runExpression($this->events[self::EVENT_ON_BEFORE_SEARCH], $eventData);
         }
         $queryBuilder = $this->getSelectQueryBuilder();
 
@@ -519,11 +512,9 @@ class DataStore extends DataRepository
 
         $results = $this->prepareResults($queryBuilder);
 
-        if (isset($this->events[ self::EVENT_ON_AFTER_SEARCH ])) {
-            $this->secureEval($this->events[ self::EVENT_ON_AFTER_SEARCH ], array(
-                'criteria' => &$criteria,
-                'results' => &$results
-            ));
+        if (!empty($this->events[self::EVENT_ON_AFTER_SEARCH])) {
+            $eventData['results'] = &$results;
+            $this->eventProcessor->runExpression($this->events[self::EVENT_ON_BEFORE_SEARCH], $eventData);
         }
 
         return $results;
@@ -699,39 +690,6 @@ class DataStore extends DataRepository
             $sqlFilter = $filtered;
         }
         $this->sqlFilter = $sqlFilter;
-    }
-
-    /**
-     * @param string $code
-     * @param array $args
-     * @throws \Exception
-     * @todo: stop using eval already
-     */
-    public function secureEval($code, array $args = array())
-    {
-        /** @var AuthorizationCheckerInterface $context */
-        $context    = $this->container->get("security.authorization_checker");
-        /** @var TokenStorageInterface $tokenStorage */
-        $tokenStorage = $this->container->get('security.token_storage');
-        $user       = $tokenStorage->getToken()->getUser();
-        $userRoles = array();
-        foreach ($tokenStorage->getToken()->getRoles() as $role) {
-            $roles[] = $role->getRole();
-        }
-        $idKey = $this->getUniqueId();
-        $connection = $this->getConnection();
-
-        foreach ($args as $key => &$value) {
-            ${$key} = &$value;
-        }
-
-        $return = eval($code);
-
-        if ($return === false && ($errorDetails = error_get_last())) {
-            $lastError = end($errorDetails);
-            throw new \Exception($lastError["message"], $lastError["type"]);
-        }
-
     }
 
     /**
