@@ -2,8 +2,6 @@
 namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Query\QueryBuilder;
-use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
-use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
@@ -23,6 +21,8 @@ use Symfony\Component\Finder\Finder;
  * @link      https://github.com/mapbender/mapbender-digitizer
  *
  * @method Feature save(Feature|array $feature, bool $autoUpdate = true)
+ * @method Feature insertItem(Feature $item)
+ * @method Feature updateItem(Feature $item)
  * @method Feature update($itemOrData)
  * @method Feature insert($itemOrData)
  * @method Feature get($args)
@@ -213,31 +213,6 @@ class FeatureType extends DataStore
             && in_array(strtoupper($wktType), Feature::$simpleGeometries)
             && in_array(strtoupper($tableType), Feature::$complexGeometries)
         ;
-    }
-
-    /**
-     * Insert feature
-     *
-     * @param DataItem $feature
-     * @return Feature
-     * @throws \Exception
-     */
-    public function insertItem(DataItem $feature)
-    {
-        /** @var Feature $feature */
-        $feature = $this->storeItemInternal($feature, true, self::EVENT_ON_BEFORE_INSERT, self::EVENT_ON_AFTER_INSERT);
-        return $feature;
-    }
-
-    /**
-     * @param DataItem $feature
-     * @return Feature
-     */
-    public function updateItem(DataItem $feature)
-    {
-        /** @var Feature $feature */
-        $feature = $this->storeItemInternal($feature, false, self::EVENT_ON_BEFORE_UPDATE, self::EVENT_ON_AFTER_UPDATE);
-        return $feature;
     }
 
     /**
@@ -585,8 +560,8 @@ class FeatureType extends DataStore
             'fields'      => $this->fields,
             'geomField'   => $this->geomField,
             'srid'        => $this->getSrid(),
-            'allowSave'   => $this->allowSave,
-            'allowRemove' => $this->allowRemove,
+            'allowSave'   => true,
+            'allowRemove' => true,
         );
     }
 

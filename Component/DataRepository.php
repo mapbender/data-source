@@ -11,6 +11,7 @@ use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Component\Meta\TableMeta;
+use Mapbender\DataSourceBundle\Entity\DataItem;
 
 /**
  * Container-unaware portions (Symfony 4+) of DataStore / FeatureType
@@ -51,6 +52,17 @@ class DataRepository
     public function getTableName()
     {
         return $this->tableName;
+    }
+
+    /**
+     * Create empty item
+     *
+     * @return DataItem
+     * @since 0.1.16.2
+     */
+    public function itemFactory()
+    {
+        return new DataItem(array(), $this->getUniqueId());
     }
 
     /**
@@ -119,5 +131,24 @@ class DataRepository
                 throw new \RuntimeException("Unsupported DBAL platform " . print_r($platformName, true));
         }
         return $driver;
+    }
+
+    /**
+     * @param mixed $id
+     * @return array
+     */
+    protected function idToIdentifier($id)
+    {
+        $uniqueId = $this->uniqueIdFieldName;
+        return array($uniqueId => $id);
+    }
+
+    /**
+     * @param DataItem $item
+     * @return mixed[]
+     */
+    protected function getSaveData(DataItem $item)
+    {
+        return $item->toArray();
     }
 }

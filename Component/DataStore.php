@@ -234,17 +234,6 @@ class DataStore extends EventAwareDataRepository
     }
 
     /**
-     * Create empty item
-     *
-     * @return DataItem
-     * @since 0.1.16.2
-     */
-    public function itemFactory()
-    {
-        return new DataItem(array(), $this->getUniqueId());
-    }
-
-    /**
      * Create preinitialized item
      *
      * @param array $values
@@ -260,46 +249,6 @@ class DataStore extends EventAwareDataRepository
          */
         $item = new DataItem($values, $this->getUniqueId());
         return $item;
-    }
-
-    /**
-     * @param DataItem $item
-     * @param DataItem|array|mixed $dataArg original value passed to save method
-     * @return array
-     */
-    protected function getSaveEventData(DataItem $item, &$dataArg)
-    {
-        // legacy quirk originData:
-        // 1) for inserts (no id), provide a blank, empty, DataItem object (like ->get(array()))
-        // 2) for updates, reload the original item (incoming item already carries new data!)
-        if ($item->getId()) {
-            $originData = $this->reloadItem($item);
-        } else {
-            $originData = $this->itemFactory();
-        }
-
-        return $this->getCommonEventData() + array(
-            'item' => &$dataArg,
-            'feature' => $dataArg,
-            'originData' => $originData,
-        );
-    }
-
-    protected function getCommonEventData()
-    {
-        return array(
-            'idKey' => $this->uniqueIdFieldName,
-            'connection' => $this->connection,
-        );
-    }
-
-    /**
-     * @param DataItem $item
-     * @return mixed[]
-     */
-    protected function getSaveData(DataItem $item)
-    {
-        return $item->toArray();
     }
 
     /**
@@ -364,63 +313,6 @@ class DataStore extends EventAwareDataRepository
     }
 
     /**
-     * @param DataItem $item
-     * @return DataItem
-     * @since 0.1.21
-     */
-    public function insertItem(DataItem $item)
-    {
-        // @todo: fix inconsistent event processing DataStore vs FeatureType...?
-        return $this->storeItemInternal($item, true, null, null);
-    }
-
-    /**
-     * @param DataItem $item
-     * @param bool $isInsert
-     * @param string|null $eventNameBefore
-     * @param string|null $eventNameAfter
-     * @todo: fix vertical copy&paste updateItemInternal / insertItemInternal
-     * @return DataItem
-     */
-    protected function storeItemInternal(DataItem $item, $isInsert, $eventNameBefore = null, $eventNameAfter = null)
-    {
-        $values = $this->getSaveData($item);
-
-        if ($eventNameBefore && isset($this->events[$eventNameBefore]) || $eventNameAfter && isset($this->events[$eventNameAfter])) {
-            $eventData = $this->getSaveEventData($item, $values);
-        } else {
-            $eventData = null;
-        }
-
-        if (isset($this->events[$eventNameBefore])) {
-            $this->eventProcessor->runExpression($this->events[$eventNameBefore], $eventData);
-            $runQuery = $isInsert ? $this->eventProcessor->allowInsert : $this->eventProcessor->allowUpdate;
-        } else {
-            $runQuery = true;
-        }
-
-        if ($runQuery) {
-            if ($isInsert) {
-                $idName = $this->getUniqueId();
-                unset($values[$idName]);
-                $values = $this->getTableMetaData()->prepareInsertData($values);
-                $id = $this->getDriver()->insert($this->connection, $this->getTableName(), $values, $idName);
-                $item->setId($id);
-            } else {
-                $identifier = $this->idToIdentifier($item->getId());
-                $values = $this->getTableMetaData()->prepareUpdateData($values);
-                $this->getDriver()->update($this->connection, $this->getTableName(), $values, $identifier);
-            }
-        }
-
-        if ($eventNameAfter && isset($this->events[$eventNameAfter])) {
-            $this->eventProcessor->runExpression($this->events[$eventNameAfter], $eventData);
-        }
-
-        return $item;
-    }
-
-    /**
      * Update existing row
      *
      * @param array|DataItem $itemOrData
@@ -430,21 +322,6 @@ class DataStore extends EventAwareDataRepository
     {
         $item = $this->create($itemOrData);
         return $this->updateItem($item);
-    }
-
-    /**
-     * @param DataItem $item
-     * @return DataItem
-     * @throws \Doctrine\DBAL\DBALException
-     * @since 0.1.17
-     */
-    public function updateItem(DataItem $item)
-    {
-        $data = $this->getSaveData($item);
-        $identifier = $this->idToIdentifier($item->getId());
-        $data = $this->getTableMetaData()->prepareUpdateData($data);
-        $this->getDriver()->update($this->connection, $this->getTableName(), $data, $identifier);
-        return $item;
     }
 
     /**
@@ -491,8 +368,8 @@ class DataStore extends EventAwareDataRepository
      */
     public function search(array $criteria = array())
     {
-        $criteria['where'] = isset($criteria['where']) ? $criteria['where'] : '';
         if (!empty($this->events[self::EVENT_ON_BEFORE_SEARCH]) || !empty($this->events[self::EVENT_ON_AFTER_SEARCH])) {
+            $criteria['where'] = isset($criteria['where']) ? $criteria['where'] : '';
             $eventData = $this->getCommonEventData() + array(
                 'criteria' => &$criteria
             );
@@ -827,16 +704,6 @@ class DataStore extends EventAwareDataRepository
             @trigger_error("DEPRECATED: passed miscapitalized config key(s) " . implode(', ', $modifiedKeys) . ' to ' . get_class($this) . '. This will be an error in 0.2.0', E_USER_DEPRECATED);
         }
         return $argsOut;
-    }
-
-    /**
-     * @param mixed $id
-     * @return array
-     */
-    protected function idToIdentifier($id)
-    {
-        $uniqueId = $this->getUniqueId();
-        return array($uniqueId => $id);
     }
 
     /**
