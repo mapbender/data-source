@@ -42,8 +42,6 @@ class DataStore extends DataRepository
 
     /** @var ContainerInterface */
     protected $container;
-    /** @var Filesystem */
-    protected $filesystem;
 
     public    $events;
     /** @var bool only used during event handling */
@@ -89,7 +87,6 @@ class DataStore extends DataRepository
 
         // Rest
         $this->container = $container;
-        $this->filesystem = $container->get('filesystem');
         $this->events = isset($args["events"]) ? $args["events"] : array();
         $args = $this->lcfirstKeys($args ?: array());
         $this->configure($args);
@@ -970,7 +967,8 @@ class DataStore extends DataRepository
     public function getFileUrl($fieldName = "")
     {
         $fileUri = $this->getFileUri($fieldName);
-        if ($this->filesystem->isAbsolutePath($fileUri)) {
+        $fs = new Filesystem();
+        if ($fs->isAbsolutePath($fileUri)) {
             return $fileUri;
         } else {
             /** @var Request $request */
