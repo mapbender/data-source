@@ -123,7 +123,7 @@ class DataRepository
      *
      * @return QueryBuilder
      */
-    public function getSelectQueryBuilder()
+    protected function getSelectQueryBuilder()
     {
         $connection = $this->getConnection();
         $qb = $this->createQueryBuilder();

@@ -54,10 +54,9 @@ class FeaturesTest extends WebTestCase
 
     public function testCustomSearch()
     {
-        $qb = self::$featureType->getSelectQueryBuilder();
-        $qb->setMaxResults(1);
-        $results = $qb->execute()->fetchAll();
+        $results = self::$featureType->search(array('maxResults' => 1));
         $this->assertTrue(is_array($results));
+        $this->assertTrue(count($results) <= 1);
     }
 
     public function testSaveArray()
