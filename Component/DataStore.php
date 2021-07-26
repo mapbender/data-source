@@ -32,7 +32,6 @@ class DataStore extends EventAwareDataRepository
 
     protected $parentField;
     protected $mapping;
-    protected $fields;
 
     /** @var string SQL where filter */
     protected $sqlFilter;
@@ -133,31 +132,6 @@ class DataStore extends EventAwareDataRepository
         } else {
             return $this->getTableMetaData()->getColumNames();
         }
-    }
-
-    /**
-     * @param integer|string $id
-     * @return DataItem|null
-     */
-    public function getById($id)
-    {
-        $qb = $this->getSelectQueryBuilder()->setMaxResults(1);
-        $qb->where($this->getUniqueId() . ' = :id');
-        $qb->setParameter(':id', $id);
-        $items = $this->prepareResults($qb);
-        if ($items) {
-            return $items[0];
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * @return array
-     */
-    public function getFields()
-    {
-        return $this->fields;
     }
 
     /**
@@ -293,15 +267,6 @@ class DataStore extends EventAwareDataRepository
     }
 
     /**
-     * @param DataItem $item
-     * @return DataItem|null
-     */
-    protected function reloadItem($item)
-    {
-        return $this->getById($item->getId());
-    }
-
-    /**
      * Insert new row
      *
      * @param array|DataItem $itemOrData
@@ -421,59 +386,6 @@ class DataStore extends EventAwareDataRepository
         if (!empty($params['where'])) {
             $queryBuilder->andWhere($params['where']);
         }
-    }
-
-    /**
-     * Convert database rows to DataItem objects
-     *
-     * @param QueryBuilder $queryBuilder
-     * @return DataItem[]
-     */
-    protected function prepareResults(QueryBuilder $queryBuilder)
-    {
-        $uniqueId = $this->getUniqueId();
-        $items = array();
-        foreach ($queryBuilder->execute()->fetchAll() as $row) {
-            $item = new DataItem(array(), $uniqueId);
-            $item->setAttributes($row);
-            $items[] = $item;
-        }
-        return $items;
-    }
-
-    /**
-     * Get query builder prepared to select from the source table
-     *
-     * @return QueryBuilder
-     */
-    public function getSelectQueryBuilder()
-    {
-        $connection = $this->getConnection();
-        $qb = $this->createQueryBuilder();
-        $qb->from($this->getTableName(), 't');
-        $fields = array_merge(array($this->getUniqueId()), $this->getFields());
-
-        foreach ($fields as $field) {
-            if (is_array($field)) {
-                // @todo: specify, document
-                $alias = current(array_keys($field));
-                $expression = current(array_values($field));
-                $qb->addSelect("$expression AS " . $connection->quoteIdentifier($alias));
-            } else {
-                // Quote fields, unless they are expressions.
-                // Bare-bones detection for
-                // * literal * (as in SELECT * FROM ...)
-                // * SQL functions (round brackets)
-                // * String literals
-                // * Pre-quoted identifiers (Backtick on MySQL, double-quote on PostgreSQL)
-                if (!preg_match('#["\'`()]#', $field) && $field !== '*') {
-                    $field = $connection->quoteIdentifier($field);
-                }
-                $qb->addSelect($field);
-            }
-        }
-
-        return $qb;
     }
 
     /**
