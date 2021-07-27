@@ -43,6 +43,22 @@ class EventProcessor
         }
     }
 
+    /**
+     * For eval events only.
+     */
+    protected function preventSave()
+    {
+        $this->allowSave = false;
+    }
+
+    /**
+     * For eval events only.
+     */
+    protected function preventRemove()
+    {
+        $this->allowRemove = false;
+    }
+
     protected function reset()
     {
         $this->allowUpdate = true;

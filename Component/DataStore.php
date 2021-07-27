@@ -27,8 +27,6 @@ class DataStore extends EventAwareDataRepository
 
     /** @var ContainerInterface */
     protected $container;
-    /** @var EventProcessor */
-    protected $eventFilter;
 
     protected $parentField;
     protected $mapping;
@@ -511,28 +509,6 @@ class DataStore extends EventAwareDataRepository
     {
         $this->mapping = $mapping;
         return $this;
-    }
-
-    /**
-     * Prevent save item.
-     * For event handling only.
-     *
-     * @param string $msg Prevent save message
-     */
-    protected function preventSave($msg = "")
-    {
-        $this->allowSave = false;
-    }
-
-    /**
-     * Prevent remove item.
-     * For event handling only.
-     *
-     * @param string $msg Prevent reason message
-     */
-    protected function preventRemove($msg = "")
-    {
-        $this->allowRemove = false;
     }
 
     /**
