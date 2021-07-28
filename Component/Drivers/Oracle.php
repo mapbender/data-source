@@ -33,28 +33,6 @@ class Oracle extends DoctrineBaseDriver implements Geographic
         }
     }
 
-    /**
-     * Add geometry column
-     *
-     * @param string $tableName
-     * @param string $type
-     * @param integer $srid
-     * @param string $geomFieldName
-     * @param string $schemaName
-     * @param int    $dimensions
-     * @return mixed
-     * @deprecated remove in 0.2.0 this is DBA work
-     */
-    public function addGeometryColumn($tableName,
-        $type,
-        $srid,
-        $geomFieldName = "geom",
-        $schemaName = "public",
-        $dimensions = 2)
-    {
-        throw new \RuntimeException("Method not implemented");
-    }
-
     public function getReadEwktSql($data)
     {
         return "SDO_UTIL.TO_WKBGEOMETRY({$data})";
