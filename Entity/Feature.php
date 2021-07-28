@@ -122,39 +122,17 @@ class Feature extends DataItem
     }
 
     /**
-     * @param mixed $args JSON or array(
+     * @param array $args
      * @param int $srid
-     * @param string $uniqueIdField ID field name
-     * @param string $geomField GEOM field name
-     * @todo: this constructor supports way too many formats. Drop a few, standardize on something.
+     * @param string $uniqueIdField
+     * @param string $geomField
      * @internal
      */
-    public function __construct($args = null, $srid = null, $uniqueIdField = 'id', $geomField = "geom")
+    public function __construct(array $args = array(), $srid = null, $uniqueIdField = 'id', $geomField = "geom")
     {
         $this->geomField = $geomField;
         $this->setSrid($srid);
         parent::__construct($args, $uniqueIdField);
-
-        // Unravel GeoJSON feature, with optional (nonstandard) 'id' and 'srid' fields
-        if (isset($this->attributes['geometry']) && isset($this->attributes['properties'])) {
-            if (isset($this->attributes['srid'])) {
-                $this->setSrid($this->attributes['srid']);
-            }
-            $this->setGeom($this->attributes['geometry']);
-
-            $newAttributes = $this->attributes['properties'];
-            if (isset($this->attributes['id'])) {
-                $newAttributes[$uniqueIdField] = $this->attributes['id'];
-            } elseif (is_array($args) && isset($args[$uniqueIdField])) {
-                $newAttributes[$uniqueIdField] = $args[$uniqueIdField];
-            } else {
-                // ensure we always have an id, so getId / hasId can function
-                $newAttributes[$uniqueIdField] = null;
-            }
-            // Rewrite attributes (NOTE setAttributes only ADDs attributes; clear first)
-            $this->attributes = array();
-            $this->setAttributes($newAttributes);
-        }
     }
 
     /**

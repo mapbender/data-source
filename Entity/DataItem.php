@@ -20,28 +20,9 @@ class DataItem
      * @param string $uniqueIdField ID field name
      * @internal
      */
-    public function __construct($args = array(), $uniqueIdField = 'id')
+    public function __construct(array $args = array(), $uniqueIdField = 'id')
     {
         $this->uniqueIdField = $uniqueIdField;
-
-        if (!is_array($args)) {
-            @trigger_error('DEPRECATED: initializing ' . get_class($this) . ' with type ' . gettype($args) . ' $args is is deprecated. Pass an array.', E_USER_DEPRECATED);
-            if (is_string($args)) {
-                $newArgs = json_decode($args, true);
-                if ($newArgs === null && $args !== json_encode('null')) {
-                    throw new \InvalidArgumentException("Json decode failure for " . print_r($args, true));
-                }
-                if ($newArgs === null) {
-                    $args = array();
-                } else {
-                    $args = $newArgs;
-                }
-                if (!is_array($args)) {
-                    throw new \InvalidArgumentException('Invalid $args type ' . gettype($args) . ' post-decode. Expected array.');
-                }
-            }
-        }
-
         if (!array_key_exists($this->uniqueIdField, $args)) {
             // ensure getId works
             $args[$this->uniqueIdField] = null;
