@@ -66,16 +66,8 @@ class FeatureType extends DataStore
     /** @var array|null */
     protected $exportFields;
 
-    /** @var array|null */
-    private $toArrayData;
-
     protected function configure(array $args)
     {
-        $this->toArrayData = array(
-            'type' => 'doctrine',
-            'connection' => $args['connection'],
-        );
-
         if (array_key_exists('geomField', $args)) {
             $this->setGeomField($args['geomField']);
         }
@@ -544,25 +536,6 @@ class FeatureType extends DataStore
             $features[] = $feature;
         }
         return $features;
-    }
-
-    /**
-     * @return array
-     * @todo 0.2.0: remove this method
-     * @deprecated
-     */
-    public function toArray()
-    {
-        $tableName = $this->getTableName();
-        return $this->toArrayData + array(
-            'table'       => $tableName,
-            'geomType' => $this->getTableMetaData()->getColumn($this->geomField)->getGeometryType(),
-            'fields'      => $this->fields,
-            'geomField'   => $this->geomField,
-            'srid'        => $this->getSrid(),
-            'allowSave'   => true,
-            'allowRemove' => true,
-        );
     }
 
     /**

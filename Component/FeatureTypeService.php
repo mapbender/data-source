@@ -91,22 +91,6 @@ class FeatureTypeService extends DataStoreService
     }
 
     /**
-     * @param FeatureType $featureType
-     * @return int
-     * @deprecated perform your file editing with file editing tools
-     * @todo 0.2.0: remove this method
-     */
-    public function save(FeatureType $featureType)
-    {
-        $dbPath = $this->container->getParameter('kernel.root_dir') . '/config/featureTypes.yaml';
-
-        return file_put_contents(
-            $dbPath,
-            Yaml::dump(array($featureType->toArray()))
-        );
-    }
-
-    /**
      * Alias for getDataStoreDeclarations
      *
      * @return array
