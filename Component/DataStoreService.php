@@ -22,12 +22,14 @@ class DataStoreService extends RepositoryRegistry
     {
         /** @var RegistryInterface $registry */
         $registry = $container->get('doctrine');
+        /** @var EventProcessor $eventProcessor */
+        $eventProcessor = $container->get('mbds.default_event_processor');
         $declarations = $declarations ?: array();
         if ($declarations && \is_string($declarations)) {
             $declarations = $container->getParameter($declarations);
         }
 
-        parent::__construct($registry, $declarations ?: array());
+        parent::__construct($registry, $eventProcessor, $declarations ?: array());
 
         $this->container = $container;
     }
@@ -51,7 +53,7 @@ class DataStoreService extends RepositoryRegistry
     public function dataStoreFactory(array $config)
     {
         // @todo: stop injecting full container into DataStore
-        return new DataStore($this->container, $config);
+        return new DataStore($this->container, $config, $this);
     }
 
     /**

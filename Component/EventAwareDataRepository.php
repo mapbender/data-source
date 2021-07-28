@@ -6,6 +6,7 @@ namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
 use Mapbender\DataSourceBundle\Entity\DataItem;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class EventAwareDataRepository extends DataRepository
 {
@@ -29,11 +30,12 @@ class EventAwareDataRepository extends DataRepository
     protected $events = array();
 
     public function __construct(Connection $connection,
+                                TokenStorageInterface $tokenStorage,
                                 EventProcessor $eventProcessor,
                                 array $eventConfig,
                                 $tableName, $idColumnName)
     {
-        parent::__construct($connection, $tableName, $idColumnName);
+        parent::__construct($connection, $tokenStorage, $tableName, $idColumnName);
         $this->eventProcessor = $eventProcessor;
         $this->events = $eventConfig;
     }

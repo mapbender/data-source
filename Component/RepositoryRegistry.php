@@ -16,6 +16,8 @@ abstract class RepositoryRegistry
 {
     /** @var ConnectionRegistry */
     protected $connectionRegistry;
+    /** @var EventProcessor */
+    protected $eventProcessor;
     /** @var mixed[][] */
     protected $repositoryConfigs;
     /** @var object[] */
@@ -23,11 +25,15 @@ abstract class RepositoryRegistry
 
     /**
      * @param ConnectionRegistry $connectionRegistry
+     * @param EventProcessor $eventProcessor
      * @param mixed[][] $repositoryConfigs
      */
-    public function __construct(ConnectionRegistry $connectionRegistry, array $repositoryConfigs)
+    public function __construct(ConnectionRegistry $connectionRegistry,
+                                EventProcessor $eventProcessor,
+                                array $repositoryConfigs)
     {
         $this->connectionRegistry = $connectionRegistry;
+        $this->eventProcessor = $eventProcessor;
         $this->repositoryConfigs = $repositoryConfigs;
     }
 
@@ -68,5 +74,13 @@ abstract class RepositoryRegistry
     public function getDataStoreDeclarations()
     {
         return $this->repositoryConfigs;
+    }
+
+    /**
+     * @return EventProcessor
+     */
+    public function getEventProcessor()
+    {
+        return $this->eventProcessor;
     }
 }

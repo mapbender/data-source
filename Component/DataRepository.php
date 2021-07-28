@@ -13,6 +13,7 @@ use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Component\Meta\TableMeta;
 use Mapbender\DataSourceBundle\Entity\DataItem;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
  * Container-unaware portions (Symfony 4+) of DataStore / FeatureType
@@ -22,6 +23,8 @@ class DataRepository
 {
     /** @var Connection */
     protected $connection;
+    /** @var TokenStorageInterface */
+    protected $tokenStorage;
     /** @var string */
     protected $tableName;
     /** @var DoctrineBaseDriver */
@@ -33,9 +36,10 @@ class DataRepository
     /** @var string[] */
     protected $fields;
 
-    public function __construct(Connection $connection, $tableName, $idColumnName)
+    public function __construct(Connection $connection, TokenStorageInterface $tokenStorage, $tableName, $idColumnName)
     {
         $this->connection = $connection;
+        $this->tokenStorage = $tokenStorage;
         $this->tableName = $tableName;
         $this->uniqueIdFieldName = $idColumnName;
     }

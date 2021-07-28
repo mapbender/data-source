@@ -43,9 +43,10 @@ class DataStore extends EventAwareDataRepository
     /**
      * @param ContainerInterface $container
      * @param array|null $args
+     * @param RepositoryRegistry|null $registry
      * @todo: drop container injection; replace with owning DataStoreService / FeatureTypeService injection
      */
-    public function __construct(ContainerInterface $container, $args = array())
+    public function __construct(ContainerInterface $container, $args = array(), RepositoryRegistry $registry = null)
     {
         // Extract parent constructor arguments
         $defaults = array(
@@ -58,8 +59,10 @@ class DataStore extends EventAwareDataRepository
         /** @var Connection $connection */
         $connection = $connectionRegistry->getConnection($args['connection']);
         $eventConfig = isset($args["events"]) ? $args["events"] : array();
-        $eventProcessor = new EventProcessor($container->get('security.authorization_checker'), $container->get('security.token_storage'));
-        parent::__construct($connection, $eventProcessor, $eventConfig, $args['table'], $args['uniqueId']);
+        $registry = $registry ?: $container->get('data.source');
+        /** @var TokenStorageInterface $tokenStorage */
+        $tokenStorage = $container->get('security.token_storage');
+        parent::__construct($connection, $tokenStorage, $registry->getEventProcessor(), $eventConfig, $args['table'], $args['uniqueId']);
 
         // Rest
         $this->container = $container;
@@ -373,9 +376,7 @@ class DataStore extends EventAwareDataRepository
         // @todo: specify and document
         if (!empty($this->sqlFilter)) {
             if (preg_match('#:userName([^_\w\d]|$)#', $this->sqlFilter)) {
-                /** @var TokenStorageInterface $tokenStorage */
-                $tokenStorage = $this->container->get("security.token_storage");
-                $queryBuilder->setParameter(':userName', $tokenStorage->getToken()->getUsername());
+                $queryBuilder->setParameter(':userName', $this->tokenStorage->getToken()->getUsername());
             }
             $queryBuilder->andWhere($this->sqlFilter);
         }

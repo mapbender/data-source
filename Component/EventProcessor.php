@@ -23,7 +23,7 @@ class EventProcessor
     public $allowRemove = true;
 
     public function __construct(AuthorizationCheckerInterface $authorizationChecker,
-                TokenStorageInterface $tokenStorage)
+                                TokenStorageInterface $tokenStorage)
     {
         $this->authorizationChecker = $authorizationChecker;
         $this->tokenStorage = $tokenStorage;

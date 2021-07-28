@@ -57,7 +57,7 @@ class FeatureTypeService extends DataStoreService
     public function dataStoreFactory(array $config)
     {
         // @todo: stop injecting full container into FeatureType
-        return new FeatureType($this->container, $config);
+        return new FeatureType($this->container, $config, $this);
     }
 
     /**
