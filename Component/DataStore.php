@@ -27,6 +27,8 @@ class DataStore extends EventAwareDataRepository
 
     /** @var ContainerInterface */
     protected $container;
+    /** @var RepositoryRegistry */
+    protected $registry;
 
     protected $parentField;
     protected $mapping;
@@ -66,6 +68,7 @@ class DataStore extends EventAwareDataRepository
 
         // Rest
         $this->container = $container;
+        $this->registry = $registry;
         $args = $this->lcfirstKeys($args ?: array());
         $this->configure($args);
         $this->fields = $this->initializeFields($args);
@@ -527,12 +530,7 @@ class DataStore extends EventAwareDataRepository
         // This right here breaks Element-level customization
         // The parent ~registry (using Doctrine lingo) should be known to
         // each DataStore and FeatureType
-        // @todo: inject DataStoreService / FeatureTypeService into DataStore / FeatureType
-        //        objects
-        /** @var DataStoreService $dataStoreService */
-        $dataStoreService  = $this->container->get("data.source");
-        $externalDataStore = $dataStoreService->get($config["externalDataStore"]);
-        $externalDriver    = $externalDataStore->getDriver();
+        $externalDataStore = $this->registry->get($config["externalDataStore"]);
         $internalFieldName = null;
         $externalFieldName = null;
 
@@ -552,15 +550,11 @@ class DataStore extends EventAwareDataRepository
             $externalFieldName = $config['relatedFieldName'];
         }
 
-        if (!$externalDriver instanceof DoctrineBaseDriver) {
-            throw new Exception('This kind of externalDriver can\'t get relations');
-        }
-
-        $criteria = $this->getById($id)->getAttribute($internalFieldName);
+        $mappedId = $this->getById($id)->getAttribute($internalFieldName);
 
         $queryBuilder = $externalDataStore->getSelectQueryBuilder();
         $queryBuilder->where($externalFieldName . " = :criteria");
-        $queryBuilder->setParameter('criteria', $criteria);
+        $queryBuilder->setParameter('criteria', $mappedId);
 
         return $this->prepareResults($queryBuilder);
     }
