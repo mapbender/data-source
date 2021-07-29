@@ -99,7 +99,6 @@ class Oracle extends DoctrineBaseDriver implements Geographic
         }
 
         $columns = array();
-        $aliases = array();
         /** @see \Doctrine\DBAL\Platforms\OraclePlatform::getListTableColumnsSQL */
         /** @see \Doctrine\DBAL\Schema\OracleSchemaManager::_getPortableTableColumnDefinition */
         foreach ($connection->executeQuery($sql) as $row) {
@@ -110,13 +109,12 @@ class Oracle extends DoctrineBaseDriver implements Geographic
                 $srid = null;
             }
 
-            $aliases[$name] = strtolower($name);
             $notNull = $row['nullable'] === 'N';
             $hasDefault = !!$row['data_default'];
             $isNumeric = !!preg_match('#int|float|real|decimal|numeric#i', $row['data_type']);
             $columns[$name] = new Column($notNull, $hasDefault, $isNumeric, null, $srid);
         }
-        $tableMeta = new TableMeta($columns, $aliases);
+        $tableMeta = new TableMeta($connection->getDatabasePlatform(), $columns);
         return $tableMeta;
     }
 }

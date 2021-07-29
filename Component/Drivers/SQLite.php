@@ -26,7 +26,7 @@ class SQLite extends DoctrineBaseDriver
             $isNumeric = !!preg_match('#int|float|double|real|decimal|numeric#i', $row['type']);
             $columns[$row['name']] = new Column($isNullable, $hasDefault, $isNumeric);
         }
-        $tableMeta = new TableMeta($columns);
+        $tableMeta = new TableMeta($connection->getDatabasePlatform(), $columns);
         return $tableMeta;
     }
 }

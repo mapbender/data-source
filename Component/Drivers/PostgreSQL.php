@@ -137,15 +137,10 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
 
         $sql = $platform->getListTableColumnsSQL($tableName);
         $columns = array();
-        $aliases = array();
         /** @see \Doctrine\DBAL\Platforms\PostgreSqlPlatform::getListTableColumnsSQL */
         /** @see \Doctrine\DBAL\Schema\PostgreSqlSchemaManager::_getPortableTableColumnDefinition */
         foreach ($connection->executeQuery($sql) as $row) {
             $name = trim($row['field'], '"');   // Undo quote_ident
-
-            if ($name !== $row['field']) {
-                $aliases[$name] = $row['field'];
-            }
             $notNull = !$row['isnotnull'];
             $hasDefault = !!$row['default'];
             $isNumeric = !!preg_match('#int|float|real|decimal|numeric#i', $row['complete_type']);
@@ -158,7 +153,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
 
             $columns[$name] = new Column($notNull, $hasDefault, $isNumeric, $geomType, $srid);
         }
-        $tableMeta = new TableMeta($columns, $aliases);
+        $tableMeta = new TableMeta($connection->getDatabasePlatform(), $columns);
         return $tableMeta;
     }
 }

@@ -4,24 +4,27 @@
 namespace Mapbender\DataSourceBundle\Component\Meta;
 
 
+use Doctrine\DBAL\Platforms\AbstractPlatform;
+
 class TableMeta
 {
+    /** @var AbstractPlatform */
+    protected $platform;
     /** @var Column[] */
-    protected $columns;
-    /** @var string[] */
-    protected $columnAliases = array();
+    protected $columns = array();
 
     /**
+     * @param AbstractPlatform $platform
      * @param Column[] $columns
-     * @param string[] $columnAliases
      */
-    public function __construct(array $columns, $columnAliases = array())
+    public function __construct(AbstractPlatform $platform, array $columns)
     {
-        $this->columns = $columns;
-        foreach ($columnAliases as $a => $b) {
-            $this->columnAliases[$a] = $b;
-            $this->columnAliases[$b] = $a;
+        $this->platform = $platform;
+        foreach ($columns as $name => $column) {
+            $resultName = $platform->getSQLResultCasing($name);
+            $this->columns[$resultName] = $column;
         }
+        $this->columns = $columns;
     }
 
     /**
@@ -48,11 +51,14 @@ class TableMeta
     public function prepareInsertData(array $data)
     {
         $data = $this->prepareUpdateData($data);
-        $columnNames = \array_keys($this->columns);
-        foreach ($columnNames as $columnName) {
+        $dataNames = array();
+        foreach (array_keys($data) as $dataKey) {
+            $dataNames[] = $this->platform->getSQLResultCasing($dataKey);
+        }
+        foreach (\array_keys($this->columns) as $columnName) {
             $column = $this->getColumn($columnName);
             if (!$column->hasDefault()) {
-                if (!\array_key_exists($columnName, $data)) {
+                if (!\in_array($columnName, $dataNames, true)) {
                     $data[$columnName] = $column->getSafeDefault();
                 }
             }
@@ -67,34 +73,10 @@ class TableMeta
      */
     public function getColumn($name)
     {
-        foreach ($this->getAliases($name, true) as $alias) {
-            if (\array_key_exists($alias, $this->columns)) {
-                return $this->columns[$alias];
-            }
+        $resultName = $this->platform->getSQLResultCasing($name);
+        if (\array_key_exists($resultName, $this->columns)) {
+            return $this->columns[$resultName];
         }
         throw new \RuntimeException("Unknown column {$name}");
-    }
-
-    /**
-     * @param string $columnName
-     * @param boolean $includeOriginal
-     * @return string[]
-     */
-    protected function getAliases($columnName, $includeOriginal)
-    {
-        $names = array();
-        if ($includeOriginal) {
-            $names[] = $columnName;
-        }
-        while (!empty($this->columnAliases[$columnName])) {
-            $alias = $this->columnAliases[$columnName];
-            if (\in_array($alias, $names)) {
-                break;
-            } else {
-                $names[] = $alias;
-                $columnName = $alias;
-            }
-        }
-        return $names;
     }
 }
