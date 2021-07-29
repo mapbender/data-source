@@ -8,26 +8,6 @@ use Mapbender\DataSourceBundle\Utils\WktUtility;
  */
 class Feature extends DataItem
 {
-    const TYPE_POINT              = 'POINT';
-    const TYPE_LINESTRING         = 'LINESTRING';
-    const TYPE_POLYGON            = 'POLYGON';
-    const TYPE_MULTIPOINT         = 'MULTIPOINT';
-    const TYPE_MULTILINESTRING    = 'MULTILINESTRING';
-    const TYPE_MULTIPOLYGON       = 'MULTIPOLYGON';
-    const TYPE_GEOMETRYCOLLECTION = 'GEOMETRYCOLLECTION';
-
-    static public $simpleGeometries = array(
-        Feature::TYPE_POINT,
-        Feature::TYPE_LINESTRING,
-        Feature::TYPE_POLYGON,
-    );
-
-    static public $complexGeometries = array(
-        Feature::TYPE_MULTIPOLYGON,
-        Feature::TYPE_MULTILINESTRING,
-        Feature::TYPE_MULTIPOINT
-    );
-
      /* @var string|null in wkt format */
     protected $geom;
 
@@ -36,12 +16,6 @@ class Feature extends DataItem
 
     /** @var string|null */
     protected $geomField;
-
-    /**
-     * Geometry type.
-     * @var string|null
-     */
-    protected $type;
 
     /**
      * @param string|null $geom
@@ -207,22 +181,11 @@ class Feature extends DataItem
     /**
      * Get geometry type
      *
-     * TODO: recover type from geometry.
-     *
-     * @return string
+     * @return string|null
      */
     public function getType()
     {
-        return $this->type;
+        return WktUtility::getGeometryType($this->geom);
     }
 
-    /**
-     * Set geometry type
-     *
-     * @param string $type Feature::TYPE_*
-     */
-    public function setType($type)
-    {
-        $this->type = $type;
-    }
 }
