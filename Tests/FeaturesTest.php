@@ -2,6 +2,7 @@
 namespace Mapbender\DataSourceBundle\Tests;
 
 use Mapbender\DataSourceBundle\Component\FeatureType;
+use Mapbender\DataSourceBundle\Component\FeatureTypeService;
 use Mapbender\DataSourceBundle\Entity\Feature;
 use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -42,8 +43,9 @@ class FeaturesTest extends WebTestCase
             self::markTestSkipped("No feature declaration found");
             return;
         }
+        $fts = new FeatureTypeService(self::$container, self::$definitions);
 
-        self::$featureType = self::$container->get('features')->get(key(self::$definitions));
+        self::$featureType = $fts->getDataStoreByName(key(self::$definitions));
         self::$fieldName   = current(self::$featureType->getFields());
     }
 
