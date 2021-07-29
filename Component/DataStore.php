@@ -1,14 +1,12 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component;
 
-use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Mapbender\CoreBundle\Component\UploadsManager;
 use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Entity\DataItem;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\Request;
@@ -54,12 +52,9 @@ class DataStore extends EventAwareDataRepository
             'connection' => 'default',  // Uh-oh!
         );
         $args += $defaults;
-        /** @var RegistryInterface $connectionRegistry */
-        $connectionRegistry = $container->get('doctrine');
-        /** @var Connection $connection */
-        $connection = $connectionRegistry->getConnection($args['connection']);
         $eventConfig = isset($args["events"]) ? $args["events"] : array();
         $registry = $registry ?: $container->get('data.source');
+        $connection = $registry->getDbalConnectionByName($args['connection']);
         /** @var TokenStorageInterface $tokenStorage */
         $tokenStorage = $container->get('security.token_storage');
         parent::__construct($connection, $tokenStorage, $registry->getEventProcessor(), $eventConfig, $args['table'], $args['uniqueId']);
