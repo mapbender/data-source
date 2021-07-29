@@ -12,10 +12,13 @@ use Symfony\Component\Yaml\Yaml;
  *
  * @method FeatureType getDataStoreByName(string $name)
  * @method FeatureType get(string $name)
+ * @method FeatureType dataStoreFactory(array $config)
  * @property FeatureType[] $repositories
  */
 class FeatureTypeService extends DataStoreService
 {
+    protected $factoryId = 'mbds.default_featuretype_factory';
+
     /**
      * @param ContainerInterface $container
      * @param mixed[][]|string $declarations array of feature type configs OR container param key OR file name
@@ -47,17 +50,6 @@ class FeatureTypeService extends DataStoreService
     public function getFeatureTypeByName($name)
     {
         return $this->getDataStoreByName($name);
-    }
-
-    /**
-     * @param array $config
-     * @return FeatureType
-     * @since 0.1.22
-     */
-    public function dataStoreFactory(array $config)
-    {
-        // @todo: stop injecting full container into FeatureType
-        return new FeatureType($this->container, $config, $this);
     }
 
     /**

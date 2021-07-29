@@ -6,18 +6,19 @@ namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\Persistence\ConnectionRegistry;
+use Mapbender\DataSourceBundle\Component\Factory\DataStoreFactory;
 
 /**
  * Container-unaware (Symfony 4+) portions of DataStoreService / FeatureTypeService
  *
  * @since 0.1.22
  */
-abstract class RepositoryRegistry
+class RepositoryRegistry
 {
     /** @var ConnectionRegistry */
     protected $connectionRegistry;
-    /** @var EventProcessor */
-    protected $eventProcessor;
+    /** @var DataStoreFactory */
+    protected $factory;
     /** @var mixed[][] */
     protected $repositoryConfigs;
     /** @var object[] */
@@ -25,15 +26,15 @@ abstract class RepositoryRegistry
 
     /**
      * @param ConnectionRegistry $connectionRegistry
-     * @param EventProcessor $eventProcessor
+     * @param DataStoreFactory $factory
      * @param mixed[][] $repositoryConfigs
      */
     public function __construct(ConnectionRegistry $connectionRegistry,
-                                EventProcessor $eventProcessor,
+                                DataStoreFactory $factory,
                                 array $repositoryConfigs)
     {
         $this->connectionRegistry = $connectionRegistry;
-        $this->eventProcessor = $eventProcessor;
+        $this->factory = $factory;
         $this->repositoryConfigs = $repositoryConfigs;
     }
 
@@ -49,7 +50,10 @@ abstract class RepositoryRegistry
         return $connection;
     }
 
-    abstract public function dataStoreFactory(array $config);
+    public function dataStoreFactory(array $config)
+    {
+        return $this->factory->fromConfig($this, $config);
+    }
 
     /**
      * @param string $name
@@ -74,13 +78,5 @@ abstract class RepositoryRegistry
     public function getDataStoreDeclarations()
     {
         return $this->repositoryConfigs;
-    }
-
-    /**
-     * @return EventProcessor
-     */
-    public function getEventProcessor()
-    {
-        return $this->eventProcessor;
     }
 }

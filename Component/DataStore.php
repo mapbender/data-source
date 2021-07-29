@@ -57,7 +57,9 @@ class DataStore extends EventAwareDataRepository
         $connection = $registry->getDbalConnectionByName($args['connection']);
         /** @var TokenStorageInterface $tokenStorage */
         $tokenStorage = $container->get('security.token_storage');
-        parent::__construct($connection, $tokenStorage, $registry->getEventProcessor(), $eventConfig, $args['table'], $args['uniqueId']);
+        /** @var EventProcessor $eventProcessor */
+        $eventProcessor = $container->get('mbds.default_event_processor');
+        parent::__construct($connection, $tokenStorage, $eventProcessor, $eventConfig, $args['table'], $args['uniqueId']);
 
         // Rest
         $this->container = $container;

@@ -1,6 +1,7 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component;
 
+use Mapbender\DataSourceBundle\Component\Factory\DataStoreFactory;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -11,8 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class DataStoreService extends RepositoryRegistry
 {
-    /** @var ContainerInterface */
-    protected $container;
+    protected $factoryId = 'mbds.default_datastore_factory';
 
     /**
      * @param ContainerInterface $container
@@ -22,16 +22,14 @@ class DataStoreService extends RepositoryRegistry
     {
         /** @var RegistryInterface $registry */
         $registry = $container->get('doctrine');
-        /** @var EventProcessor $eventProcessor */
-        $eventProcessor = $container->get('mbds.default_event_processor');
+        /** @var DataStoreFactory $factory */
+        $factory = $container->get($this->factoryId);
         $declarations = $declarations ?: array();
         if ($declarations && \is_string($declarations)) {
             $declarations = $container->getParameter($declarations);
         }
 
-        parent::__construct($registry, $eventProcessor, $declarations ?: array());
-
-        $this->container = $container;
+        parent::__construct($registry, $factory, $declarations ?: array());
     }
 
     /**
@@ -43,17 +41,6 @@ class DataStoreService extends RepositoryRegistry
     public function get($name)
     {
         return $this->getDataStoreByName($name);
-    }
-
-    /**
-     * @param mixed[] $config
-     * @return DataStore
-     * @since 0.1.15
-     */
-    public function dataStoreFactory(array $config)
-    {
-        // @todo: stop injecting full container into DataStore
-        return new DataStore($this->container, $config, $this);
     }
 
     /**
