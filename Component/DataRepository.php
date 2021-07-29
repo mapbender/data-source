@@ -90,6 +90,28 @@ class DataRepository
 
     /**
      * @param DataItem $item
+     * @return DataItem
+     */
+    public function insertItem(DataItem $item)
+    {
+        $values = $this->prepareStoreValues($item, $item->toArray());
+        unset($values[$this->uniqueIdFieldName]);
+        $values = $this->getTableMetaData()->prepareInsertData($values);
+        $id = $this->getDriver()->insert($this->connection, $this->getTableName(), $values, $this->uniqueIdFieldName);
+        $item->setId($id);
+        return $item;
+    }
+
+    public function updateItem(DataItem $item)
+    {
+        $values = $this->prepareStoreValues($item, $item->toArray());
+        $identifier = $this->idToIdentifier($item->getId());
+        $values = $this->getTableMetaData()->prepareUpdateData($values);
+        $this->getDriver()->update($this->connection, $this->getTableName(), $values, $identifier);
+    }
+
+    /**
+     * @param DataItem $item
      * @return DataItem|null
      */
     protected function reloadItem($item)
@@ -218,13 +240,9 @@ class DataRepository
         return array($uniqueId => $id);
     }
 
-    /**
-     * @param DataItem $item
-     * @return mixed[]
-     */
-    protected function getSaveData(DataItem $item)
+    protected function prepareStoreValues(DataItem $item, array $values)
     {
-        return $item->toArray();
+        return $values;
     }
 
     /**

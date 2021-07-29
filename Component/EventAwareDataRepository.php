@@ -48,7 +48,28 @@ class EventAwareDataRepository extends DataRepository
      */
     public function updateItem(DataItem $item)
     {
-        return $this->storeItemInternal($item, false, self::EVENT_ON_BEFORE_UPDATE, self::EVENT_ON_AFTER_UPDATE);
+        $values = $item->toArray();
+        if (isset($this->events[self::EVENT_ON_BEFORE_UPDATE]) || isset($this->events[self::EVENT_ON_AFTER_UPDATE])) {
+            $eventData = $this->getSaveEventData($item, $values);
+        } else {
+            $eventData = null;
+        }
+        if (isset($this->events[self::EVENT_ON_BEFORE_UPDATE])) {
+            $this->eventProcessor->runExpression($this->events[self::EVENT_ON_BEFORE_UPDATE], $eventData);
+            $runQuery = $this->eventProcessor->allowUpdate;
+        } else {
+            $runQuery = true;
+        }
+        if ($runQuery) {
+            $values = $this->prepareStoreValues($item, $values);
+            $identifier = $this->idToIdentifier($item->getId());
+            $values = $this->getTableMetaData()->prepareUpdateData($values);
+            $this->getDriver()->update($this->connection, $this->getTableName(), $values, $identifier);
+        }
+        if (isset($this->events[self::EVENT_ON_AFTER_UPDATE])) {
+            $this->eventProcessor->runExpression($this->events[self::EVENT_ON_AFTER_UPDATE], $eventData);
+        }
+        return $item;
     }
 
     /**
@@ -58,7 +79,29 @@ class EventAwareDataRepository extends DataRepository
      */
     public function insertItem(DataItem $item)
     {
-        return $this->storeItemInternal($item, true, self::EVENT_ON_BEFORE_INSERT, self::EVENT_ON_AFTER_INSERT);
+        $values = $item->toArray();
+        if (isset($this->events[self::EVENT_ON_BEFORE_INSERT]) || isset($this->events[self::EVENT_ON_AFTER_INSERT])) {
+            $eventData = $this->getSaveEventData($item, $values);
+        } else {
+            $eventData = null;
+        }
+        if (isset($this->events[self::EVENT_ON_BEFORE_INSERT])) {
+            $this->eventProcessor->runExpression($this->events[self::EVENT_ON_BEFORE_INSERT], $eventData);
+            $runQuery = $this->eventProcessor->allowUpdate;
+        } else {
+            $runQuery = true;
+        }
+        if ($runQuery) {
+            $values = $this->prepareStoreValues($item, $values);
+            unset($values[$this->uniqueIdFieldName]);
+            $values = $this->getTableMetaData()->prepareInsertData($values);
+            $id = $this->getDriver()->insert($this->connection, $this->getTableName(), $values, $this->uniqueIdFieldName);
+            $item->setId($id);
+        }
+        if (isset($this->events[self::EVENT_ON_AFTER_INSERT])) {
+            $this->eventProcessor->runExpression($this->events[self::EVENT_ON_AFTER_INSERT], $eventData);
+        }
+        return $item;
     }
 
     protected function getCommonEventData()
@@ -67,51 +110,6 @@ class EventAwareDataRepository extends DataRepository
             'idKey' => $this->uniqueIdFieldName,
             'connection' => $this->connection,
         );
-    }
-
-    /**
-     * @param DataItem $item
-     * @param bool $isInsert
-     * @param string|null $eventNameBefore
-     * @param string|null $eventNameAfter
-     * @return DataItem
-     */
-    protected function storeItemInternal(DataItem $item, $isInsert, $eventNameBefore = null, $eventNameAfter = null)
-    {
-        $values = $this->getSaveData($item);
-
-        if ($eventNameBefore && isset($this->events[$eventNameBefore]) || $eventNameAfter && isset($this->events[$eventNameAfter])) {
-            $eventData = $this->getSaveEventData($item, $values);
-        } else {
-            $eventData = null;
-        }
-
-        if (isset($this->events[$eventNameBefore])) {
-            $this->eventProcessor->runExpression($this->events[$eventNameBefore], $eventData);
-            $runQuery = $isInsert ? $this->eventProcessor->allowInsert : $this->eventProcessor->allowUpdate;
-        } else {
-            $runQuery = true;
-        }
-
-        if ($runQuery) {
-            if ($isInsert) {
-                $idName = $this->getUniqueId();
-                unset($values[$idName]);
-                $values = $this->getTableMetaData()->prepareInsertData($values);
-                $id = $this->getDriver()->insert($this->connection, $this->getTableName(), $values, $idName);
-                $item->setId($id);
-            } else {
-                $identifier = $this->idToIdentifier($item->getId());
-                $values = $this->getTableMetaData()->prepareUpdateData($values);
-                $this->getDriver()->update($this->connection, $this->getTableName(), $values, $identifier);
-            }
-        }
-
-        if ($eventNameAfter && isset($this->events[$eventNameAfter])) {
-            $this->eventProcessor->runExpression($this->events[$eventNameAfter], $eventData);
-        }
-
-        return $item;
     }
 
     /**

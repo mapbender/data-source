@@ -157,16 +157,13 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Extracts persistable values (insert / update) from Feature
-     * Implicitly transforms the geometry to a compatible CRS.
-     *
      * @param DataItem $feature
+     * @param mixed[] $data
      * @return mixed[]
      */
-    protected function getSaveData(DataItem $feature)
+    protected function prepareStoreValues(DataItem $feature, array $data)
     {
         /** @var Feature $feature */
-        $data = $feature->toArray();
         $ewkt = $feature->getEwkt();
         $geomField = $this->getGeomField();
         if ($ewkt) {
