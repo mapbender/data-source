@@ -49,19 +49,6 @@ class Feature extends DataItem
      */
     public function setGeom($geom)
     {
-        if ($geom && is_string($geom) && !preg_match('#^\w#', $geom)) {
-            $decoded = json_decode($geom, true);
-            if ($decoded === null && $geom !== json_encode(null)) {
-                throw new \InvalidArgumentException("Json decode failure");
-            }
-            if ($decoded !== null && !is_array($decoded)) {
-                throw new \InvalidArgumentException("Invalid json geometry type " . gettype($decoded) . ", expected array.");
-            }
-            // Convert to WKT
-            // NOTE: geoPHP GeoJSON supports either strings or arrays as input. We don't.
-            $geom = \geoPHP::load($geom, 'json')->out('wkt');
-        }
-
         if ($geom && $srid = WktUtility::getEwktSrid($geom)) {
             $this->geom = WktUtility::wktFromEwkt($geom) ?: null;
             $this->setSrid($srid);
