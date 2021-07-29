@@ -163,16 +163,7 @@ class DataRepository
                 $expression = current(array_values($field));
                 $qb->addSelect("$expression AS " . $connection->quoteIdentifier($alias));
             } else {
-                // Quote fields, unless they are expressions.
-                // Bare-bones detection for
-                // * literal * (as in SELECT * FROM ...)
-                // * SQL functions (round brackets)
-                // * String literals
-                // * Pre-quoted identifiers (Backtick on MySQL, double-quote on PostgreSQL)
-                if (!preg_match('#["\'`()]#', $field) && $field !== '*') {
-                    $field = $connection->quoteIdentifier($field);
-                }
-                $qb->addSelect($field);
+                $qb->addSelect($connection->quoteIdentifier($field));
             }
         }
 
