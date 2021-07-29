@@ -157,14 +157,7 @@ class DataRepository
         $fields = array_merge(array($this->getUniqueId()), $this->getFields());
 
         foreach ($fields as $field) {
-            if (is_array($field)) {
-                // @todo: specify, document
-                $alias = current(array_keys($field));
-                $expression = current(array_values($field));
-                $qb->addSelect("$expression AS " . $connection->quoteIdentifier($alias));
-            } else {
-                $qb->addSelect($connection->quoteIdentifier($field));
-            }
+            $qb->addSelect($connection->quoteIdentifier($field));
         }
 
         return $qb;
