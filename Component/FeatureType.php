@@ -539,22 +539,23 @@ class FeatureType extends DataStore
      * Get by ID list
      *
      * @param mixed[] $ids
-     * @param bool $prepareResults to return Feature objects instead of associative row arrays
      * @return array[]|Feature[]
      * @todo: methods should not have parametric return types
      */
-    public function getByIds($ids, $prepareResults = true)
+    public function getByIds($ids)
     {
         $queryBuilder = $this->getSelectQueryBuilder();
         $connection   = $queryBuilder->getConnection();
-        $condition = $queryBuilder->expr()->in($this->getUniqueId(), array_map(array($connection, 'quote'), $ids));
+        $condition = $queryBuilder->expr()->in($this->uniqueIdFieldName, array_map(array($connection, 'quote'), $ids));
         $queryBuilder->where($condition);
-
-        if ($prepareResults) {
-            return $this->prepareResults($queryBuilder);
-        } else {
-            return $queryBuilder->execute()->fetchAll();
+        $results = $this->prepareResults($queryBuilder);
+        if (\func_num_args() > 1 && !\func_get_arg(1)) {
+            @trigger_error("Deprecated: array return support in getByIds is deprecated. Run ->getAttributes() on the returned items yourself.", E_USER_DEPRECATED);
+            foreach ($results as $k => $item) {
+                $results[$k] = $item->getAttributes();
+            }
         }
+        return $results;
     }
 
     /**
