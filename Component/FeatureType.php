@@ -26,6 +26,7 @@ use Symfony\Component\Finder\Finder;
  * @method Feature update($itemOrData)
  * @method Feature insert($itemOrData)
  * @method Feature get($args)
+ * @method Feature[]|array[] getByIds(array $ids)
  */
 class FeatureType extends DataStore
 {
@@ -533,29 +534,6 @@ class FeatureType extends DataStore
             $features[] = $feature;
         }
         return $features;
-    }
-
-    /**
-     * Get by ID list
-     *
-     * @param mixed[] $ids
-     * @return array[]|Feature[]
-     * @todo: methods should not have parametric return types
-     */
-    public function getByIds($ids)
-    {
-        $queryBuilder = $this->getSelectQueryBuilder();
-        $connection   = $queryBuilder->getConnection();
-        $condition = $queryBuilder->expr()->in($this->uniqueIdFieldName, array_map(array($connection, 'quote'), $ids));
-        $queryBuilder->where($condition);
-        $results = $this->prepareResults($queryBuilder);
-        if (\func_num_args() > 1 && !\func_get_arg(1)) {
-            @trigger_error("Deprecated: array return support in getByIds is deprecated. Run ->getAttributes() on the returned items yourself.", E_USER_DEPRECATED);
-            foreach ($results as $k => $item) {
-                $results[$k] = $item->getAttributes();
-            }
-        }
-        return $results;
     }
 
     /**
