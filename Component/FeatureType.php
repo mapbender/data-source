@@ -199,8 +199,9 @@ class FeatureType extends DataStore
 
         // @todo: document why we would want to promote to collection, and why we only have a Postgis implementation
         return $tableType && $wktType != $tableType
-            && in_array(strtoupper($wktType), Feature::$simpleGeometries)
-            && in_array(strtoupper($tableType), Feature::$complexGeometries)
+            && strtoupper($tableType) !== 'GEOMETRY'
+            && preg_match('#^MULTI#i', $tableType)
+            && !preg_match('#^MULTI#i', $wktType)
         ;
     }
 
