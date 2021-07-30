@@ -69,13 +69,17 @@ class Feature extends DataItem
 
     /**
      * @param array $args
-     * @param int $srid
      * @param string $uniqueIdField
      * @param string $geomField
      * @internal
      */
-    public function __construct(array $args = array(), $srid = null, $uniqueIdField = 'id', $geomField = "geom")
+    public function __construct(array $args = array(), $uniqueIdField = 'id', $geomField = "geom")
     {
+        if (\is_numeric($uniqueIdField)) {
+            @trigger_error("DEPRECATED: do not pass srid to Feature constructor.", E_USER_DEPRECATED);
+            $uniqueIdField = $geomField;
+            $geomField = (\func_num_args() >= 4) ? \func_get_arg(3) : 'geom';
+        }
         $this->geomField = $geomField;
         parent::__construct($args, $uniqueIdField);
     }

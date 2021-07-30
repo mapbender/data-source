@@ -105,7 +105,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
         $geomName = 'geom'; // This is hard-coded in the routing query sql
         $idName = 'orderId'; // This is hard-coded in the routing query sql
         foreach ($results as $row) {
-            $feature = new Feature(array(), $srid, $idName, $geomName);
+            $feature = new Feature(array(), $idName, $geomName);
             $feature->setAttributes($row);
             $features[] = $feature;
         }

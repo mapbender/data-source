@@ -292,9 +292,8 @@ class FeatureType extends DataStore
             Oracle::transformColumnNames($rows);
         }
         $features = array();
-        $srid = $queryBuilder->getTargetSrid();
         foreach ($rows as $row) {
-            $feature = new Feature($row, $srid, $this->getUniqueId(), $this->getGeomField());
+            $feature = new Feature($row, $this->getUniqueId(), $this->getGeomField());
             $features[] = $feature;
         }
         return $features;
@@ -340,7 +339,7 @@ class FeatureType extends DataStore
      */
     public function itemFactory()
     {
-        return new Feature(array(), $this->getSrid(), $this->getUniqueId(), $this->getGeomField());
+        return new Feature(array(), $this->uniqueIdFieldName, $this->geomField);
     }
 
     /**
@@ -358,7 +357,7 @@ class FeatureType extends DataStore
          * @see Feature::__construct
          * @sse DataItem::__construct
          */
-        return new Feature($values, $this->getSrid(), $this->getUniqueId(), $this->getGeomField());
+        return new Feature($values, $this->uniqueIdFieldName, $this->geomField);
     }
 
     /**
@@ -528,7 +527,7 @@ class FeatureType extends DataStore
         $rows = LegacyPgRouting::route($connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $sourceId, $targetId, $srid);
         $features = array();
         foreach ($rows as $row) {
-            $feature = new Feature(array(), $srid, $this->getUniqueId(), $this->getGeomField());
+            $feature = new Feature(array(), $this->getUniqueId(), $this->getGeomField());
             $feature->setAttributes($row);
             $features[] = $feature;
         }
