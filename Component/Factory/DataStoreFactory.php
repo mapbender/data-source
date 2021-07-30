@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
+ * Implementation for service id mbds.default_datastore_factory
  * @since 0.1.22
  */
 class DataStoreFactory
