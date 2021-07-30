@@ -8,9 +8,6 @@ use Mapbender\DataSourceBundle\Utils\WktUtility;
  */
 class Feature extends DataItem
 {
-     /* @var string|null in wkt format */
-    protected $geom;
-
     /** @var string|null */
     protected $geomField;
 
@@ -25,7 +22,7 @@ class Feature extends DataItem
                 $geom = "SRID={$oldSrid};$geom";
             }
         }
-        $this->geom = $geom ?: null;
+        $this->attributes[$this->geomField] = $geom ?: null;
 
         return $this;
     }
@@ -36,7 +33,7 @@ class Feature extends DataItem
      */
     public function getGeom()
     {
-        return WktUtility::wktFromEwkt($this->geom);
+        return WktUtility::wktFromEwkt($this->attributes[$this->geomField]);
     }
 
     /**
@@ -46,7 +43,7 @@ class Feature extends DataItem
      */
     public function getEwkt()
     {
-        return $this->geom ?: null;
+        return $this->attributes[$this->geomField] ?: null;
     }
 
     /**
@@ -54,7 +51,7 @@ class Feature extends DataItem
      */
     public function getSrid()
     {
-        return WktUtility::getEwktSrid($this->geom);
+        return WktUtility::getEwktSrid($this->getEwkt());
     }
 
     /**
@@ -62,8 +59,8 @@ class Feature extends DataItem
      */
     public function setSrid($srid)
     {
-        if ($wkt = WktUtility::wktFromEwkt($this->geom)) {
-            $this->geom = "SRID={$srid};{$wkt}";
+        if ($wkt = WktUtility::wktFromEwkt($this->attributes[$this->geomField])) {
+            $this->attributes[$this->geomField] = "SRID={$srid};{$wkt}";
         }
     }
 
@@ -81,6 +78,10 @@ class Feature extends DataItem
             $geomField = (\func_num_args() >= 4) ? \func_get_arg(3) : 'geom';
         }
         $this->geomField = $geomField;
+        // Ensure getGeom / getEwkt / getSrid works
+        $args += array(
+            $geomField => null,
+        );
         parent::__construct($args, $uniqueIdField);
     }
 
@@ -93,16 +94,14 @@ class Feature extends DataItem
     public function toGeoJson()
     {
         $wkt = $this->getGeom();
-        if ($wkt) {
-            /**
-             * Encode to array format; @see \GeoJSON::write
-             */
-            $wkt = \geoPHP::load($wkt, 'wkt')->out('json', true);
-        }
+        /** @see \GeoJSON::write */
+        $geometry = $wkt ? \geoPHP::load($wkt, 'wkt')->out('json', true) : null;
+        $properties = $this->attributes;
+        unset($properties[$this->geomField]);
 
         return array('type'       => 'Feature',
-                     'properties' => $this->getAttributes(),
-                     'geometry'   => $wkt,
+                     'properties' => $properties,
+                     'geometry' => $geometry,
                      'id'         => $this->getId(),
                      'srid'       => $this->getSrid());
     }
@@ -118,18 +117,6 @@ class Feature extends DataItem
     {
         @trigger_error("Magic Feature::__toString invocation is deprecated and will be removed in 0.2.0; call toGeoJson and perfom json_encode explicitly", E_USER_DEPRECATED);
         return json_encode($this->toGeoJson());
-    }
-
-    /**
-     * Return array
-     *
-     * @return mixed
-     */
-    public function toArray()
-    {
-        $data = parent::toArray();
-        $data[$this->geomField] = $this->getEwkt();
-        return $data;
     }
 
     /**
@@ -162,7 +149,7 @@ class Feature extends DataItem
      */
     public function getType()
     {
-        return WktUtility::getGeometryType($this->geom);
+        return WktUtility::getGeometryType($this->attributes[$this->geomField]);
     }
 
 }

@@ -36,15 +36,6 @@ class DataItem
     public function toArray()
     {
         $data = $this->getAttributes();
-
-        // @todo: Emit everything, including id
-        //        The only reason this might break anything is if some JavaScript code
-        //        checks for a populated id via .hasOwnProperty instead of using simple
-        //        boolean coersion.
-        if (empty($data[$this->uniqueIdField])) {
-            unset($data[$this->uniqueIdField]);
-        }
-
         if ($children = $this->getChildren()) {
             $data['children'] = array();
             foreach ($children as $child) {
@@ -98,9 +89,9 @@ class DataItem
      * @param string $name
      * @return mixed
      */
-    public function getAttribute($name){
-        $attributes = $this->getAttributes();
-        return $attributes[$name];
+    public function getAttribute($name)
+    {
+        return $this->attributes[$name];
     }
 
     /**
