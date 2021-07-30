@@ -107,12 +107,4 @@ class FeaturesTest extends WebTestCase
         $originFeature = $features[ rand(1, count($features)) - 1 ];
         return $originFeature;
     }
-
-    public function testJson()
-    {
-        $feature = $this->getRandomFeature();
-        self::$featureType->getSrid();
-        $json = json_encode($feature->toGeoJson());
-        self::$featureType->create($json);
-    }
 }
