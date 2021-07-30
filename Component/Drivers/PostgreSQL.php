@@ -88,6 +88,11 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
         return "ST_ASTEXT(ST_TRANSFORM($geomReference, $sridTo))";
     }
 
+    public function getColumnToEwktSql($geomReference, $sridTo)
+    {
+        return "ST_AsEwkt(ST_TRANSFORM($geomReference, $sridTo))";
+    }
+
     public function getNodeFromGeom($waysVerticesTableName, $waysGeomFieldName, $ewkt, $transformTo = null, $idKey = "id")
     {
         return LegacyPgRouting::nodeFromGeom($this->getConnection(), $waysVerticesTableName, $waysGeomFieldName, $ewkt, $transformTo, $idKey);

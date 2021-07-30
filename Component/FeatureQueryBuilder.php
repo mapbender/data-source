@@ -82,7 +82,7 @@ class FeatureQueryBuilder extends QueryBuilder
                 $sridTo = $this->getTargetSrid();
                 foreach ($this->geomNames as $geomName) {
                     $geomReference = $this->getConnection()->quoteIdentifier($geomName);
-                    $geomSql = $this->driver->getGeomAttributeAsWkt($geomReference, \intval($sridTo))
+                    $geomSql = $this->driver->getColumnToEwktSql($geomReference, \intval($sridTo))
                              . ' AS ' . $this->getConnection()->quoteIdentifier($geomName);
                     parent::addSelect($geomSql);
                 }

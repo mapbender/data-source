@@ -55,10 +55,11 @@ class FeatureTypeTest extends SymfonyTest
             $geomFieldName = 'geom';
             $uniqueIdField = 'id';
             $feature       = new Feature(array(
-                $geomFieldName => $wkt,
+                $geomFieldName => "SRID={$srid};$wkt",
             ), $srid, $uniqueIdField, $geomFieldName);
 
             $this->assertEquals($feature->getGeom(), $wkt);
+            $this->assertEquals($feature->getSrid(), $srid);
         }
     }
 }

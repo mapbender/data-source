@@ -11,9 +11,6 @@ class Feature extends DataItem
      /* @var string|null in wkt format */
     protected $geom;
 
-    /** @var integer|null */
-    protected $srid;
-
     /** @var string|null */
     protected $geomField;
 
@@ -23,12 +20,12 @@ class Feature extends DataItem
      */
     public function setGeom($geom)
     {
-        if ($geom && $srid = WktUtility::getEwktSrid($geom)) {
-            $this->geom = WktUtility::wktFromEwkt($geom) ?: null;
-            $this->setSrid($srid);
-        } else {
-            $this->geom = $geom ?: null;
+        if ($geom && !($newSrid = WktUtility::getEwktSrid($geom))) {
+            if ($oldSrid = $this->getSrid()) {
+                $geom = "SRID={$oldSrid};$geom";
+            }
         }
+        $this->geom = $geom ?: null;
 
         return $this;
     }
@@ -39,7 +36,7 @@ class Feature extends DataItem
      */
     public function getGeom()
     {
-        return $this->geom;
+        return WktUtility::wktFromEwkt($this->geom);
     }
 
     /**
@@ -49,13 +46,7 @@ class Feature extends DataItem
      */
     public function getEwkt()
     {
-        $geom = $this->getGeom();
-        $srid = $this->getSrid();
-        if ($geom && $srid) {
-            return "SRID={$srid};{$geom}";
-        } else {
-            return null;
-        }
+        return $this->geom ?: null;
     }
 
     /**
@@ -63,7 +54,7 @@ class Feature extends DataItem
      */
     public function getSrid()
     {
-        return $this->srid;
+        return WktUtility::getEwktSrid($this->geom);
     }
 
     /**
@@ -71,15 +62,9 @@ class Feature extends DataItem
      */
     public function setSrid($srid)
     {
-        $this->srid = intval($srid);
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasSrid()
-    {
-        return !!$this->srid;
+        if ($wkt = WktUtility::wktFromEwkt($this->geom)) {
+            $this->geom = "SRID={$srid};{$wkt}";
+        }
     }
 
     /**
@@ -92,7 +77,6 @@ class Feature extends DataItem
     public function __construct(array $args = array(), $srid = null, $uniqueIdField = 'id', $geomField = "geom")
     {
         $this->geomField = $geomField;
-        $this->setSrid($srid);
         parent::__construct($args, $uniqueIdField);
     }
 
@@ -165,17 +149,6 @@ class Feature extends DataItem
         } else {
             parent::setAttribute($key, $value);
         }
-    }
-
-    /**
-     * Has geom data
-     *
-     * @return bool
-     * @deprecated coerce to boolean
-     * @todo 0.2.0: remove this method
-     */
-    public function hasGeom(){
-        return !is_null($this->geom);
     }
 
     /**

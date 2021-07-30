@@ -78,6 +78,15 @@ class Oracle extends DoctrineBaseDriver implements Geographic
       return "SDO_UTIL.TO_WKTGEOMETRY(SDO_CS.TRANSFORM($geomReference, $sridTo))";
     }
 
+    public function getColumnToEwktSql($column, $sridTo)
+    {
+        return "CASE WHEN {$column} IS NOT NULL THEN"
+            .  " CONCAT('SRID={$sridTo};', "
+            . $this->getGeomAttributeAsWkt($column, $sridTo)
+            . " ELSE NULL END"
+        ;
+    }
+
     public function loadTableMeta(Connection $connection, $tableName)
     {
         // NOTE: cannot use Doctrine SchemaManager. SchemaManager will throw when encountering

@@ -54,5 +54,7 @@ interface Geographic
      * @return string SQL
      */
     public function getGeomAttributeAsWkt($geomReference, $sridTo);
+
+    public function getColumnToEwktSql($geomReference, $sridTo);
 }
 
