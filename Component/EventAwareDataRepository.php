@@ -48,7 +48,7 @@ class EventAwareDataRepository extends DataRepository
      */
     public function updateItem(DataItem $item)
     {
-        $values = $item->toArray();
+        $values = $item->getAttributes();
         if (isset($this->events[self::EVENT_ON_BEFORE_UPDATE]) || isset($this->events[self::EVENT_ON_AFTER_UPDATE])) {
             $eventData = $this->getSaveEventData($item, $values);
         } else {
@@ -79,7 +79,7 @@ class EventAwareDataRepository extends DataRepository
      */
     public function insertItem(DataItem $item)
     {
-        $values = $item->toArray();
+        $values = $item->getAttributes();
         if (isset($this->events[self::EVENT_ON_BEFORE_INSERT]) || isset($this->events[self::EVENT_ON_AFTER_INSERT])) {
             $eventData = $this->getSaveEventData($item, $values);
         } else {

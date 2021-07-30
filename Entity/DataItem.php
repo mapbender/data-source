@@ -35,15 +35,7 @@ class DataItem
      */
     public function toArray()
     {
-        $data = $this->getAttributes();
-        if ($children = $this->getChildren()) {
-            $data['children'] = array();
-            foreach ($children as $child) {
-                $data['children'][] = $child->toArray();
-            }
-        }
-
-        return $data;
+        return $this->attributes;
     }
 
     /**

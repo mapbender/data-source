@@ -94,7 +94,7 @@ class DataRepository
      */
     public function insertItem(DataItem $item)
     {
-        $values = $this->prepareStoreValues($item, $item->toArray());
+        $values = $this->prepareStoreValues($item, $item->getAttributes());
         unset($values[$this->uniqueIdFieldName]);
         $values = $this->getTableMetaData()->prepareInsertData($values);
         $id = $this->getDriver()->insert($this->connection, $this->getTableName(), $values, $this->uniqueIdFieldName);
@@ -104,7 +104,7 @@ class DataRepository
 
     public function updateItem(DataItem $item)
     {
-        $values = $this->prepareStoreValues($item, $item->toArray());
+        $values = $this->prepareStoreValues($item, $item->getAttributes());
         $identifier = $this->idToIdentifier($item->getId());
         $values = $this->getTableMetaData()->prepareUpdateData($values);
         $this->getDriver()->update($this->connection, $this->getTableName(), $values, $identifier);
