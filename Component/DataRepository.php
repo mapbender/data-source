@@ -121,8 +121,8 @@ class DataRepository
         unset($values[$this->uniqueIdFieldName]);
         $values = $this->getTableMetaData()->prepareInsertData($values);
         $id = $this->getDriver()->insert($this->connection, $this->getTableName(), $values, $this->uniqueIdFieldName);
-        $item->setId($id);
-        return $item;
+        // Reload (fully populate, renormalize geometry etc)
+        return $this->getById($id);
     }
 
     public function updateItem(DataItem $item)
@@ -131,6 +131,7 @@ class DataRepository
         $identifier = $this->idToIdentifier($item->getId());
         $values = $this->getTableMetaData()->prepareUpdateData($values);
         $this->getDriver()->update($this->connection, $this->getTableName(), $values, $identifier);
+        return $this->reloadItem($item);
     }
 
     /**

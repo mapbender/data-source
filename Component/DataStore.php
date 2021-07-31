@@ -225,14 +225,13 @@ class DataStore extends EventAwareDataRepository
     }
 
     /**
-     * Save data item
+     * Save data item. Auto-inflects to insert (no id) or update (non-empty id).
      *
      * @param DataItem|array $item Data item
-     * @param bool           $autoUpdate Create item if doesn't exists
      * @return DataItem
      * @throws \Exception
      */
-    public function save($item, $autoUpdate = true)
+    public function save($item)
     {
         if (!is_array($item) && !is_object($item)) {
             throw new \Exception("Feature data given isn't compatible to save into the table: " . $this->getTableName());
@@ -252,7 +251,7 @@ class DataStore extends EventAwareDataRepository
             $runSave = true;
         }
         if ($runSave) {
-            if (!$autoUpdate || !$saveItem->getId()) {
+            if (!$saveItem->getId()) {
                 $this->insertItem($saveItem);
             } else {
                 $this->updateItem($saveItem);
@@ -262,7 +261,7 @@ class DataStore extends EventAwareDataRepository
         if (isset($this->events[self::EVENT_ON_AFTER_SAVE])) {
             $this->eventProcessor->runExpression($this->events[self::EVENT_ON_AFTER_SAVE], $eventData);
         }
-        return $this->reloadItem($saveItem);
+        return $saveItem;
     }
 
     /**

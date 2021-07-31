@@ -60,10 +60,7 @@ class EventAwareDataRepository extends DataRepository
             $runQuery = true;
         }
         if ($runQuery) {
-            $values = $this->prepareStoreValues($item);
-            $identifier = $this->idToIdentifier($item->getId());
-            $values = $this->getTableMetaData()->prepareUpdateData($values);
-            $this->getDriver()->update($this->connection, $this->getTableName(), $values, $identifier);
+            $item = parent::updateItem($item);
         }
         if (isset($this->events[self::EVENT_ON_AFTER_UPDATE])) {
             $this->eventProcessor->runExpression($this->events[self::EVENT_ON_AFTER_UPDATE], $eventData);
@@ -90,11 +87,7 @@ class EventAwareDataRepository extends DataRepository
             $runQuery = true;
         }
         if ($runQuery) {
-            $values = $this->prepareStoreValues($item);
-            unset($values[$this->uniqueIdFieldName]);
-            $values = $this->getTableMetaData()->prepareInsertData($values);
-            $id = $this->getDriver()->insert($this->connection, $this->getTableName(), $values, $this->uniqueIdFieldName);
-            $item->setId($id);
+            $item = parent::insertItem($item);
         }
         if (isset($this->events[self::EVENT_ON_AFTER_INSERT])) {
             $this->eventProcessor->runExpression($this->events[self::EVENT_ON_AFTER_INSERT], $eventData);
