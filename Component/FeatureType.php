@@ -159,11 +159,11 @@ class FeatureType extends DataStore
 
     /**
      * @param DataItem $feature
-     * @param mixed[] $data
      * @return mixed[]
      */
-    protected function prepareStoreValues(DataItem $feature, array $data)
+    protected function prepareStoreValues(DataItem $feature)
     {
+        $data = parent::prepareStoreValues($feature);
         /** @var Feature $feature */
         $ewkt = $feature->getEwkt();
         $geomField = $this->getGeomField();

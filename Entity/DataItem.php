@@ -4,7 +4,7 @@ namespace Mapbender\DataSourceBundle\Entity;
 /**
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  */
-class DataItem
+class DataItem implements \ArrayAccess
 {
     /** @var mixed[] */
     protected $attributes = array();
@@ -125,5 +125,25 @@ class DataItem
     public function getChildren()
     {
         return $this->children;
+    }
+
+    public function offsetExists($offset)
+    {
+        return \array_key_exists($offset, $this->attributes);
+    }
+
+    public function offsetGet($offset)
+    {
+        return $this->attributes[$offset];
+    }
+
+    public function offsetSet($offset, $value)
+    {
+        $this->setAttribute($offset, $value);
+    }
+
+    public function offsetUnset($offset)
+    {
+        unset($this->attributes[$offset]);
     }
 }

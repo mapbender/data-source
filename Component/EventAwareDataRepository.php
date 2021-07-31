@@ -48,9 +48,8 @@ class EventAwareDataRepository extends DataRepository
      */
     public function updateItem(DataItem $item)
     {
-        $values = $item->getAttributes();
         if (isset($this->events[self::EVENT_ON_BEFORE_UPDATE]) || isset($this->events[self::EVENT_ON_AFTER_UPDATE])) {
-            $eventData = $this->getSaveEventData($item, $values);
+            $eventData = $this->getSaveEventData($item);
         } else {
             $eventData = null;
         }
@@ -61,7 +60,7 @@ class EventAwareDataRepository extends DataRepository
             $runQuery = true;
         }
         if ($runQuery) {
-            $values = $this->prepareStoreValues($item, $values);
+            $values = $this->prepareStoreValues($item);
             $identifier = $this->idToIdentifier($item->getId());
             $values = $this->getTableMetaData()->prepareUpdateData($values);
             $this->getDriver()->update($this->connection, $this->getTableName(), $values, $identifier);
@@ -79,9 +78,8 @@ class EventAwareDataRepository extends DataRepository
      */
     public function insertItem(DataItem $item)
     {
-        $values = $item->getAttributes();
         if (isset($this->events[self::EVENT_ON_BEFORE_INSERT]) || isset($this->events[self::EVENT_ON_AFTER_INSERT])) {
-            $eventData = $this->getSaveEventData($item, $values);
+            $eventData = $this->getSaveEventData($item);
         } else {
             $eventData = null;
         }
@@ -92,7 +90,7 @@ class EventAwareDataRepository extends DataRepository
             $runQuery = true;
         }
         if ($runQuery) {
-            $values = $this->prepareStoreValues($item, $values);
+            $values = $this->prepareStoreValues($item);
             unset($values[$this->uniqueIdFieldName]);
             $values = $this->getTableMetaData()->prepareInsertData($values);
             $id = $this->getDriver()->insert($this->connection, $this->getTableName(), $values, $this->uniqueIdFieldName);
@@ -114,10 +112,9 @@ class EventAwareDataRepository extends DataRepository
 
     /**
      * @param DataItem $item
-     * @param DataItem|array|mixed $dataArg original value passed to save method
      * @return array
      */
-    protected function getSaveEventData(DataItem $item, &$dataArg)
+    protected function getSaveEventData(DataItem $item)
     {
         // legacy quirk originData:
         // 1) for inserts (no id), provide a blank, empty, DataItem object (like ->get(array()))
@@ -129,7 +126,7 @@ class EventAwareDataRepository extends DataRepository
         }
 
         return $this->getCommonEventData() + array(
-            'item' => &$dataArg,
+            'item' => $item,
             'feature' => $item,
             'originData' => $originData,
         );

@@ -240,7 +240,7 @@ class DataStore extends EventAwareDataRepository
 
         $saveItem = $this->create($item);
         if (isset($this->events[self::EVENT_ON_BEFORE_SAVE]) || isset($this->events[self::EVENT_ON_AFTER_SAVE])) {
-            $eventData = $this->getSaveEventData($saveItem, $item);
+            $eventData = $this->getSaveEventData($saveItem);
         } else {
             $eventData = null;
         }
