@@ -95,6 +95,19 @@ class DataRepository
     }
 
     /**
+     * Returns number of matched rows.
+     *
+     * @param array $criteria same as supported by search, minus "maxResults"
+     * @return int
+     */
+    public function count(array $criteria)
+    {
+        $qb = $this->createQueryBuilder();
+        $this->configureCount($qb, true, $criteria);
+        return intval($qb->execute()->fetchColumn(0));
+    }
+
+    /**
      * Get by ID list
      *
      * @param mixed[] $ids
