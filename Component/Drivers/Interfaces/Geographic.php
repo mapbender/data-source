@@ -47,6 +47,13 @@ interface Geographic
     public function getIntersectCondition($wkt, $geomFieldName, $srid, $sridTo);
 
     /**
+     * @param string $geomExpressionA
+     * @param string $geomExpressionB
+     * @return string mixed
+     */
+    public function getNativeIntersectCondition($geomExpressionA, $geomExpressionB);
+
+    /**
      * Get WKB geometry attribute as WKT
      *
      * @param string $geomReference

@@ -409,24 +409,38 @@ class FeatureType extends DataStore
         return $attributes;
     }
 
-    protected function configureSelect(QueryBuilder $queryBuilder, $includeFilter, array $params)
+    protected function configureSelect(QueryBuilder $queryBuilder, $includeDefaultFilter, array $params)
     {
         /** @var FeatureQueryBuilder $queryBuilder */
-        parent::configureSelect($queryBuilder, $includeFilter, $params);
-        $geomName = $queryBuilder->getConnection()->getDatabasePlatform()->getSQLResultCasing($this->geomField);
+        parent::configureSelect($queryBuilder, $includeDefaultFilter, $params);
+        $connection = $queryBuilder->getConnection();
+        $geomName = $connection->getDatabasePlatform()->getSQLResultCasing($this->geomField);
         $queryBuilder->addGeomSelect($geomName);
         if (!empty($params['srid'])) {
             $queryBuilder->setTargetSrid($params['srid']);
         }
+    }
+
+    protected function addQueryFilters(QueryBuilder $queryBuilder, $includeDefaultFilter, $params)
+    {
         // add bounding geometry condition
         if (!empty($params['intersect'])) {
             $clipWkt = $params['intersect'];
-            if (!empty($params['srid'])) {
-                $clipSrid = $params['srid'];
-            } else {
-                $clipSrid = $this->getSrid();
+            if (!($srid = WktUtility::getEwktSrid($clipWkt))) {
+                if (!empty($params['srid'])) {
+                    $clipSrid = $params['srid'];
+                } else {
+                    $clipSrid = $this->getSrid();
+                }
+                $clipWkt = "SRID={$clipSrid};$clipWkt";
             }
-            $queryBuilder->andWhere($this->getDriver()->getIntersectCondition($clipWkt, $this->geomField, $clipSrid, $this->getSrid()));
+            $connection = $queryBuilder->getConnection();
+            $driver = $this->getDriver();
+            $clipGeomExpression = $driver->getReadEwktSql($connection->quote($clipWkt));
+            $clipGeomExpression = $driver->getTransformSql($clipGeomExpression, $this->getSrid());
+            $columnReference = $connection->getDatabasePlatform()->getSQLResultCasing($this->geomField);
+            $columnReference = $connection->quoteIdentifier($columnReference);
+            $queryBuilder->andWhere($driver->getNativeIntersectCondition($columnReference, $clipGeomExpression));
         }
     }
 }
