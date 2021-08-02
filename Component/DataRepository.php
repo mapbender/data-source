@@ -68,7 +68,7 @@ class DataRepository
      */
     public function itemFactory()
     {
-        return new DataItem(array(), $this->uniqueIdFieldName);
+        return $this->itemFromArray(array());
     }
 
     /**
@@ -80,7 +80,7 @@ class DataRepository
         $qb = $this->getSelectQueryBuilder()->setMaxResults(1);
         $qb->where($this->getUniqueId() . ' = :id');
         $qb->setParameter(':id', $id);
-        $items = $this->prepareResults($qb);
+        $items = $this->prepareResults($qb->execute()->fetchAll());
         if ($items) {
             return $items[0];
         } else {
@@ -101,7 +101,7 @@ class DataRepository
         $connection   = $queryBuilder->getConnection();
         $condition = $queryBuilder->expr()->in($this->uniqueIdFieldName, array_map(array($connection, 'quote'), $ids));
         $queryBuilder->where($condition);
-        $results = $this->prepareResults($queryBuilder);
+        $results = $this->prepareResults($queryBuilder->execute()->fetchAll());
         if (\func_num_args() > 1 && !\func_get_arg(1)) {
             @trigger_error("Deprecated: array return support in getByIds is deprecated. Run ->getAttributes() on the returned items yourself.", E_USER_DEPRECATED);
             foreach ($results as $k => $item) {
@@ -175,15 +175,8 @@ class DataRepository
      */
     protected function getSelectQueryBuilder()
     {
-        $connection = $this->getConnection();
         $qb = $this->createQueryBuilder();
-        $qb->from($this->getTableName(), 't');
-        $fields = array_merge(array($this->getUniqueId()), $this->getFields());
-
-        foreach ($fields as $field) {
-            $qb->addSelect($connection->quoteIdentifier($field));
-        }
-
+        $this->configureSelect($qb);
         return $qb;
     }
 
@@ -202,7 +195,7 @@ class DataRepository
      */
     public function getFields()
     {
-        return $this->fields;
+        return \array_values($this->fields);
     }
 
     /**
@@ -256,18 +249,51 @@ class DataRepository
     /**
      * Convert database rows to DataItem objects
      *
-     * @param QueryBuilder $queryBuilder
+     * @param mixed[][] $rows
      * @return DataItem[]
      */
-    protected function prepareResults(QueryBuilder $queryBuilder)
+    protected function prepareResults(array $rows)
     {
-        $uniqueId = $this->getUniqueId();
         $items = array();
-        foreach ($queryBuilder->execute()->fetchAll() as $row) {
-            $item = new DataItem(array(), $uniqueId);
-            $item->setAttributes($row);
-            $items[] = $item;
+        foreach ($rows as $row) {
+            $items[] = $this->itemFromArray($this->attributesFromRow($row));
         }
         return $items;
+    }
+
+    /**
+     * @param mixed[] $values
+     * @return mixed[]
+     */
+    protected function attributesFromRow(array $values)
+    {
+        $platform = $this->connection->getDatabasePlatform();
+        $attributes = array();
+        foreach ($this->fields as $fieldName) {
+            $attributes[$fieldName] = $values[$platform->getSQLResultCasing($fieldName)];
+        }
+        return $attributes;
+    }
+
+    /**
+     * Create preinitialized item
+     *
+     * @param array $attributes
+     * @return DataItem
+     * @since 0.1.16.2
+     */
+    public function itemFromArray(array $attributes)
+    {
+        return new DataItem($attributes, $this->uniqueIdFieldName);
+    }
+
+    protected function configureSelect(QueryBuilder $queryBuilder)
+    {
+        $queryBuilder->from($this->getTableName(), 't');
+        $connection = $queryBuilder->getConnection();
+        $platform = $connection->getDatabasePlatform();
+        foreach (\array_keys($this->fields) as $columnName) {
+            $queryBuilder->addSelect($connection->quoteIdentifier($platform->getSQLResultCasing($columnName)));
+        }
     }
 }

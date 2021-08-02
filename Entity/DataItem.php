@@ -16,18 +16,18 @@ class DataItem implements \ArrayAccess
     protected $children;
 
     /**
-     * @param mixed  $args string|array|null Optional JSON string or array
+     * @param mixed[] $attributes array
      * @param string $uniqueIdField ID field name
      * @internal
      */
-    public function __construct(array $args = array(), $uniqueIdField = 'id')
+    public function __construct(array $attributes = array(), $uniqueIdField = 'id')
     {
         $this->uniqueIdField = $uniqueIdField;
-        if (!array_key_exists($this->uniqueIdField, $args)) {
+        if (!array_key_exists($this->uniqueIdField, $attributes)) {
             // ensure getId works
-            $args[$this->uniqueIdField] = null;
+            $attributes[$this->uniqueIdField] = null;
         }
-        $this->setAttributes($args);
+        $this->setAttributes($attributes);
     }
 
     /**

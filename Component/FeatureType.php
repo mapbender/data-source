@@ -2,7 +2,6 @@
 namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Query\QueryBuilder;
-use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
 use Mapbender\DataSourceBundle\Utils\WktUtility;
@@ -27,6 +26,8 @@ use Symfony\Component\Finder\Finder;
  * @method Feature insert($itemOrData)
  * @method Feature get($args)
  * @method Feature[]|array[] getByIds(array $ids)
+ * @method Feature itemFactory()
+ * @method FeatureQueryBuilder getSelectQueryBuilder
  */
 class FeatureType extends DataStore
 {
@@ -70,7 +71,7 @@ class FeatureType extends DataStore
     protected function configure(array $args)
     {
         if (array_key_exists('geomField', $args)) {
-            $this->setGeomField($args['geomField']);
+            $this->geomField = $args['geomField'];
         }
         if (array_key_exists('waysTableName', $args)) {
             $this->setWaysTableName($args['waysTableName']);
@@ -106,20 +107,15 @@ class FeatureType extends DataStore
     protected function initializeFields($args)
     {
         $fields = parent::initializeFields($args);
-        // filter geometry field from select fields, unless explicitly configured
-        $geomField = $this->getGeomField();
-        if (empty($args['fields']) || !in_array($geomField, $args['fields'])) {
-            $fields = array_diff($fields, array($geomField));
+        if ($this->geomField && false !== ($key = \array_search($this->geomField, $fields))) {
+            unset($fields[$key]);
         }
         return $fields;
     }
 
-    /**
-     * @param string $geomField
-     */
-    public function setGeomField($geomField)
+    public function getFields()
     {
-        $this->geomField = $geomField;
+        return array_merge(parent::getFields(), array($this->geomField));
     }
 
     /**
@@ -140,7 +136,7 @@ class FeatureType extends DataStore
             ->where($this->getUniqueId() . " = :id")
             ->setParameter('id', $id)
         ;
-        $features = $this->prepareResults($qb);
+        $features = $this->prepareResults($qb->execute()->fetchAll());
         if ($features) {
             return $features[0];
         } else {
@@ -226,7 +222,7 @@ class FeatureType extends DataStore
             $queryBuilder->setMaxResults(intval($criteria['maxResults']));
         }
 
-        $features = $this->prepareResults($queryBuilder);
+        $features = $this->prepareResults($queryBuilder->execute()->fetchAll());
 
         if (!empty($criteria['returnType']) && $criteria['returnType'] === 'FeatureCollection') {
             @trigger_error("DEPRECATED: passed 'returnType' => 'FeatureCollection' to search. This path will be removed in 0.2.0. Change your code to use the default WKT format.", E_USER_DEPRECATED);
@@ -276,45 +272,6 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Convert results to Feature objects
-     *
-     * @param QueryBuilder $queryBuilder
-     * @return Feature[]
-     */
-    protected function prepareResults(QueryBuilder $queryBuilder)
-    {
-        /** @var FeatureQueryBuilder $queryBuilder */
-        $driver = $this->getDriver();
-
-        $rows = $queryBuilder->execute()->fetchAll();
-        if ($driver instanceof Oracle) {
-            // @todo: this logic belongs in the driver, not here
-            // @todo: this behaviour may cause more trouble than it solves. There should be an option
-            //        to disable it.
-            Oracle::transformColumnNames($rows);
-        }
-        $features = array();
-        foreach ($rows as $row) {
-            $feature = new Feature($row, $this->getUniqueId(), $this->getGeomField());
-            $features[] = $feature;
-        }
-        return $features;
-    }
-
-    /**
-     * Get query builder prepared to select from the source table
-     *
-     * @return FeatureQueryBuilder
-     */
-    public function getSelectQueryBuilder()
-    {
-        /** @var FeatureQueryBuilder $queryBuilder */
-        $queryBuilder = parent::getSelectQueryBuilder();
-        $queryBuilder->addGeomSelect($this->geomField);
-        return $queryBuilder;
-    }
-
-    /**
      * Cast feature by $args
      *
      * @param mixed $args
@@ -334,17 +291,6 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Create empty item
-     *
-     * @return Feature
-     * @since 0.1.16.2
-     */
-    public function itemFactory()
-    {
-        return new Feature(array(), $this->uniqueIdFieldName, $this->geomField);
-    }
-
-    /**
      * Create preinitialized item
      *
      * @param array $values
@@ -353,12 +299,6 @@ class FeatureType extends DataStore
      */
     public function itemFromArray(array $values)
     {
-        /**
-         * NOTE: we deliberatly AVOID using itemFactory here because of the absolutely irritating matrix
-         * of potential constructor initializer types
-         * @see Feature::__construct
-         * @sse DataItem::__construct
-         */
         return new Feature($values, $this->uniqueIdFieldName, $this->geomField);
     }
 
@@ -614,5 +554,23 @@ class FeatureType extends DataStore
     public function createQueryBuilder()
     {
         return new FeatureQueryBuilder($this->connection, $this->getDriver(), $this->getSrid());
+    }
+
+    protected function attributesFromRow(array $values)
+    {
+        $attributes = parent::attributesFromRow($values);
+        if ($this->geomField && !\array_key_exists($this->geomField, $attributes)) {
+            $platform = $this->connection->getDatabasePlatform();
+            $attributes[$this->geomField] = $values[$platform->getSQLResultCasing($this->geomField)];
+        }
+        return $attributes;
+    }
+
+    protected function configureSelect(QueryBuilder $queryBuilder)
+    {
+        /** @var FeatureQueryBuilder $queryBuilder */
+        parent::configureSelect($queryBuilder);
+        $geomName = $queryBuilder->getConnection()->getDatabasePlatform()->getSQLResultCasing($this->geomField);
+        $queryBuilder->addGeomSelect($geomName);
     }
 }

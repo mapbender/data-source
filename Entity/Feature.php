@@ -65,12 +65,12 @@ class Feature extends DataItem
     }
 
     /**
-     * @param array $args
+     * @param mixed[] $attributes
      * @param string $uniqueIdField
      * @param string $geomField
      * @internal
      */
-    public function __construct(array $args = array(), $uniqueIdField = 'id', $geomField = "geom")
+    public function __construct(array $attributes = array(), $uniqueIdField = 'id', $geomField = "geom")
     {
         if (\is_numeric($uniqueIdField)) {
             @trigger_error("DEPRECATED: do not pass srid to Feature constructor.", E_USER_DEPRECATED);
@@ -79,10 +79,10 @@ class Feature extends DataItem
         }
         $this->geomField = $geomField;
         // Ensure getGeom / getEwkt / getSrid works
-        $args += array(
+        $attributes += array(
             $geomField => null,
         );
-        parent::__construct($args, $uniqueIdField);
+        parent::__construct($attributes, $uniqueIdField);
     }
 
     /**

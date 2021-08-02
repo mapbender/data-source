@@ -118,19 +118,31 @@ class DataStore extends EventAwareDataRepository
 
     protected function initializeFields($args)
     {
+        $platform = $this->connection->getDatabasePlatform();
         if (isset($args['fields'])) {
             if (!is_array($args['fields'])) {
                 throw new \InvalidArgumentException("Unexpected type " . gettype($args['fields']) . " for 'fields'. Expected array.");
             }
-            $fields = $args['fields'];
-            if (!empty($args['parentField']) && !in_array($args['parentField'], $fields)) {
+            $names = $args['fields'];
+            if (!empty($args['parentField']) && !in_array($args['parentField'], $names)) {
                 @trigger_error("DEPRECATED: parentField / getParent / getTree are deprecated and will be removed in 0.2.0", E_USER_DEPRECATED);
-                $fields[] = $args['parentField'];
+                $names[] = $args['parentField'];
             }
-            return $fields;
+            $names = \array_combine($names, $names) ?: array();
         } else {
-            return $this->getTableMetaData()->getColumNames();
+            $names = array();
+            foreach ($this->getTableMetaData()->getColumNames() as $columnName) {
+                $names[] = \strtolower($columnName);
+            }
         }
+        $fields = array();
+        foreach ($names as $name) {
+            $fields[$platform->getSQLResultCasing($name)] = $name;
+        }
+        if (!\in_array($this->uniqueIdFieldName, $names, true)) {
+            $fields[$platform->getSQLResultCasing($this->uniqueIdFieldName)] = $this->uniqueIdFieldName;
+        }
+        return $fields;
     }
 
     /**
@@ -165,7 +177,7 @@ class DataStore extends EventAwareDataRepository
             $queryBuilder->andWhere($this->getParentField() . " = " . $parentId);
         }
 
-        $rows = $this->prepareResults($queryBuilder);
+        $rows = $this->prepareResults($queryBuilder->execute()->fetchAll());
 
         if ($recursive) {
             foreach ($rows as $dataItem) {
@@ -204,24 +216,6 @@ class DataStore extends EventAwareDataRepository
         } else {
             return $this->itemFromArray($data);
         }
-    }
-
-    /**
-     * Create preinitialized item
-     *
-     * @param array $values
-     * @return DataItem
-     * @since 0.1.16.2
-     */
-    public function itemFromArray(array $values)
-    {
-        /**
-         * NOTE: we deliberatly AVOID using itemFactory here because of the absolutely irritating matrix
-         * of potential constructor initializer types
-         * @sse DataItem::__construct
-         */
-        $item = new DataItem($values, $this->getUniqueId());
-        return $item;
     }
 
     /**
@@ -350,7 +344,7 @@ class DataStore extends EventAwareDataRepository
             $queryBuilder->setMaxResults(intval($criteria['maxResults']));
         }
 
-        $results = $this->prepareResults($queryBuilder);
+        $results = $this->prepareResults($queryBuilder->execute()->fetchAll());
 
         if (!empty($this->events[self::EVENT_ON_AFTER_SEARCH])) {
             $eventData['results'] = &$results;
@@ -550,7 +544,7 @@ class DataStore extends EventAwareDataRepository
         $queryBuilder->where($externalFieldName . " = :criteria");
         $queryBuilder->setParameter('criteria', $mappedId);
 
-        return $this->prepareResults($queryBuilder);
+        return $this->prepareResults($queryBuilder->execute->fetchAll());
     }
 
     /**
