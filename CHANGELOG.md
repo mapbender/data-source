@@ -1,4 +1,4 @@
-## dev-release/0.1 @ cfc0ad5
+## dev-release/0.1 @ 7f6382d
 * Fix DataStore vs FeatureType event handling differences
 * Fix Feature::getType
 * Fix geometry not available from Feature::getAttributes
@@ -12,6 +12,7 @@
 * Strictness: referencing non-existant columns in explicitly configured `fields` is now an error
 * Strictness: explicitly configured "fields" can no longer be quoted or aliased; use strictly column names
 * Strictness: including `*` in explicitly configured "fields" will now cause errors; use strictly column names, or leave fields completely empty
+* Strictness: mis-cased configuration values are no longer valid
 * Ignore `srid` setting (always detect from database)
 * Add `count` method on DataStore / FeatureType (same argument style as `search` method)
 * Add standalone DataStore / FeatureType factory services (`mbds.default_datastore_factory`, `mbds.default_featuretype_factory`)
