@@ -127,21 +127,6 @@ abstract class DoctrineBaseDriver
 
 
     /**
-     * Delete rows
-     * @see \Doctrine\DBAL\Connection::delete
-     *
-     * @param string $tableName
-     * @param mixed[] $identifier
-     * @return int number of affected rows
-     * @throws \Doctrine\DBAL\DBALException
-     * @throws \Doctrine\DBAL\Exception\InvalidArgumentException
-     */
-    public function delete($tableName, array $identifier)
-    {
-        return $this->getConnection()->delete($tableName, $identifier);
-    }
-
-    /**
      * @param mixed $value
      * @return mixed
      */
