@@ -2,7 +2,6 @@
 namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
-use Mapbender\CoreBundle\Component\UploadsManager;
 use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
@@ -324,16 +323,6 @@ class DataStore extends EventAwareDataRepository
             $sqlFilter = $filtered;
         }
         $this->sqlFilter = $sqlFilter;
-    }
-
-    /**
-     * @return UploadsManager
-     */
-    protected function getUploadsManager()
-    {
-        /** @var UploadsManager $ulm */
-        $ulm = $this->container->get('mapbender.uploads_manager.service');
-        return $ulm;
     }
 
     /**
