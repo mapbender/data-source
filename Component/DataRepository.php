@@ -226,13 +226,13 @@ class DataRepository
         $platformName = $connection->getDatabasePlatform()->getName();
         switch ($platformName) {
             case 'sqlite';
-                $driver = new SQLite($connection);
+                $driver = new SQLite();
                 break;
             case 'postgresql';
-                $driver = new PostgreSQL($connection);
+                $driver = new PostgreSQL();
                 break;
             case 'oracle';
-                $driver = new Oracle($connection);
+                $driver = new Oracle();
                 break;
             default:
                 throw new \RuntimeException("Unsupported DBAL platform " . print_r($platformName, true));

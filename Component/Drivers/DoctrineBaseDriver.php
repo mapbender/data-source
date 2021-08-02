@@ -11,23 +11,6 @@ use Mapbender\DataSourceBundle\Component\Meta\TableMeta;
  */
 abstract class DoctrineBaseDriver
 {
-    /** @var Connection */
-    public $connection;
-
-
-    public function __construct(Connection $connection)
-    {
-        $this->connection = $connection;
-    }
-
-    /**
-     * @return Connection
-     */
-    protected function getConnection()
-    {
-        return $this->connection;
-    }
-
     /**
      * @param Connection $connection
      * @param string $tableName
