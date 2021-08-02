@@ -12,9 +12,6 @@ class DataItem implements \ArrayAccess
     /** @var string */
     protected $uniqueIdField;
 
-    /** @var DataItem[]|null */
-    protected $children;
-
     /**
      * @param mixed[] $attributes array
      * @param string $uniqueIdField ID field name
@@ -105,26 +102,6 @@ class DataItem implements \ArrayAccess
     public function setAttribute($key, $value)
     {
         $this->attributes[ $key ] = $value;
-    }
-
-    /**
-     * @param DataItem[] $children
-     * @deprecated
-     * @todo 0.2: remove this method
-     */
-    public function setChildren($children)
-    {
-        $this->children = $children;
-    }
-
-    /**
-     * @return DataItem[]|null
-     * @deprecated
-     * @todo 0.2: remove this method
-     */
-    public function getChildren()
-    {
-        return $this->children;
     }
 
     public function offsetExists($offset)

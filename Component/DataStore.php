@@ -25,7 +25,6 @@ class DataStore extends EventAwareDataRepository
     /** @var RepositoryRegistry */
     protected $registry;
 
-    protected $parentField;
     protected $mapping;
 
     /**
@@ -74,9 +73,6 @@ class DataStore extends EventAwareDataRepository
         if (array_key_exists('mapping', $args)) {
             $this->setMapping($args['mapping']);
         }
-        if (array_key_exists('parentField', $args)) {
-            $this->setParentField($args['parentField']);
-        }
         if (array_key_exists('files', $args)) {
             $this->setFiles($args['files']);
         }
@@ -85,7 +81,6 @@ class DataStore extends EventAwareDataRepository
             'table',
             'uniqueId',
             'mapping',
-            'parentField',
             'filter',
             'files',
         )));
@@ -121,11 +116,6 @@ class DataStore extends EventAwareDataRepository
                 throw new \InvalidArgumentException("Unexpected type " . gettype($args['fields']) . " for 'fields'. Expected array.");
             }
             $names = $args['fields'];
-            if (!empty($args['parentField']) && !in_array($args['parentField'], $names)) {
-                @trigger_error("DEPRECATED: parentField / getParent / getTree are deprecated and will be removed in 0.2.0", E_USER_DEPRECATED);
-                $names[] = $args['parentField'];
-            }
-            $names = \array_combine($names, $names) ?: array();
         } else {
             $names = array();
             foreach ($this->getTableMetaData()->getColumNames() as $columnName) {
@@ -140,50 +130,6 @@ class DataStore extends EventAwareDataRepository
             $fields[$platform->getSQLResultCasing($this->uniqueIdFieldName)] = $this->uniqueIdFieldName;
         }
         return $fields;
-    }
-
-    /**
-     * Get parent by child ID
-     *
-     * @param integer|string $id
-     * @return DataItem|null
-     * @deprecated use getById (twice)
-     * @todo 0.2: remove this method
-     */
-    public function getParent($id)
-    {
-        $dataItem = $this->getById($id);
-        return $this->getById($dataItem->getAttribute($this->getParentField()));
-    }
-
-    /**
-     * Get tree
-     *
-     * @param null|int $parentId  Parent ID
-     * @param bool     $recursive Recursive [true|false]
-     * @return DataItem[]
-     * @deprecated
-     * @todo 0.2: remove this method
-     */
-    public function getTree($parentId = null, $recursive = true)
-    {
-        $queryBuilder = $this->createQueryBuilder();
-        $this->configureSelect($queryBuilder, false, array());
-        if ($parentId === null) {
-            $queryBuilder->andWhere($this->getParentField() . " IS NULL");
-        } else {
-            $queryBuilder->andWhere($this->getParentField() . " = " . $parentId);
-        }
-
-        $rows = $this->prepareResults($queryBuilder->execute()->fetchAll());
-
-        if ($recursive) {
-            foreach ($rows as $dataItem) {
-                $dataItem->setChildren($this->getTree($dataItem->getId(), $recursive));
-            }
-        }
-
-        return $rows;
     }
 
     /**
@@ -438,26 +384,6 @@ class DataStore extends EventAwareDataRepository
             $sqlFilter = $filtered;
         }
         $this->sqlFilter = $sqlFilter;
-    }
-
-    /**
-     * @param mixed $parentField
-     * @deprecated
-     * @todo 0.2: remove this method
-     */
-    public function setParentField($parentField)
-    {
-        $this->parentField = $parentField;
-    }
-
-    /**
-     * @return mixed
-     * @deprecated
-     * @todo 0.2: remove this method
-     */
-    public function getParentField()
-    {
-        return $this->parentField;
     }
 
     /**
