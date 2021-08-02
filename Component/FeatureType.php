@@ -558,6 +558,7 @@ class FeatureType extends DataStore
 
     protected function addQueryFilters(QueryBuilder $queryBuilder, $includeDefaultFilter, $params)
     {
+        parent::addQueryFilters($queryBuilder, $includeDefaultFilter, $params);
         // add bounding geometry condition
         if (!empty($params['intersect'])) {
             $clipWkt = $params['intersect'];
