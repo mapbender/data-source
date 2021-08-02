@@ -56,10 +56,6 @@ class DataStore extends EventAwareDataRepository
 
     protected function configure(array $args)
     {
-        /** @todo 0.2.0: remove extra filter condition preprocessing step */
-        if (array_key_exists('filter', $args)) {
-            $this->setFilter($args['filter']);
-        }
     }
 
     protected function initializeFields($args)

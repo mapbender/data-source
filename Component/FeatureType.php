@@ -59,15 +59,6 @@ class FeatureType extends DataStore
                 $this->exportFields = $args['export']['fields'];
             }
         }
-        $remaining = array_diff_key($args, array_flip(array(
-            'geomField',
-            'geomType',     // driver scope
-            'srid',
-            'export',
-        )));
-
-        parent::configure($remaining);
-
     }
 
     protected function initializeFields($args)
