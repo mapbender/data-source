@@ -11,16 +11,12 @@
         <service id="mbds.default_datastore_factory" class="Mapbender\DataSourceBundle\Component\Factory\DataStoreFactory">
             <!-- @since 0.1.22 -->
             <argument type="service" id="security.token_storage" />
-            <argument type="service" id="request_stack" />
             <argument type="service" id="mbds.default_event_processor" />
-            <argument type="service" id="mapbender.uploads_manager.service" />
         </service>
         <service id="mbds.default_featuretype_factory" class="Mapbender\DataSourceBundle\Component\Factory\FeatureTypeFactory">
             <!-- @since 0.1.22 -->
             <argument type="service" id="security.token_storage" />
-            <argument type="service" id="request_stack" />
             <argument type="service" id="mbds.default_event_processor" />
-            <argument type="service" id="mapbender.uploads_manager.service" />
         </service>
     </services>
 </container>

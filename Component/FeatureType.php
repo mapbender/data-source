@@ -5,7 +5,6 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
 use Mapbender\DataSourceBundle\Utils\WktUtility;
-use Symfony\Component\Finder\Finder;
 
 /**
  * Loads and stores Features (DataItem with geometry).
@@ -261,50 +260,6 @@ class FeatureType extends DataStore
     public function repairTableSequence()
     {
         return $this->getConnection()->fetchColumn("SELECT setval('" . $this->getTableSequenceName() . "', (SELECT MAX(" . $this->getUniqueId() . ") FROM " . $this->getTableName() . "))");
-    }
-
-    /**
-     * Generate unique file name for a field.
-     *
-     * @param null $fieldName Field
-     * @return string[]
-     * @deprecated no known callers; non-conflicting unique file names generated in {@see Uploader::upcount_name}
-     * @todo 0.2.0: remove this method
-     */
-    public function genFilePath($fieldName = null)
-    {
-        $id   = $this->countFiles($fieldName) + 1;
-        $src  = null;
-        $path = null;
-
-        while (1) {
-            $path = $id; //. "-" . System::generatePassword(12) ;
-            $src  = $this->getFilePath($fieldName) . "/" . $path;
-            if (!file_exists($src)) {
-                break;
-            }
-            $id++;
-        }
-
-        return array(
-            "src"  => $src,
-            "path" => $path
-        );
-    }
-
-    /**
-     * Count files in the field directory
-     *
-     * @param null $fieldName
-     * @return int
-     * @deprecated only called by deprecated / unused genFilePath
-     * @todo 0.2.0: remove this method
-     */
-    private function countFiles($fieldName = null)
-    {
-        $finder = new Finder();
-        $finder->files()->in($this->getFilePath($fieldName));
-        return count($finder);
     }
 
     /**

@@ -7,8 +7,6 @@ use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
@@ -24,11 +22,6 @@ class DataStore extends EventAwareDataRepository
     protected $container;
     /** @var RepositoryRegistry */
     protected $registry;
-
-    /**
-     * @var array file info list
-     */
-    protected $filesInfo = array();
 
     /**
      * @param ContainerInterface $container
@@ -66,9 +59,6 @@ class DataStore extends EventAwareDataRepository
         /** @todo 0.2.0: remove extra filter condition preprocessing step */
         if (array_key_exists('filter', $args)) {
             $this->setFilter($args['filter']);
-        }
-        if (array_key_exists('files', $args)) {
-            $this->setFiles($args['files']);
         }
     }
 
@@ -386,113 +376,5 @@ class DataStore extends EventAwareDataRepository
         }
         // uh-oh!
         return null;
-    }
-
-    /**
-     * Get files directory, relative to base upload directory
-     *
-     * @param null $fieldName
-     * @return string
-     * @deprecated
-     * @todo 0.2: remove (breaks data-manager < 1.2, Digitizer < 1.4)
-     */
-    public function getFileUri($fieldName = null)
-    {
-        $path = $this->getUploadsDirectoryName() . "/" . $this->getTableName();
-
-        if ($fieldName) {
-            $path .= "/" . $fieldName;
-        }
-
-        foreach ($this->getFileInfo() as $fileInfo) {
-            if (isset($fileInfo["field"]) && isset($fileInfo["uri"]) && $fieldName == $fileInfo["field"]) {
-                $path = $fileInfo["uri"];
-                break;
-            }
-        }
-
-        return $path;
-    }
-
-    /**
-     * Get files base path
-     *
-     * @param null $fieldName  file field name
-     * @param bool $createPath check and create path?
-     * @return string
-     * @deprecated
-     * @todo 0.2: remove (breaks data-manager < 1.2, Digitizer < 1.4)
-     */
-    public function getFilePath($fieldName = null, $createPath = true)
-    {
-        foreach ($this->getFileInfo() as $fileInfo) {
-            if (isset($fileInfo["field"]) && isset($fileInfo["path"]) && $fieldName == $fileInfo["field"]) {
-                $path = $fileInfo["path"];
-                if ($createPath && !is_dir($path)) {
-                    mkdir($path, 0775, true);
-                }
-                return $path;
-            }
-        }
-        $fileUri = $this->getFileUri($fieldName);
-        return $this->getUploadsManager()->getSubdirectoryPath($fileUri, $createPath);
-    }
-
-    /**
-     * @param string $fieldName
-     * @return string
-     * @deprecated
-     * @todo 0.2: remove (breaks data-manager < 1.2, Digitizer < 1.4)
-     */
-    public function getFileUrl($fieldName = "")
-    {
-        $fileUri = $this->getFileUri($fieldName);
-        $fs = new Filesystem();
-        if ($fs->isAbsolutePath($fileUri)) {
-            return $fileUri;
-        } else {
-            /** @var Request $request */
-            $request = $this->container->get('request_stack')->getCurrentRequest();
-            $baseUrl = implode('', array(
-                $request->getSchemeAndHttpHost(),
-                $request->getBasePath(),
-            ));
-            foreach ($this->getFileInfo() as $fileInfo) {
-                if (isset($fileInfo["field"]) && isset($fileInfo["uri"]) && $fieldName == $fileInfo["field"]) {
-                    return "{$baseUrl}/{$fileUri}";
-                }
-            }
-            $uploadsDir = $this->getUploadsManager()->getWebRelativeBasePath(false);
-            return "{$baseUrl}/{$uploadsDir}/{$fileUri}";
-        }
-    }
-
-    /**
-     * @param array[] $fileInfo
-     * @deprecated
-     * @todo 0.2: remove (breaks data-manager < 1.2, Digitizer < 1.4)
-     */
-    public function setFiles($fileInfo)
-    {
-        $this->filesInfo = $fileInfo;
-    }
-
-    /**
-     * @return array[]
-     * @deprecated
-     * @todo 0.2: remove (breaks data-manager < 1.2, Digitizer < 1.4)
-     */
-    public function getFileInfo()
-    {
-        return $this->filesInfo;
-    }
-    /**
-     * @return string
-     * @deprecated
-     * @todo 0.2: remove (breaks data-manager < 1.2, Digitizer < 1.4)
-     */
-    public function getUploadsDirectoryName()
-    {
-        return "ds-uploads";
     }
 }
