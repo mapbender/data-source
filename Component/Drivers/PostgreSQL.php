@@ -5,17 +5,14 @@ namespace Mapbender\DataSourceBundle\Component\Drivers;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DBALException;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
-use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Routable;
-use Mapbender\DataSourceBundle\Component\LegacyPgRouting;
 use Mapbender\DataSourceBundle\Component\Meta\Column;
 use Mapbender\DataSourceBundle\Component\Meta\TableMeta;
-use Mapbender\DataSourceBundle\Entity\Feature;
 
 /**
  * @package Mapbender\DataSourceBundle\Component\Drivers
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
+class PostgreSQL extends DoctrineBaseDriver implements Geographic
 {
 
     public function insert(Connection $connection, $tableName, array $data, $identifier)
@@ -91,25 +88,6 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
     public function getColumnToEwktSql($geomReference, $sridTo)
     {
         return "ST_AsEwkt(ST_TRANSFORM($geomReference, $sridTo))";
-    }
-
-    public function getNodeFromGeom($waysVerticesTableName, $waysGeomFieldName, $ewkt, $transformTo = null, $idKey = "id")
-    {
-        return LegacyPgRouting::nodeFromGeom($this->getConnection(), $waysVerticesTableName, $waysGeomFieldName, $ewkt, $transformTo, $idKey);
-    }
-
-    public function routeBetweenNodes($waysTableName, $waysGeomFieldName, $startNodeId, $endNodeId, $srid, $directedGraph = false, $hasReverseCost = false)
-    {
-        $results = LegacyPgRouting::route($this->getConnection(), $waysTableName, $waysGeomFieldName, $startNodeId, $endNodeId, $srid, $directedGraph, $hasReverseCost);
-        $features = array();
-        $geomName = 'geom'; // This is hard-coded in the routing query sql
-        $idName = 'orderId'; // This is hard-coded in the routing query sql
-        foreach ($results as $row) {
-            $feature = new Feature(array(), $idName, $geomName);
-            $feature->setAttributes($row);
-            $features[] = $feature;
-        }
-        return $features;
     }
 
     public function loadTableMeta(Connection $connection, $tableName)

@@ -44,22 +44,6 @@ class FeatureType extends DataStore
      */
     protected $srid = null;
 
-    /**
-     * @var string Routing ways node table name.
-     */
-    protected $waysTableName = "ways";
-
-    /**
-     * @var string Way vertices table name
-     */
-    protected $waysVerticesTableName = 'ways_vertices_pgr';
-
-    /**
-     * @var string Routing ways geometry field name
-     */
-    protected $waysGeomFieldName = "the_geom";
-
-
     /** @var array|null */
     protected $exportFields;
 
@@ -67,15 +51,6 @@ class FeatureType extends DataStore
     {
         if (array_key_exists('geomField', $args)) {
             $this->geomField = $args['geomField'];
-        }
-        if (array_key_exists('waysTableName', $args)) {
-            $this->setWaysTableName($args['waysTableName']);
-        }
-        if (array_key_exists('waysGeomFieldName', $args)) {
-            $this->setWaysGeomFieldName($args['waysGeomFieldName']);
-        }
-        if (array_key_exists('waysVerticesTableName', $args)) {
-            $this->setWaysVerticesTableName($args['waysVerticesTableName']);
         }
         if (!empty($args['export'])) {
             if (!is_array($args['export'])) {
@@ -90,9 +65,6 @@ class FeatureType extends DataStore
             'geomType',     // driver scope
             'srid',
             'export',
-            'waysTableName',
-            'waysGeomFieldName',
-            'waysVerticesTableName',
         )));
 
         parent::configure($remaining);
@@ -262,38 +234,6 @@ class FeatureType extends DataStore
     }
 
     /**
-     * @param string $waysTableName
-     */
-    public function setWaysTableName($waysTableName)
-    {
-        $this->waysTableName = $waysTableName;
-    }
-
-    /**
-     * @param string $waysGeomFieldName
-     */
-    public function setWaysGeomFieldName($waysGeomFieldName)
-    {
-        $this->waysGeomFieldName = $waysGeomFieldName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getWaysVerticesTableName()
-    {
-        return $this->waysVerticesTableName;
-    }
-
-    /**
-     * @param string $waysVerticesTableName
-     */
-    public function setWaysVerticesTableName($waysVerticesTableName)
-    {
-        $this->waysVerticesTableName = $waysVerticesTableName;
-    }
-
-    /**
      * Get sequence name
      *
      * @return string sequence name
@@ -377,30 +317,6 @@ class FeatureType extends DataStore
     public static function getWktType($wkt)
     {
         return WktUtility::getGeometryType($wkt);
-    }
-
-    /**
-     * Get route nodes between geometries
-     *
-     * @param string $sourceGeom EWKT geometry
-     * @param string $targetGeom EWKT geometry
-     * @return Feature[]
-     * @deprecated data-source is an appropriate starting point for pg routing; roll your own
-     */
-    public function routeBetweenGeom($sourceGeom, $targetGeom)
-    {
-        $connection = $this->getConnection();
-        $srid = $this->getSrid();
-        $sourceId = LegacyPgRouting::nodeFromGeom($connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $sourceGeom, $srid, 'id');
-        $targetId = LegacyPgRouting::nodeFromGeom($connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $targetGeom, $srid, 'id');
-        $rows = LegacyPgRouting::route($connection, $this->waysVerticesTableName, $this->waysGeomFieldName, $sourceId, $targetId, $srid);
-        $features = array();
-        foreach ($rows as $row) {
-            $feature = new Feature(array(), $this->getUniqueId(), $this->getGeomField());
-            $feature->setAttributes($row);
-            $features[] = $feature;
-        }
-        return $features;
     }
 
     /**
