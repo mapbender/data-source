@@ -32,7 +32,9 @@ class DataStoreFactory
     public function fromConfig(RepositoryRegistry $registry, array $config)
     {
         $fakeContainer = $this->buildContainer($registry);
-        return new DataStore($fakeContainer, $config, $registry);
+        $config += $this->getConfigDefaults();
+        $connection = $registry->getDbalConnectionByName($config['connection']);
+        return new DataStore($fakeContainer, $connection, $config);
     }
 
     protected function buildContainer(RepositoryRegistry $registry)
@@ -40,7 +42,14 @@ class DataStoreFactory
         $container = new Container(new FrozenParameterBag());
         $container->set('security.token_storage', $this->tokenStorage);
         $container->set('mbds.default_event_processor', $this->eventProcessor);
-        $container->set('data.source', $registry);
         return $container;
+    }
+
+    protected function getConfigDefaults()
+    {
+        return array(
+            'uniqueId' => 'id',
+            'connection' => 'default',
+        );
     }
 }

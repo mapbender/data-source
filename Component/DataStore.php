@@ -1,6 +1,7 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component;
 
+use Doctrine\DBAL\Connection;
 use Mapbender\CoreBundle\Component\UploadsManager;
 use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
@@ -20,26 +21,16 @@ class DataStore extends EventAwareDataRepository
 
     /** @var ContainerInterface */
     protected $container;
-    /** @var RepositoryRegistry */
-    protected $registry;
 
     /**
      * @param ContainerInterface $container
+     * @param Connection $connection
      * @param array|null $args
-     * @param RepositoryRegistry|null $registry
      * @todo: drop container injection; replace with owning DataStoreService / FeatureTypeService injection
      */
-    public function __construct(ContainerInterface $container, $args = array(), RepositoryRegistry $registry = null)
+    public function __construct(ContainerInterface $container, Connection $connection, $args = array())
     {
-        // Extract parent constructor arguments
-        $defaults = array(
-            'uniqueId' => 'id',
-            'connection' => 'default',  // Uh-oh!
-        );
-        $args += $defaults;
         $eventConfig = isset($args["events"]) ? $args["events"] : array();
-        $registry = $registry ?: $container->get('data.source');
-        $connection = $registry->getDbalConnectionByName($args['connection']);
         /** @var TokenStorageInterface $tokenStorage */
         $tokenStorage = $container->get('security.token_storage');
         /** @var EventProcessor $eventProcessor */
@@ -49,7 +40,6 @@ class DataStore extends EventAwareDataRepository
 
         // Rest
         $this->container = $container;
-        $this->registry = $registry;
         $this->configure($args);
         $this->fields = $this->initializeFields($args);
     }
