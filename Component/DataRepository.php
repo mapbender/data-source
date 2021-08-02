@@ -35,13 +35,16 @@ class DataRepository
     protected $tableMetaData;
     /** @var string[] */
     protected $fields;
+    /** @var string|null SQL expression */
+    protected $sqlFilter;
 
-    public function __construct(Connection $connection, TokenStorageInterface $tokenStorage, $tableName, $idColumnName)
+    public function __construct(Connection $connection, TokenStorageInterface $tokenStorage, $tableName, $idColumnName, $filter)
     {
         $this->connection = $connection;
         $this->tokenStorage = $tokenStorage;
         $this->tableName = $tableName;
         $this->uniqueIdFieldName = $idColumnName;
+        $this->sqlFilter = $filter;
     }
 
     /**
@@ -77,7 +80,10 @@ class DataRepository
      */
     public function getById($id)
     {
-        $qb = $this->getSelectQueryBuilder()->setMaxResults(1);
+        $qb = $this->createQueryBuilder();
+        $this->configureSelect($qb, false, array(
+            'maxResults' => 1,
+        ));
         $qb->where($this->getUniqueId() . ' = :id');
         $qb->setParameter(':id', $id);
         $items = $this->prepareResults($qb->execute()->fetchAll());
@@ -97,7 +103,8 @@ class DataRepository
      */
     public function getByIds($ids)
     {
-        $queryBuilder = $this->getSelectQueryBuilder();
+        $queryBuilder = $this->createQueryBuilder();
+        $this->configureSelect($queryBuilder, false, array());
         $connection   = $queryBuilder->getConnection();
         $condition = $queryBuilder->expr()->in($this->uniqueIdFieldName, array_map(array($connection, 'quote'), $ids));
         $queryBuilder->where($condition);
@@ -166,18 +173,6 @@ class DataRepository
             $this->driver = $this->driverFactory($this->connection);
         }
         return $this->driver;
-    }
-
-    /**
-     * Get query builder prepared to select from the source table
-     *
-     * @return QueryBuilder
-     */
-    protected function getSelectQueryBuilder()
-    {
-        $qb = $this->createQueryBuilder();
-        $this->configureSelect($qb);
-        return $qb;
     }
 
     /**
@@ -287,13 +282,25 @@ class DataRepository
         return new DataItem($attributes, $this->uniqueIdFieldName);
     }
 
-    protected function configureSelect(QueryBuilder $queryBuilder)
+    protected function configureSelect(QueryBuilder $queryBuilder, $includeFilter, array $params)
     {
         $queryBuilder->from($this->getTableName(), 't');
         $connection = $queryBuilder->getConnection();
         $platform = $connection->getDatabasePlatform();
         foreach (\array_keys($this->fields) as $columnName) {
             $queryBuilder->addSelect($connection->quoteIdentifier($platform->getSQLResultCasing($columnName)));
+        }
+        if (!empty($params['maxResults'])) {
+            $queryBuilder->setMaxResults($params['maxResults']);
+        }
+        if ($includeFilter && !empty($this->sqlFilter)) {
+            if (preg_match('#:userName([^_\w\d]|$)#', $this->sqlFilter)) {
+                $queryBuilder->setParameter(':userName', $this->tokenStorage->getToken()->getUsername());
+            }
+            $queryBuilder->andWhere($this->sqlFilter);
+        }
+        if (!empty($params['where'])) {
+            $queryBuilder->andWhere($params['where']);
         }
     }
 }

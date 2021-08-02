@@ -27,7 +27,7 @@ use Symfony\Component\Finder\Finder;
  * @method Feature get($args)
  * @method Feature[]|array[] getByIds(array $ids)
  * @method Feature itemFactory()
- * @method FeatureQueryBuilder getSelectQueryBuilder
+ * @method Feature[] prepareResults(array $rows)
  */
 class FeatureType extends DataStore
 {
@@ -127,10 +127,11 @@ class FeatureType extends DataStore
      */
     public function getById($id, $srid = null)
     {
-        $qb = $this->getSelectQueryBuilder();
-        if ($srid) {
-            $qb->setTargetSrid($srid);
-        }
+        $qb = $this->createQueryBuilder();
+        $this->configureSelect($qb, false, array(
+            'srid' => $srid,
+            'maxResults' => 1,
+        ));
         $qb
             ->setMaxResults(1)
             ->where($this->getUniqueId() . " = :id")
@@ -211,16 +212,9 @@ class FeatureType extends DataStore
      */
     public function search(array $criteria = array())
     {
-        $queryBuilder = $this->getSelectQueryBuilder();
-        if (!empty($criteria['srid'])) {
-            $queryBuilder->setTargetSrid($criteria['srid']);
-        }
-
+        $queryBuilder = $this->createQueryBuilder();
+        $this->configureSelect($queryBuilder, true, $criteria);
         $this->addCustomSearchCritera($queryBuilder, $criteria);
-
-        if (!empty($criteria['maxResults'])) {
-            $queryBuilder->setMaxResults(intval($criteria['maxResults']));
-        }
 
         $features = $this->prepareResults($queryBuilder->execute()->fetchAll());
 
@@ -241,17 +235,6 @@ class FeatureType extends DataStore
      */
     protected function addCustomSearchCritera(QueryBuilder $queryBuilder, array $params)
     {
-        parent::addCustomSearchCritera($queryBuilder, $params);
-        // add bounding geometry condition
-        if (!empty($params['intersect'])) {
-            $clipWkt = $params['intersect'];
-            if (!empty($params['srid'])) {
-                $clipSrid = $params['srid'];
-            } else {
-                $clipSrid = $this->getSrid();
-            }
-            $queryBuilder->andWhere($this->getDriver()->getIntersectCondition($clipWkt, $this->geomField, $clipSrid, $this->getSrid()));
-        }
         // Add condition for maximum distance to given wkt 'source'
         // @todo: specify and document
         if (isset($params["source"]) && isset($params["distance"])) {
@@ -566,11 +549,24 @@ class FeatureType extends DataStore
         return $attributes;
     }
 
-    protected function configureSelect(QueryBuilder $queryBuilder)
+    protected function configureSelect(QueryBuilder $queryBuilder, $includeFilter, array $params)
     {
         /** @var FeatureQueryBuilder $queryBuilder */
-        parent::configureSelect($queryBuilder);
+        parent::configureSelect($queryBuilder, $includeFilter, $params);
         $geomName = $queryBuilder->getConnection()->getDatabasePlatform()->getSQLResultCasing($this->geomField);
         $queryBuilder->addGeomSelect($geomName);
+        if (!empty($params['srid'])) {
+            $queryBuilder->setTargetSrid($params['srid']);
+        }
+        // add bounding geometry condition
+        if (!empty($params['intersect'])) {
+            $clipWkt = $params['intersect'];
+            if (!empty($params['srid'])) {
+                $clipSrid = $params['srid'];
+            } else {
+                $clipSrid = $this->getSrid();
+            }
+            $queryBuilder->andWhere($this->getDriver()->getIntersectCondition($clipWkt, $this->geomField, $clipSrid, $this->getSrid()));
+        }
     }
 }

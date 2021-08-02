@@ -1,7 +1,6 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component;
 
-use Doctrine\DBAL\Query\QueryBuilder;
 use Mapbender\CoreBundle\Component\UploadsManager;
 use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
@@ -29,10 +28,6 @@ class DataStore extends EventAwareDataRepository
     protected $parentField;
     protected $mapping;
 
-    /** @var string SQL where filter */
-    protected $sqlFilter;
-
-
     /**
      * @var array file info list
      */
@@ -59,7 +54,8 @@ class DataStore extends EventAwareDataRepository
         $tokenStorage = $container->get('security.token_storage');
         /** @var EventProcessor $eventProcessor */
         $eventProcessor = $container->get('mbds.default_event_processor');
-        parent::__construct($connection, $tokenStorage, $eventProcessor, $eventConfig, $args['table'], $args['uniqueId']);
+        $filter = (!empty($args['filter'])) ? $args['filter'] : null;
+        parent::__construct($connection, $tokenStorage, $eventProcessor, $eventConfig, $args['table'], $args['uniqueId'], $filter);
 
         // Rest
         $this->container = $container;
@@ -71,6 +67,7 @@ class DataStore extends EventAwareDataRepository
 
     protected function configure(array $args)
     {
+        /** @todo 0.2.0: remove extra filter condition preprocessing step */
         if (array_key_exists('filter', $args)) {
             $this->setFilter($args['filter']);
         }
@@ -170,7 +167,8 @@ class DataStore extends EventAwareDataRepository
      */
     public function getTree($parentId = null, $recursive = true)
     {
-        $queryBuilder = $this->getSelectQueryBuilder();
+        $queryBuilder = $this->createQueryBuilder();
+        $this->configureSelect($queryBuilder, false, array());
         if ($parentId === null) {
             $queryBuilder->andWhere($this->getParentField() . " IS NULL");
         } else {
@@ -336,13 +334,8 @@ class DataStore extends EventAwareDataRepository
         if (!empty($this->events[self::EVENT_ON_BEFORE_SEARCH])) {
             $this->eventProcessor->runExpression($this->events[self::EVENT_ON_BEFORE_SEARCH], $eventData);
         }
-        $queryBuilder = $this->getSelectQueryBuilder();
-
-        $this->addCustomSearchCritera($queryBuilder, $criteria);
-
-        if (!empty($criteria['maxResults'])) {
-            $queryBuilder->setMaxResults(intval($criteria['maxResults']));
-        }
+        $queryBuilder = $this->createQueryBuilder();
+        $this->configureSelect($queryBuilder, true, $criteria);
 
         $results = $this->prepareResults($queryBuilder->execute()->fetchAll());
 
@@ -352,30 +345,6 @@ class DataStore extends EventAwareDataRepository
         }
 
         return $results;
-    }
-
-    /**
-     * Add custom (non-Doctrineish) criteria to passed query builder.
-     * Override hook for customization
-     *
-     * @param QueryBuilder $queryBuilder
-     * @param array $params
-     */
-    protected function addCustomSearchCritera(QueryBuilder $queryBuilder, array $params)
-    {
-        // add filter (dead link https://trac.wheregroup.com/cp/issues/3733)
-        // @todo: specify and document
-        if (!empty($this->sqlFilter)) {
-            if (preg_match('#:userName([^_\w\d]|$)#', $this->sqlFilter)) {
-                $queryBuilder->setParameter(':userName', $this->tokenStorage->getToken()->getUsername());
-            }
-            $queryBuilder->andWhere($this->sqlFilter);
-        }
-        // add second filter (dead link https://trac.wheregroup.com/cp/issues/4643)
-        // @ŧodo: specify and document
-        if (!empty($params['where'])) {
-            $queryBuilder->andWhere($params['where']);
-        }
     }
 
     /**
