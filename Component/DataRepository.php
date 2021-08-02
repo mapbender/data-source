@@ -99,6 +99,7 @@ class DataRepository
      *
      * @param array $criteria same as supported by search, minus "maxResults"
      * @return int
+     * @since 0.1.22
      */
     public function count(array $criteria)
     {

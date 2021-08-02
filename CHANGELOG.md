@@ -1,10 +1,11 @@
-## dev-release/0.1 @ 04e50ca8d6c7b26afb7aba1d15febe54501438cf
+## dev-release/0.1 @ cfc0ad5
 * Fix DataStore vs FeatureType event handling differences
 * Fix Feature::getType
 * Fix geometry not available from Feature::getAttributes
 * Fix getByIds method not available on plain DataStore, only on FeatureType
 * Fix errors updating / reinserting any items returned from (deprecated) "getTree"
 * Oracle: fix error detecting column names (without explicit `fields` setting)
+* Oracle: fix missing column identifier quoting in intersect condition
 * Fix unreliable type (sometimes array, sometimes DataItem / Feature) of "item" value in save events
 * Fix inconsistent item data renormalization "save" method (item reloaded + renormalized) vs direct usage of "update" / "insert" methods (item passed back as is)
 * Fix item attribute name renormalization not respecting case of explicitly configured fields
@@ -12,6 +13,7 @@
 * Strictness: explicitly configured "fields" can no longer be quoted or aliased; use strictly column names
 * Strictness: including `*` in explicitly configured "fields" will now cause errors; use strictly column names, or leave fields completely empty
 * Ignore `srid` setting (always detect from database)
+* Add `count` method on DataStore / FeatureType (same argument style as `search` method)
 * Add standalone DataStore / FeatureType factory services (`mbds.default_datastore_factory`, `mbds.default_featuretype_factory`)
 * Resolve / mark misc internal deprecations
 * Misc restructuring for Symfony 4+ compatibility
