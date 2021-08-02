@@ -25,8 +25,6 @@ class DataStore extends EventAwareDataRepository
     /** @var RepositoryRegistry */
     protected $registry;
 
-    protected $mapping;
-
     /**
      * @var array file info list
      */
@@ -70,9 +68,6 @@ class DataStore extends EventAwareDataRepository
         if (array_key_exists('filter', $args)) {
             $this->setFilter($args['filter']);
         }
-        if (array_key_exists('mapping', $args)) {
-            $this->setMapping($args['mapping']);
-        }
         if (array_key_exists('files', $args)) {
             $this->setFiles($args['files']);
         }
@@ -80,7 +75,6 @@ class DataStore extends EventAwareDataRepository
             'connection',
             'table',
             'uniqueId',
-            'mapping',
             'filter',
             'files',
         )));
@@ -384,62 +378,6 @@ class DataStore extends EventAwareDataRepository
             $sqlFilter = $filtered;
         }
         $this->sqlFilter = $sqlFilter;
-    }
-
-    /**
-     * @param mixed $mapping
-     * @return $this
-     * @deprecated
-     * @todo 0.2: remove this method
-     */
-    public function setMapping($mapping)
-    {
-        $this->mapping = $mapping;
-        return $this;
-    }
-
-    /**
-     * Get related objects through mapping
-     *
-     * @param string $mappingId
-     * @param integer|string $id
-     * @return DataItem[]
-     * @deprecated
-     * @todo 0.2: remove this method
-     */
-    public function getTroughMapping($mappingId, $id)
-    {
-        $config            = $this->mapping[ $mappingId ];
-        // This right here breaks Element-level customization
-        // The parent ~registry (using Doctrine lingo) should be known to
-        // each DataStore and FeatureType
-        $externalDataStore = $this->registry->get($config["externalDataStore"]);
-        $internalFieldName = null;
-        $externalFieldName = null;
-
-        if (isset($config['internalId'])) {
-            $internalFieldName = $config['internalId'];
-        }
-
-        if (isset($config['externalId'])) {
-            $externalFieldName = $config['externalId'];
-        }
-
-        if (isset($config['internalFieldName'])) {
-            $internalFieldName = $config['internalFieldName'];
-        }
-
-        if (isset($config['relatedFieldName'])) {
-            $externalFieldName = $config['relatedFieldName'];
-        }
-
-        $mappedId = $this->getById($id)->getAttribute($internalFieldName);
-
-        $queryBuilder = $externalDataStore->getSelectQueryBuilder();
-        $queryBuilder->where($externalFieldName . " = :criteria");
-        $queryBuilder->setParameter('criteria', $mappedId);
-
-        return $this->prepareResults($queryBuilder->execute->fetchAll());
     }
 
     /**
