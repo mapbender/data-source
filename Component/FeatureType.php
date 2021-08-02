@@ -213,29 +213,7 @@ class FeatureType extends DataStore
     {
         $queryBuilder = $this->createQueryBuilder();
         $this->configureSelect($queryBuilder, true, $criteria);
-        $this->addCustomSearchCritera($queryBuilder, $criteria);
-
         return $this->prepareResults($queryBuilder->execute()->fetchAll());
-    }
-
-    /**
-     * Add custom (non-Doctrineish) criteria to passed query builder.
-     * Override hook for customization
-     *
-     * @param QueryBuilder $queryBuilder
-     * @param array $params
-     */
-    protected function addCustomSearchCritera(QueryBuilder $queryBuilder, array $params)
-    {
-        // Add condition for maximum distance to given wkt 'source'
-        // @todo: specify and document
-        if (isset($params["source"]) && isset($params["distance"])) {
-            // @todo: quote column identifer
-            $queryBuilder->andWhere("ST_DWithin(t." . $this->getGeomField() . ","
-                . $queryBuilder->getConnection()->quote($params["source"])
-                . ', :distance)');
-            $queryBuilder->setParameter(':distance', $params['distance']);
-        }
     }
 
     /**
