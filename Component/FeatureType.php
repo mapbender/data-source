@@ -8,12 +8,7 @@ use Mapbender\DataSourceBundle\Utils\WktUtility;
 use Symfony\Component\Finder\Finder;
 
 /**
- * Class FeatureType handles Feature objects.
- *
- * Main goal of the handler is, to get manage GeoJSON Features
- * for communication between OpenLayers and databases
- * with spatial abilities like Oracle or PostgreSQL.
- *
+ * Loads and stores Features (DataItem with geometry).
  *
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  * @copyright 2015 by WhereGroup GmbH & Co. KG
