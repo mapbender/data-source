@@ -77,7 +77,14 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
         $wkt = $db->quote($wkt);
         $srid = is_numeric($srid) ? intval($srid) : $db->quote($srid);
         $sridTo = is_numeric($sridTo) ? intval($sridTo) : $db->quote($sridTo);
+        $clipExpression = $this->getTransformSql("ST_GEOMFROMTEXT({$wkt}, {$srid})", $sridTo);
+        return $this->getNativeIntersectCondition($db->quoteIdentifier($geomFieldName), $clipExpression);
         return "(ST_TRANSFORM(ST_GEOMFROMTEXT($wkt,$srid),$sridTo) && $geomFieldName)";
+    }
+
+    public function getNativeIntersectCondition($geomExpressionA, $geomExpressionB)
+    {
+        return "({$geomExpressionA} && {$geomExpressionB})";
     }
 
     /**

@@ -282,7 +282,7 @@ class DataRepository
         return new DataItem($attributes, $this->uniqueIdFieldName);
     }
 
-    protected function configureSelect(QueryBuilder $queryBuilder, $includeFilter, array $params)
+    protected function configureSelect(QueryBuilder $queryBuilder, $includeDefaultFilter, array $params)
     {
         $queryBuilder->from($this->getTableName(), 't');
         $connection = $queryBuilder->getConnection();
@@ -293,7 +293,19 @@ class DataRepository
         if (!empty($params['maxResults'])) {
             $queryBuilder->setMaxResults($params['maxResults']);
         }
-        if ($includeFilter && !empty($this->sqlFilter)) {
+        $this->addQueryFilters($queryBuilder, $includeDefaultFilter, $params);
+    }
+
+    protected function configureCount(QueryBuilder $queryBuilder, $includeDefaultFilter, array $params)
+    {
+        $queryBuilder->from($this->getTableName(), 't');
+        $queryBuilder->select('count(*)');
+        $this->addQueryFilters($queryBuilder, $includeDefaultFilter, $params);
+    }
+
+    protected function addQueryFilters(QueryBuilder $queryBuilder, $includeDefaultFilter, $params)
+    {
+        if ($includeDefaultFilter && !empty($this->sqlFilter)) {
             if (preg_match('#:userName([^_\w\d]|$)#', $this->sqlFilter)) {
                 $queryBuilder->setParameter(':userName', $this->tokenStorage->getToken()->getUsername());
             }
