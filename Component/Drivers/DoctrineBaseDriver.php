@@ -142,15 +142,4 @@ abstract class DoctrineBaseDriver
      * @return TableMeta
      */
     abstract public function loadTableMeta(Connection $connection, $tableName);
-
-    /**
-     * @param mixed $x
-     * @return mixed
-     * @deprecated returns unchanged input value; remove invocations
-     * @todo: 0.2.0: remove this method (breaks mapbender/search)
-     */
-    final public static function roundGeometry($x)
-    {
-        return $x;
-    }
 }
