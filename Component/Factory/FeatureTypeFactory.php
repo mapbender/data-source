@@ -15,9 +15,8 @@ class FeatureTypeFactory extends DataStoreFactory
 {
     public function fromConfig(RepositoryRegistry $registry, array $config)
     {
-        $fakeContainer = $this->buildContainer($registry);
         $config += $this->getConfigDefaults();
         $connection = $registry->getDbalConnectionByName($config['connection']);
-        return new FeatureType($fakeContainer, $connection, $config);
+        return new FeatureType($connection, $this->tokenStorage, $this->eventProcessor, $config);
     }
 }

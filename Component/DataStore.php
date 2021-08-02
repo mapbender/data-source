@@ -6,7 +6,6 @@ use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Entity\DataItem;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
@@ -14,27 +13,19 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  */
 class DataStore extends EventAwareDataRepository
 {
-    /** @var ContainerInterface */
-    protected $container;
-
     /**
-     * @param ContainerInterface $container
      * @param Connection $connection
+     * @param TokenStorageInterface $tokenStorage
+     * @param EventProcessor $eventProcessor
      * @param array|null $args
-     * @todo: drop container injection; replace with owning DataStoreService / FeatureTypeService injection
      */
-    public function __construct(ContainerInterface $container, Connection $connection, $args = array())
+    public function __construct(Connection $connection, TokenStorageInterface $tokenStorage, EventProcessor $eventProcessor, $args = array())
     {
         $eventConfig = isset($args["events"]) ? $args["events"] : array();
-        /** @var TokenStorageInterface $tokenStorage */
-        $tokenStorage = $container->get('security.token_storage');
-        /** @var EventProcessor $eventProcessor */
-        $eventProcessor = $container->get('mbds.default_event_processor');
         $filter = (!empty($args['filter'])) ? $args['filter'] : null;
         parent::__construct($connection, $tokenStorage, $eventProcessor, $eventConfig, $args['table'], $args['uniqueId'], $filter);
 
         // Rest
-        $this->container = $container;
         $this->configure($args);
         $this->fields = $this->initializeFields($args);
     }

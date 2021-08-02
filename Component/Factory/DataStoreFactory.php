@@ -7,8 +7,6 @@ namespace Mapbender\DataSourceBundle\Component\Factory;
 use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Component\EventProcessor;
 use Mapbender\DataSourceBundle\Component\RepositoryRegistry;
-use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\DependencyInjection\ParameterBag\FrozenParameterBag;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
@@ -31,18 +29,9 @@ class DataStoreFactory
 
     public function fromConfig(RepositoryRegistry $registry, array $config)
     {
-        $fakeContainer = $this->buildContainer($registry);
         $config += $this->getConfigDefaults();
         $connection = $registry->getDbalConnectionByName($config['connection']);
-        return new DataStore($fakeContainer, $connection, $config);
-    }
-
-    protected function buildContainer(RepositoryRegistry $registry)
-    {
-        $container = new Container(new FrozenParameterBag());
-        $container->set('security.token_storage', $this->tokenStorage);
-        $container->set('mbds.default_event_processor', $this->eventProcessor);
-        return $container;
+        return new DataStore($connection, $this->tokenStorage, $this->eventProcessor, $config);
     }
 
     protected function getConfigDefaults()
