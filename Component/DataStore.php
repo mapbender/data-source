@@ -14,10 +14,6 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  */
 class DataStore extends EventAwareDataRepository
 {
-    const ORACLE_PLATFORM        = 'oracle';
-    const POSTGRESQL_PLATFORM    = 'postgresql';
-    const SQLITE_PLATFORM        = 'sqlite';
-
     /** @var ContainerInterface */
     protected $container;
 
@@ -262,20 +258,6 @@ class DataStore extends EventAwareDataRepository
     public function isPostgres()
     {
         return ($this->getDriver()) instanceof PostgreSQL;
-    }
-
-    /**
-     * Get driver types
-     *
-     * @return array
-     */
-    public function getTypes()
-    {
-        return array(
-            self::POSTGRESQL_PLATFORM,
-            self::ORACLE_PLATFORM,
-            self::SQLITE_PLATFORM,
-        );
     }
 
     /**
