@@ -9,7 +9,6 @@
     ],
     "require": {
         "php": ">=5.3.3",
-        "zumba/json-serializer": "1.x",
         "mapbender/mapbender": ">=3.0.8",
         "phayes/geophp": "1.2"
     },
