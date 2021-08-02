@@ -36,22 +36,11 @@ interface Geographic
     public function getPromoteToCollectionSql($geomExpression);
 
     /**
-     * Get intersect SQL condition
-     *
-     * @param string $wkt           WKT
-     * @param string $geomFieldName geometry field name
-     * @param string $srid          SRID convert from
-     * @param string $sridTo        SRID convert to
-     * @return string SQL
-     */
-    public function getIntersectCondition($wkt, $geomFieldName, $srid, $sridTo);
-
-    /**
      * @param string $geomExpressionA
      * @param string $geomExpressionB
-     * @return string mixed
+     * @return string
      */
-    public function getNativeIntersectCondition($geomExpressionA, $geomExpressionB);
+    public function getIntersectCondition($geomExpressionA, $geomExpressionB);
 
     /**
      * Get WKB geometry attribute as WKT

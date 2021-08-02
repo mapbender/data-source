@@ -64,22 +64,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic
         return "ST_AsText({$data})";
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getIntersectCondition($wkt, $geomFieldName, $srid, $sridTo)
-    {
-        $db = $this->getConnection();
-        $geomFieldName = $db->quoteIdentifier($geomFieldName);
-        $wkt = $db->quote($wkt);
-        $srid = is_numeric($srid) ? intval($srid) : $db->quote($srid);
-        $sridTo = is_numeric($sridTo) ? intval($sridTo) : $db->quote($sridTo);
-        $clipExpression = $this->getTransformSql("ST_GEOMFROMTEXT({$wkt}, {$srid})", $sridTo);
-        return $this->getNativeIntersectCondition($db->quoteIdentifier($geomFieldName), $clipExpression);
-        return "(ST_TRANSFORM(ST_GEOMFROMTEXT($wkt,$srid),$sridTo) && $geomFieldName)";
-    }
-
-    public function getNativeIntersectCondition($geomExpressionA, $geomExpressionB)
+    public function getIntersectCondition($geomExpressionA, $geomExpressionB)
     {
         return "({$geomExpressionA} && {$geomExpressionB})";
     }

@@ -62,15 +62,7 @@ class Oracle extends DoctrineBaseDriver implements Geographic
         return $geomExpression;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getIntersectCondition($wkt, $geomFieldName, $srid, $sridTo)
-    {
-        return "SDO_RELATE($geomFieldName, SDO_GEOMETRY('$wkt', $srid), 'mask=ANYINTERACT querytype=WINDOW') = 'TRUE'";
-    }
-
-    public function getNativeIntersectCondition($geomExpressionA, $geomExpressionB)
+    public function getIntersectCondition($geomExpressionA, $geomExpressionB)
     {
         return "SDO_RELATE({$geomExpressionA}, {$geomExpressionB}, 'mask=ANYINTERACT querytype=WINDOW') = 'TRUE'";
     }

@@ -440,7 +440,7 @@ class FeatureType extends DataStore
             $clipGeomExpression = $driver->getTransformSql($clipGeomExpression, $this->getSrid());
             $columnReference = $connection->getDatabasePlatform()->getSQLResultCasing($this->geomField);
             $columnReference = $connection->quoteIdentifier($columnReference);
-            $queryBuilder->andWhere($driver->getNativeIntersectCondition($columnReference, $clipGeomExpression));
+            $queryBuilder->andWhere($driver->getIntersectCondition($columnReference, $clipGeomExpression));
         }
     }
 }
