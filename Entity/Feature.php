@@ -86,40 +86,6 @@ class Feature extends DataItem
     }
 
     /**
-     * Get GeoJSON
-     *
-     * @return array in GeoJSON format
-     * @throws \Exception
-     */
-    public function toGeoJson()
-    {
-        $wkt = $this->getGeom();
-        /** @see \GeoJSON::write */
-        $geometry = $wkt ? \geoPHP::load($wkt, 'wkt')->out('json', true) : null;
-        $properties = $this->attributes;
-        unset($properties[$this->geomField]);
-
-        return array('type'       => 'Feature',
-                     'properties' => $properties,
-                     'geometry' => $geometry,
-                     'id'         => $this->getId(),
-                     'srid'       => $this->getSrid());
-    }
-
-    /**
-     * Return GeoJSON string
-     *
-     * @return string
-     * @deprecated too much magic; if you want GeoJSON, call toGeoJson and json_encode explicitly
-     * @todo: remove method
-     */
-    public function __toString()
-    {
-        @trigger_error("Magic Feature::__toString invocation is deprecated and will be removed in 0.2.0; call toGeoJson and perfom json_encode explicitly", E_USER_DEPRECATED);
-        return json_encode($this->toGeoJson());
-    }
-
-    /**
      * ADD attributes
      *
      * @param mixed $attributes

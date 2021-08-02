@@ -9,8 +9,7 @@
     ],
     "require": {
         "php": ">=5.3.3",
-        "mapbender/mapbender": ">=3.0.8",
-        "phayes/geophp": "1.2"
+        "mapbender/mapbender": ">=3.0.8"
     },
     "require-dev": {
         "phpunit/phpunit": "^3.7",
