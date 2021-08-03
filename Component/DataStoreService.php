@@ -42,18 +42,4 @@ class DataStoreService extends RepositoryRegistry
     {
         return $this->getDataStoreByName($name);
     }
-
-    /**
-     * @return array
-     * @deprecated remove in 0.2.0; you can't really do anything with the return value anyway
-     */
-    public function listDrivers()
-    {
-        return array(
-            'SQLite',
-            'PostgreSQL',
-            'YAML',
-            'JSON'
-        );
-    }
 }
