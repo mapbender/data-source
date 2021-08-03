@@ -5,7 +5,6 @@ namespace Mapbender\DataSourceBundle\Component\Factory;
 
 
 use Mapbender\DataSourceBundle\Component\FeatureType;
-use Mapbender\DataSourceBundle\Component\RepositoryRegistry;
 
 /**
  * Implementation for service id mbds.default_featuretype_factory
@@ -13,10 +12,10 @@ use Mapbender\DataSourceBundle\Component\RepositoryRegistry;
  */
 class FeatureTypeFactory extends DataStoreFactory
 {
-    public function fromConfig(RepositoryRegistry $registry, array $config)
+    public function fromConfig(array $config)
     {
         $config += $this->getConfigDefaults();
-        $connection = $registry->getDbalConnectionByName($config['connection']);
+        $connection = $this->getDbalConnectionByName($config['connection']);
         return new FeatureType($connection, $this->tokenStorage, $this->eventProcessor, $config);
     }
 
