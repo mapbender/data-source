@@ -204,7 +204,7 @@ class DataRepository
      */
     public function getFields()
     {
-        return \array_values($this->fields);
+        return $this->fields;
     }
 
     /**
@@ -252,7 +252,12 @@ class DataRepository
 
     protected function prepareStoreValues(DataItem $item)
     {
-        return $item->getAttributes();
+        $meta = $this->getTableMetaData();
+        $values = array();
+        foreach ($item->getAttributes() as $name => $value) {
+            $values[$meta->getRealColumnName($name)] = $value;
+        }
+        return $values;
     }
 
     /**
@@ -276,10 +281,10 @@ class DataRepository
      */
     protected function attributesFromRow(array $values)
     {
-        $platform = $this->connection->getDatabasePlatform();
         $attributes = array();
+        $meta = $this->getTableMetaData();
         foreach ($this->fields as $fieldName) {
-            $attributes[$fieldName] = $values[$platform->getSQLResultCasing($fieldName)];
+            $attributes[$fieldName] = $values[$meta->getRealColumnName($fieldName)];
         }
         return $attributes;
     }
@@ -300,9 +305,10 @@ class DataRepository
     {
         $queryBuilder->from($this->getTableName(), 't');
         $connection = $queryBuilder->getConnection();
-        $platform = $connection->getDatabasePlatform();
-        foreach (\array_keys($this->fields) as $columnName) {
-            $queryBuilder->addSelect($connection->quoteIdentifier($platform->getSQLResultCasing($columnName)));
+        $meta = $this->getTableMetaData();
+        foreach ($this->fields as $fieldName) {
+            $columnName = $meta->getRealColumnName($fieldName);
+            $queryBuilder->addSelect($connection->quoteIdentifier($columnName));
         }
         if (!empty($params['maxResults'])) {
             $queryBuilder->setMaxResults($params['maxResults']);
