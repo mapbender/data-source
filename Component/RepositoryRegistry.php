@@ -5,7 +5,6 @@ namespace Mapbender\DataSourceBundle\Component;
 
 
 use Doctrine\DBAL\Connection;
-use Doctrine\Persistence\ConnectionRegistry;
 use Mapbender\DataSourceBundle\Component\Factory\DataStoreFactory;
 
 /**
@@ -15,8 +14,6 @@ use Mapbender\DataSourceBundle\Component\Factory\DataStoreFactory;
  */
 class RepositoryRegistry
 {
-    /** @var ConnectionRegistry */
-    protected $connectionRegistry;
     /** @var DataStoreFactory */
     protected $factory;
     /** @var mixed[][] */
@@ -25,29 +22,14 @@ class RepositoryRegistry
     protected $repositories;
 
     /**
-     * @param ConnectionRegistry $connectionRegistry
      * @param DataStoreFactory $factory
      * @param mixed[][] $repositoryConfigs
      */
-    public function __construct(ConnectionRegistry $connectionRegistry,
-                                DataStoreFactory $factory,
+    public function __construct(DataStoreFactory $factory,
                                 array $repositoryConfigs)
     {
-        $this->connectionRegistry = $connectionRegistry;
         $this->factory = $factory;
         $this->repositoryConfigs = $repositoryConfigs;
-    }
-
-    /**
-     * @param string $name
-     * @return Connection
-     * @since 0.0.16
-     */
-    public function getDbalConnectionByName($name)
-    {
-        /** @var Connection $connection */
-        $connection = $this->connectionRegistry->getConnection($name);
-        return $connection;
     }
 
     /**

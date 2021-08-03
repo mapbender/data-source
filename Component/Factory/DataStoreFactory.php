@@ -4,6 +4,7 @@
 namespace Mapbender\DataSourceBundle\Component\Factory;
 
 
+use Doctrine\DBAL\Connection;
 use Mapbender\CoreBundle\Component\UploadsManager;
 use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Component\EventProcessor;
@@ -11,6 +12,7 @@ use Mapbender\DataSourceBundle\Component\RepositoryRegistry;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ParameterBag\FrozenParameterBag;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Bridge\Doctrine\RegistryInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
@@ -19,6 +21,8 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  */
 class DataStoreFactory
 {
+    /** @var RegistryInterface */
+    protected $connectionRegistry;
     /** @var TokenStorageInterface */
     protected $tokenStorage;
     /** @var RequestStack */
@@ -30,11 +34,13 @@ class DataStoreFactory
     /** @var UploadsManager */
     protected $uploadsManager;
 
-    public function __construct(TokenStorageInterface $tokenStorage,
+    public function __construct(RegistryInterface $connectionRegistry,
+                                TokenStorageInterface $tokenStorage,
                                 RequestStack $requestStack,
                                 EventProcessor $eventProcessor,
                                 UploadsManager $uploadsManager)
     {
+        $this->connectionRegistry = $connectionRegistry;
         $this->tokenStorage = $tokenStorage;
         $this->requestStack = $requestStack;
         $this->eventProcessor = $eventProcessor;
@@ -61,5 +67,16 @@ class DataStoreFactory
         $container->set('mbds.default_event_processor', $this->eventProcessor);
         $container->set('data.source', $registry);
         return $container;
+    }
+
+    /**
+     * @param $name
+     * @return Connection
+     */
+    public function getDbalConnectionByName($name)
+    {
+        /** @var Connection $connection */
+        $connection = $this->connectionRegistry->getConnection($name);
+        return $connection;
     }
 }
