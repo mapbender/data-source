@@ -1,6 +1,7 @@
-## dev-master @ 86a7a73
+## dev-master @ 2cc61f4
+* Extend magic :userName filter param support also to "where" param passed into search / count
 * Removed Symfony 4-incompatible BaseElement class
-* Removed Symfony 4-incompatible global default services `data.source` and `featureTypes`
+* Removed Symfony 4-incompatible global default services `data.source` and `featureTypes`. Access should be replaced with a self-defined service. Use RepositoryRegistry base class and inject the appropriate factory.
 * Removed geojson briding and phayes/geophp dependency
 * Removed legacy export bridging logic
 * Removed tolerance / preprocessing for SQL-illegal quotes around `:userName` parameter binding in `filter` setting
@@ -15,7 +16,8 @@
 * Removed public access to "driver" internals
 * Removed variadic DataStore / FeatureType "get" method (use getById)
 * Removed variadic DataStore / FeatureType "delete" method argument support
-* Removed suppord for any non-array, non-DataItem arguments to save, update, insert
+* Removed support for any non-array, non-DataItem arguments to save, update, insert
+* Removed project support hack replacing malformed EWKT with empty point EWKT on storage; users must supply sane geometries
 
 ## 0.1.22
 * Fix DataStore vs FeatureType event handling differences
