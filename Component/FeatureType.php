@@ -162,18 +162,6 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Detect (E)WKT geometry type
-     *
-     * @param string $wkt
-     * @return string
-     * @todo: remove in 0.2.0
-     */
-    public static function getWktType($wkt)
-    {
-        return WktUtility::getGeometryType($wkt);
-    }
-
-    /**
      * @return FeatureQueryBuilder
      */
     public function createQueryBuilder()
