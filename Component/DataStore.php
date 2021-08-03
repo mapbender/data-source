@@ -139,17 +139,19 @@ class DataStore extends EventAwareDataRepository
 
     /**
      * Remove data item
-     * @param mixed $args
+     * @param int|DataItem $itemOrId
      * @return int number of deleted rows
      */
-    public function remove($args)
+    public function remove($itemOrId)
     {
-        $itemId = $this->anythingToId($args);
+        $itemId = !\is_object($itemOrId) ? $itemOrId : $itemOrId->getId();
         if (isset($this->events[self::EVENT_ON_BEFORE_REMOVE]) || isset($this->events[self::EVENT_ON_AFTER_REMOVE])) {
             // uh-oh
             $item = $this->getById($itemId);
             $eventData = $this->getCommonEventData() + array(
-                'args' => &$args,
+                'args' => $item,
+                'item' => $item,
+                'feature' => $item,
                 'method' => 'remove',
                 'originData' => $item,
             );
@@ -236,33 +238,5 @@ class DataStore extends EventAwareDataRepository
             $sqlFilter = $filtered;
         }
         $this->sqlFilter = $sqlFilter;
-    }
-
-    /**
-     * Attempts to extract an id from whatever $arg is
-     * Completely equivalent to DataStore::create($arg)->getId()
-     *
-     * @param mixed $arg
-     * @return integer|null
-     */
-    private function anythingToId($arg)
-    {
-        if (\is_numeric($arg)) {
-            return $arg;
-        } elseif (\is_object($arg)) {
-            if ($arg instanceof DataItem) {
-                return $arg->getId();
-            } else {
-                // self-delegate to array path
-                return $this->anythingToId(\get_object_vars($arg));
-            }
-        } elseif (\is_array($arg)) {
-            $uniqueId = $this->getUniqueId();
-            if (!empty($arg[$uniqueId])) {
-                return $arg[$uniqueId];
-            }
-        }
-        // uh-oh!
-        return null;
     }
 }
