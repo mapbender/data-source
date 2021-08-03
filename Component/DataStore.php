@@ -48,46 +48,15 @@ class DataStore extends EventAwareDataRepository
     }
 
     /**
-     * Promote mostly random input data to a DataItem, or return a passed DataItem as-is, unmodified
-     *
-     * @param DataItem|object|int|array $data
-     * @return DataItem
-     * @todo 0.2.0: remove unmodified object pass-through
-     * @todo 0.2.0: remove the path for scalar id pre-initialization
-     */
-    public function create($data)
-    {
-        if (is_object($data)) {
-            if ($data instanceof DataItem) {
-                return $data;
-            } else {
-                $referenceClassName = \get_class($this->itemFromArray(array()));
-                throw new \InvalidArgumentException("Unsupported type " . \get_class($data) . ". Must use array or {$referenceClassName}.");
-            }
-        } elseif (is_numeric($data)) {
-            @trigger_error("Deprecated: do not call create with a scalar to preinitialize the item id. This will be an error in 0.2.0.", E_USER_DEPRECATED);
-            return $this->itemFromArray(array(
-                $this->getUniqueId() => $data,
-            ));
-        } else {
-            return $this->itemFromArray($data);
-        }
-    }
-
-    /**
      * Save data item. Auto-inflects to insert (no id) or update (non-empty id).
      *
-     * @param DataItem|array $item Data item
+     * @param DataItem|array $itemOrData Data item
      * @return DataItem
      * @throws \Exception
      */
-    public function save($item)
+    public function save($itemOrData)
     {
-        if (!is_array($item) && !is_object($item)) {
-            throw new \Exception("Feature data given isn't compatible to save into the table: " . $this->getTableName());
-        }
-
-        $saveItem = $this->create($item);
+        $saveItem = \is_array($itemOrData) ? $this->itemFromArray($itemOrData) : $itemOrData;
         if (isset($this->events[self::EVENT_ON_BEFORE_SAVE]) || isset($this->events[self::EVENT_ON_AFTER_SAVE])) {
             $eventData = $this->getSaveEventData($saveItem);
         } else {
@@ -122,7 +91,8 @@ class DataStore extends EventAwareDataRepository
      */
     public function insert($itemOrData)
     {
-        return $this->insertItem($this->create($itemOrData));
+        $item = \is_array($itemOrData) ? $this->itemFromArray($itemOrData) : $itemOrData;
+        return $this->insertItem($item);
     }
 
     /**
@@ -133,7 +103,7 @@ class DataStore extends EventAwareDataRepository
      */
     public function update($itemOrData)
     {
-        $item = $this->create($itemOrData);
+        $item = \is_array($itemOrData) ? $this->itemFromArray($itemOrData) : $itemOrData;
         return $this->updateItem($item);
     }
 

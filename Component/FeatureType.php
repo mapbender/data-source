@@ -13,7 +13,7 @@ use Mapbender\DataSourceBundle\Utils\WktUtility;
  * @copyright 2015 by WhereGroup GmbH & Co. KG
  * @link      https://github.com/mapbender/mapbender-digitizer
  *
- * @method Feature save(Feature|array $feature, bool $autoUpdate = true)
+ * @method Feature save(Feature|array $feature)
  * @method Feature insertItem(Feature $item)
  * @method Feature updateItem(Feature $item)
  * @method Feature update($itemOrData)
@@ -178,25 +178,6 @@ class FeatureType extends DataStore
     public function getGeomField()
     {
         return $this->geomField;
-    }
-
-    /**
-     * Cast feature by $args
-     *
-     * @param mixed $args
-     * @return Feature
-     * @todo 0.2.0: remove specialization promoting from DataItem to Feature
-     */
-    public function create($args)
-    {
-        if (is_object($args) && ($args instanceof DataItem) && !($args instanceof Feature)) {
-            @trigger_error("Deprecated: unsafe promotion from DataItem to Feature. This will be an error in 0.2.0.", E_USER_DEPRECATED);
-            return $this->itemFromArray($args->getAttributes());
-        } else {
-            /** @var Feature $feature */ /** @see itemFactory */ /** @see itemFromArray */
-            $feature = parent::create($args);
-            return $feature;
-        }
     }
 
     /**
