@@ -2,9 +2,6 @@
 namespace Mapbender\DataSourceBundle\Component;
 
 use Doctrine\DBAL\Connection;
-use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
-use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
-use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
@@ -206,38 +203,6 @@ class DataStore extends EventAwareDataRepository
         }
 
         return $results;
-    }
-
-    /**
-     * @return bool
-     * @deprecated
-     */
-    public function isOracle()
-    {
-        return ($this->getDriver()) instanceof Oracle;
-    }
-
-
-    /**
-     * Is SQLite platform
-     *
-     * @return bool
-     * @deprecated
-     */
-    public function isSqlite()
-    {
-        return ($this->getDriver()) instanceof SQLite;
-    }
-
-    /**
-     * Is postgres platform
-     *
-     * @return bool
-     * @deprecated
-     */
-    public function isPostgres()
-    {
-        return ($this->getDriver()) instanceof PostgreSQL;
     }
 
     /**
