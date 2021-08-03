@@ -1,4 +1,4 @@
-## dev-release/0.1 @ 7f6382d
+## 0.1.22
 * Fix DataStore vs FeatureType event handling differences
 * Fix Feature::getType
 * Fix geometry not available from Feature::getAttributes
@@ -6,6 +6,7 @@
 * Fix errors updating / reinserting any items returned from (deprecated) "getTree"
 * Oracle: fix error detecting column names (without explicit `fields` setting)
 * Oracle: fix missing column identifier quoting in intersect condition
+* PostgreSQL: fix errors on tables with mixed / uppercase column names
 * Fix unreliable type (sometimes array, sometimes DataItem / Feature) of "item" value in save events
 * Fix inconsistent item data renormalization "save" method (item reloaded + renormalized) vs direct usage of "update" / "insert" methods (item passed back as is)
 * Fix item attribute name renormalization not respecting case of explicitly configured fields
@@ -18,6 +19,7 @@
 * Add standalone DataStore / FeatureType factory services (`mbds.default_datastore_factory`, `mbds.default_featuretype_factory`)
 * Resolve / mark misc internal deprecations
 * Misc restructuring for Symfony 4+ compatibility
+* Update documentation
 
 ## 0.1.21
 * PostgreSQL: fix mistyped update / insert column value when submitting an empty string to column of ~numeric type

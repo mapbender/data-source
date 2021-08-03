@@ -11,8 +11,10 @@ use Symfony\Component\Yaml\Yaml;
  * @copyright 18.03.2015 by WhereGroup GmbH & Co. KG
  *
  * @method FeatureType getDataStoreByName(string $name)
+ * @method FeatureType getFeatureTypeByName(string $name)
  * @method FeatureType get(string $name)
  * @method FeatureType dataStoreFactory(array $config)
+ * @method FeatureType featureTypeFactory(array $config)
  * @property FeatureType[] $repositories
  */
 class FeatureTypeService extends DataStoreService
@@ -40,34 +42,6 @@ class FeatureTypeService extends DataStoreService
     }
 
     /**
-     * Alias for getDataStoreByName
-     *
-     * @param string $name
-     * @return FeatureType
-     * @since 0.1.15
-     * @deprecated use aliased method directly
-     * aliased @since 0.1.22
-     */
-    public function getFeatureTypeByName($name)
-    {
-        return $this->getDataStoreByName($name);
-    }
-
-    /**
-     * Alias for dataStoreFactory
-     *
-     * @param mixed[] $config
-     * @return FeatureType
-     * @since 0.1.15
-     * @deprecated use aliased method directly
-     * aliased @since 0.1.22
-     */
-    public function featureTypeFactory(array $config)
-    {
-        return $this->dataStoreFactory($config);
-    }
-
-    /**
      * Search feature types
      *
      * @return FeatureType[]
@@ -82,17 +56,5 @@ class FeatureTypeService extends DataStoreService
             }
         }
         return $this->repositories;
-    }
-
-    /**
-     * Alias for getDataStoreDeclarations
-     *
-     * @return array
-     * @deprecated use aliased method directly
-     * aliased @since 0.1.22
-     */
-    public function getFeatureTypeDeclarations()
-    {
-        return $this->getDataStoreDeclarations();
     }
 }
