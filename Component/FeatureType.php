@@ -34,21 +34,10 @@ class FeatureType extends DataStore
      */
     protected $srid = null;
 
-    /** @var array|null */
-    protected $exportFields;
-
     protected function configure(array $args)
     {
         if (array_key_exists('geomField', $args)) {
             $this->geomField = $args['geomField'];
-        }
-        if (!empty($args['export'])) {
-            if (!is_array($args['export'])) {
-                throw new \InvalidArgumentException("Unexpected type " . gettype($args['export']) . " for 'export'. Expected array.");
-            }
-            if (!empty($args['export']['fields'])) {
-                $this->exportFields = $args['export']['fields'];
-            }
         }
     }
 
@@ -205,69 +194,6 @@ class FeatureType extends DataStore
     public static function getWktType($wkt)
     {
         return WktUtility::getGeometryType($wkt);
-    }
-
-    /**
-     * Get feature type configuration by key name
-     *
-     * @param string $key only allowed value is 'export'
-     * @return array|null
-     * @deprecated remove in 0.2.0; you can't create a FeatureType without already having
-     *     access to its configuration
-     * @throws \InvalidArgumentException
-     */
-    public function getConfiguration($key = null)
-    {
-        if ($key !== 'export') {
-            throw new \InvalidArgumentException("Invalid getConfiguration call with key " . print_r($key, true));
-        }
-        if ($this->exportFields) {
-            return array(
-                'fields' => $this->exportFields,
-            );
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * @param array $rows
-     * @return array
-     * @todo: eliminate eval
-     * No known callers
-     */
-    public function export(array $rows)
-    {
-        $fieldNames = $this->exportFields;
-
-        if ($fieldNames) {
-            $result = array();
-            foreach ($rows as $row) {
-                $exportRow = array();
-                foreach ($fieldNames as $fieldName => $fieldCode) {
-                    $exportRow[$fieldName] = $this->evaluateField($row, $fieldCode);
-                }
-                $result[] = $exportRow;
-            }
-            return $result;
-        } else {
-            return $rows;
-        }
-    }
-
-    /**
-     * @param mixed[] $row
-     * @param string $code
-     * @return mixed
-     * @todo: stop using eval already
-     */
-    private function evaluateField($row, $code)
-    {
-        $result = null;
-        extract($row);
-        eval('$result = ' . $code . ';');
-        /** @noinspection PhpExpressionAlwaysNullInspection */
-        return $result;
     }
 
     /**
