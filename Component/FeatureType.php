@@ -130,10 +130,10 @@ class FeatureType extends DataStore
                 @trigger_error("WARNING: replacing invalid geometry with empty point. This will be an error in a future version (supplied EWKT: {$ewkt})", E_USER_DEPRECATED);
                 $ewkt = "SRID={$tableSrid};POINT EMPTY";
             }
-            $driver = $this->getDriver();
-            $geomSql = $driver->getTransformSql($driver->getReadEwktSql($this->connection->quote($ewkt)), $tableSrid);
+            $geomSql = $this->driver->getReadEwktSql($this->connection->quote($ewkt));
+            $geomSql = $this->driver->getTransformSql($geomSql, $tableSrid);
             if ($this->checkPromoteToCollection($ewkt, $geomColumnName)) {
-                $geomSql = $driver->getPromoteToCollectionSql($geomSql);
+                $geomSql = $this->driver->getPromoteToCollectionSql($geomSql);
             }
             $data[$geomColumnName] = new Expression($geomSql);
         } else {
@@ -312,7 +312,7 @@ class FeatureType extends DataStore
      */
     public function createQueryBuilder()
     {
-        return new FeatureQueryBuilder($this->connection, $this->getDriver(), $this->getSrid());
+        return new FeatureQueryBuilder($this->connection, $this->driver, $this->getSrid());
     }
 
     protected function attributesFromRow(array $values)
@@ -350,11 +350,10 @@ class FeatureType extends DataStore
                 $clipWkt = "SRID={$clipSrid};$clipWkt";
             }
             $connection = $queryBuilder->getConnection();
-            $driver = $this->getDriver();
-            $clipGeomExpression = $driver->getReadEwktSql($connection->quote($clipWkt));
-            $clipGeomExpression = $driver->getTransformSql($clipGeomExpression, $this->getSrid());
+            $clipGeomExpression = $this->driver->getReadEwktSql($connection->quote($clipWkt));
+            $clipGeomExpression = $this->driver->getTransformSql($clipGeomExpression, $this->getSrid());
             $columnReference = $connection->quoteIdentifier($this->geomField);
-            $queryBuilder->andWhere($driver->getIntersectCondition($columnReference, $clipGeomExpression));
+            $queryBuilder->andWhere($this->driver->getIntersectCondition($columnReference, $clipGeomExpression));
         }
     }
 }

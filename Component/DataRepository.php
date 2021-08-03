@@ -45,6 +45,7 @@ class DataRepository
         $this->tableName = $tableName;
         $this->uniqueIdFieldName = $idColumnName;
         $this->sqlFilter = $filter;
+        $this->driver = $this->driverFactory($connection);
     }
 
     /**
@@ -134,7 +135,7 @@ class DataRepository
         $values = $this->prepareStoreValues($item);
         unset($values[$this->uniqueIdFieldName]);
         $values = $this->getTableMetaData()->prepareInsertData($values);
-        $id = $this->getDriver()->insert($this->connection, $this->getTableName(), $values, $this->uniqueIdFieldName);
+        $id = $this->driver->insert($this->connection, $this->getTableName(), $values, $this->uniqueIdFieldName);
         // Reload (fully populate, renormalize geometry etc)
         return $this->getById($id);
     }
@@ -144,7 +145,7 @@ class DataRepository
         $values = $this->prepareStoreValues($item);
         $identifier = $this->idToIdentifier($item->getId());
         $values = $this->getTableMetaData()->prepareUpdateData($values);
-        $this->getDriver()->update($this->connection, $this->getTableName(), $values, $identifier);
+        $this->driver->update($this->connection, $this->getTableName(), $values, $identifier);
         return $this->reloadItem($item);
     }
 
@@ -163,23 +164,9 @@ class DataRepository
     protected function getTableMetaData()
     {
         if (!$this->tableMetaData) {
-            $this->tableMetaData = $this->getDriver()->loadTableMeta($this->connection, $this->tableName);
+            $this->tableMetaData = $this->driver->loadTableMeta($this->connection, $this->tableName);
         }
         return $this->tableMetaData;
-    }
-
-    /**
-     * Get current driver instance
-     *
-     * @return DoctrineBaseDriver|Geographic
-     * @todo 0.2.0: Make this method protected (breaks mapbender/search)
-     */
-    public function getDriver()
-    {
-        if (!$this->driver) {
-            $this->driver = $this->driverFactory($this->connection);
-        }
-        return $this->driver;
     }
 
     /**
