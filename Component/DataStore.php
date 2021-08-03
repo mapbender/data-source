@@ -23,12 +23,7 @@ class DataStore extends EventAwareDataRepository
         parent::__construct($connection, $tokenStorage, $eventProcessor, $eventConfig, $args['table'], $args['uniqueId'], $filter);
 
         // Rest
-        $this->configure($args);
         $this->fields = $this->initializeFields($args);
-    }
-
-    protected function configure(array $args)
-    {
     }
 
     protected function initializeFields($args)

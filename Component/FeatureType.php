@@ -1,10 +1,12 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Mapbender\DataSourceBundle\Entity\Feature;
 use Mapbender\DataSourceBundle\Utils\WktUtility;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
  * Loads and stores Features (DataItem with geometry).
@@ -35,20 +37,15 @@ class FeatureType extends DataStore
      */
     protected $srid = null;
 
-    protected function configure(array $args)
+    public function __construct(Connection $connection, TokenStorageInterface $tokenStorage, EventProcessor $eventProcessor, $args = array())
     {
         if (array_key_exists('geomField', $args)) {
             $this->geomField = $args['geomField'];
         }
-    }
-
-    protected function initializeFields($args)
-    {
-        $fields = parent::initializeFields($args);
-        if ($this->geomField && false !== ($key = \array_search($this->geomField, $fields))) {
-            unset($fields[$key]);
+        parent::__construct($connection, $tokenStorage, $eventProcessor, $args);
+        if ($this->geomField && false !== ($key = \array_search($this->geomField, $this->fields))) {
+            unset($this->fields[$key]);
         }
-        return $fields;
     }
 
     public function getFields()
