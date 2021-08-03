@@ -1,4 +1,4 @@
-## dev-release/0.1 @ 7f6382d
+## dev-release/0.1 @ d036837
 * Fix DataStore vs FeatureType event handling differences
 * Fix Feature::getType
 * Fix geometry not available from Feature::getAttributes
@@ -6,6 +6,7 @@
 * Fix errors updating / reinserting any items returned from (deprecated) "getTree"
 * Oracle: fix error detecting column names (without explicit `fields` setting)
 * Oracle: fix missing column identifier quoting in intersect condition
+* PostgreSQL: fix errors on tables with mixed / uppercase column names
 * Fix unreliable type (sometimes array, sometimes DataItem / Feature) of "item" value in save events
 * Fix inconsistent item data renormalization "save" method (item reloaded + renormalized) vs direct usage of "update" / "insert" methods (item passed back as is)
 * Fix item attribute name renormalization not respecting case of explicitly configured fields
