@@ -88,7 +88,7 @@ class DataStore extends EventAwareDataRepository
                 throw new \InvalidArgumentException("Unexpected type " . gettype($args['fields']) . " for 'fields'. Expected array.");
             }
             $fields = $args['fields'];
-            if (!empty($args['parentField']) && !in_array($args['parentField'], $names)) {
+            if (!empty($args['parentField']) && !in_array($args['parentField'], $fields)) {
                 @trigger_error("DEPRECATED: parentField / getParent / getTree are deprecated and will be removed in 0.2.0", E_USER_DEPRECATED);
                 $names[] = $args['parentField'];
             }
