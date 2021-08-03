@@ -120,7 +120,8 @@ class FeatureType extends DataStore
         $data = parent::prepareStoreValues($feature);
         /** @var Feature $feature */
         $ewkt = $feature->getEwkt();
-        $geomField = $this->getGeomField();
+        $meta = $this->getTableMetaData();
+        $geomColumnName = $meta->getRealColumnName($this->geomField);
         if ($ewkt) {
             $tableSrid = $this->getSrid();
             // HACK: replace invalid client-supplied geometries with empty dummy WKTs
@@ -131,12 +132,12 @@ class FeatureType extends DataStore
             }
             $driver = $this->getDriver();
             $geomSql = $driver->getTransformSql($driver->getReadEwktSql($this->connection->quote($ewkt)), $tableSrid);
-            if ($this->checkPromoteToCollection($ewkt, $geomField)) {
+            if ($this->checkPromoteToCollection($ewkt, $geomColumnName)) {
                 $geomSql = $driver->getPromoteToCollectionSql($geomSql);
             }
-            $data[$geomField] = new Expression($geomSql);
+            $data[$geomColumnName] = new Expression($geomSql);
         } else {
-            $data[$geomField] = null;
+            $data[$geomColumnName] = null;
         }
         return $data;
     }
@@ -146,9 +147,8 @@ class FeatureType extends DataStore
      * @param string|null $columnName
      * @return boolean
      */
-    protected function checkPromoteToCollection($ewkt, $columnName = null)
+    protected function checkPromoteToCollection($ewkt, $columnName)
     {
-        $columnName = $columnName ?: $this->geomField;
         $tableType = $this->getTableMetaData()->getColumn($columnName)->getGeometryType();
         $wktType = WktUtility::getGeometryType($ewkt);
 
@@ -349,8 +349,8 @@ class FeatureType extends DataStore
     {
         $attributes = parent::attributesFromRow($values);
         if ($this->geomField && !\array_key_exists($this->geomField, $attributes)) {
-            $platform = $this->connection->getDatabasePlatform();
-            $attributes[$this->geomField] = $values[$platform->getSQLResultCasing($this->geomField)];
+            $meta = $this->getTableMetaData();
+            $attributes[$this->geomField] = $values[$meta->getRealColumnName($this->geomField)];
         }
         return $attributes;
     }
@@ -359,9 +359,7 @@ class FeatureType extends DataStore
     {
         /** @var FeatureQueryBuilder $queryBuilder */
         parent::configureSelect($queryBuilder, $includeDefaultFilter, $params);
-        $connection = $queryBuilder->getConnection();
-        $geomName = $connection->getDatabasePlatform()->getSQLResultCasing($this->geomField);
-        $queryBuilder->addGeomSelect($geomName);
+        $queryBuilder->addGeomSelect($this->geomField);
         if (!empty($params['srid'])) {
             $queryBuilder->setTargetSrid($params['srid']);
         }
@@ -385,8 +383,7 @@ class FeatureType extends DataStore
             $driver = $this->getDriver();
             $clipGeomExpression = $driver->getReadEwktSql($connection->quote($clipWkt));
             $clipGeomExpression = $driver->getTransformSql($clipGeomExpression, $this->getSrid());
-            $columnReference = $connection->getDatabasePlatform()->getSQLResultCasing($this->geomField);
-            $columnReference = $connection->quoteIdentifier($columnReference);
+            $columnReference = $connection->quoteIdentifier($this->geomField);
             $queryBuilder->andWhere($driver->getIntersectCondition($columnReference, $clipGeomExpression));
         }
     }

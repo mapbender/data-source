@@ -12,17 +12,19 @@ class TableMeta
     protected $platform;
     /** @var Column[] */
     protected $columns = array();
+    /** @var string[] */
+    protected $ciColumnIndex = array();
 
     /**
      * @param AbstractPlatform $platform
-     * @param Column[] $columns
+     * @param string[] $columns
      */
     public function __construct(AbstractPlatform $platform, array $columns)
     {
         $this->platform = $platform;
         foreach ($columns as $name => $column) {
-            $resultName = $platform->getSQLResultCasing($name);
-            $this->columns[$resultName] = $column;
+            $this->columns[$name] = $column;
+            $this->ciColumnIndex[\strtolower($name)] = $name;
         }
         $this->columns = $columns;
     }
@@ -53,12 +55,12 @@ class TableMeta
         $data = $this->prepareUpdateData($data);
         $dataNames = array();
         foreach (array_keys($data) as $dataKey) {
-            $dataNames[] = $this->platform->getSQLResultCasing($dataKey);
+            $dataNames[] = \strtolower($dataKey);
         }
-        foreach (\array_keys($this->columns) as $columnName) {
-            $column = $this->getColumn($columnName);
-            if (!$column->hasDefault()) {
-                if (!\in_array($columnName, $dataNames, true)) {
+        foreach (\array_keys($this->ciColumnIndex) as $columnName) {
+            if (!\in_array($columnName, $dataNames, true)) {
+                $column = $this->getColumn($columnName);
+                if (!$column->hasDefault()) {
                     $data[$columnName] = $column->getSafeDefault();
                 }
             }
@@ -73,10 +75,19 @@ class TableMeta
      */
     public function getColumn($name)
     {
-        $resultName = $this->platform->getSQLResultCasing($name);
-        if (\array_key_exists($resultName, $this->columns)) {
-            return $this->columns[$resultName];
+        $nameNormalized = \strtolower($name);
+        if (\array_key_exists($nameNormalized, $this->ciColumnIndex)) {
+            return $this->columns[$this->ciColumnIndex[$nameNormalized]];
         }
         throw new \RuntimeException("Unknown column {$name}");
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
+    public function getRealColumnName($name)
+    {
+        return $this->ciColumnIndex[\strtolower($name)];
     }
 }

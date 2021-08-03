@@ -27,6 +27,11 @@ class DataStoreFactory
         $this->eventProcessor = $eventProcessor;
     }
 
+    /**
+     * @param RepositoryRegistry $registry
+     * @param array $config
+     * @return DataStore
+     */
     public function fromConfig(RepositoryRegistry $registry, array $config)
     {
         $config += $this->getConfigDefaults();

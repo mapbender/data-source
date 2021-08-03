@@ -21,7 +21,7 @@ class RepositoryRegistry
     protected $factory;
     /** @var mixed[][] */
     protected $repositoryConfigs;
-    /** @var object[] */
+    /** @var DataStore[] */
     protected $repositories;
 
     /**
@@ -50,6 +50,10 @@ class RepositoryRegistry
         return $connection;
     }
 
+    /**
+     * @param array $config
+     * @return DataStore
+     */
     public function dataStoreFactory(array $config)
     {
         return $this->factory->fromConfig($this, $config);
@@ -57,7 +61,7 @@ class RepositoryRegistry
 
     /**
      * @param string $name
-     * @return object
+     * @return DataStore
      * @since 0.1.15
      */
     public function getDataStoreByName($name)

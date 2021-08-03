@@ -36,24 +36,16 @@ class DataStore extends EventAwareDataRepository
 
     protected function initializeFields($args)
     {
-        $platform = $this->connection->getDatabasePlatform();
         if (isset($args['fields'])) {
             if (!is_array($args['fields'])) {
                 throw new \InvalidArgumentException("Unexpected type " . gettype($args['fields']) . " for 'fields'. Expected array.");
             }
-            $names = $args['fields'];
+            $fields = $args['fields'];
         } else {
-            $names = array();
+            $fields = array();
             foreach ($this->getTableMetaData()->getColumNames() as $columnName) {
-                $names[] = \strtolower($columnName);
+                $fields[] = \strtolower($columnName);
             }
-        }
-        $fields = array();
-        foreach ($names as $name) {
-            $fields[$platform->getSQLResultCasing($name)] = $name;
-        }
-        if (!\in_array($this->uniqueIdFieldName, $names, true)) {
-            $fields[$platform->getSQLResultCasing($this->uniqueIdFieldName)] = $this->uniqueIdFieldName;
         }
         return $fields;
     }

@@ -7,8 +7,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * @author    Andriy Oblivantsev <eslider@gmail.com>
- *
- * @method DataStore getDataStoreByName(string $name)
  */
 class DataStoreService extends RepositoryRegistry
 {
@@ -41,19 +39,5 @@ class DataStoreService extends RepositoryRegistry
     public function get($name)
     {
         return $this->getDataStoreByName($name);
-    }
-
-    /**
-     * @return array
-     * @deprecated remove in 0.2.0; you can't really do anything with the return value anyway
-     */
-    public function listDrivers()
-    {
-        return array(
-            'SQLite',
-            'PostgreSQL',
-            'YAML',
-            'JSON'
-        );
     }
 }
