@@ -1,3 +1,15 @@
+## dev-master @ 704e2d0
+* Removed Symfony 4-incompatible BaseElement class
+* Removed Symfony 4-incompatible global default services `data.source` and `featureTypes`
+* Removed geojson briding and phayes/geophp dependency
+* Removed tolerance / preprocessing for SQL-illegal quotes around `:userName` parameter binding in `filter` setting
+* Removed undocumented Postgis only "source" + "distance" search parameter handling (use "intersect")
+* Removed legacy bridging logic for vis-ui file uploads (getFileUri etc)
+* Remove variadic return type support from getByIds (always returns DataItem[] / Feature[])
+* Removed ill-advised Pgrouting integration
+* Removed ill-advised legacy "tree" logic (getTree, getParent, getChildren etc)
+* Removed ill-advised "mapping" logic (perform a separate search on the target repository)
+
 ## 0.1.22
 * Fix DataStore vs FeatureType event handling differences
 * Fix Feature::getType
