@@ -18,7 +18,6 @@ use Mapbender\DataSourceBundle\Utils\WktUtility;
  * @method Feature updateItem(Feature $item)
  * @method Feature update($itemOrData)
  * @method Feature insert($itemOrData)
- * @method Feature get($args)
  * @method Feature[]|array[] getByIds(array $ids)
  * @method Feature itemFactory()
  * @method Feature[] prepareResults(array $rows)

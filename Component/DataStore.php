@@ -206,20 +206,6 @@ class DataStore extends EventAwareDataRepository
     }
 
     /**
-     * Get by argument. ID of given DataItem or configured id column name entry in given array, or scalar id
-     * @param DataItem|array|string|integer
-     * @return DataItem
-     */
-    public function get($args)
-    {
-        if ($id = $this->anythingToId($args)) {
-            return $this->getById($id);
-        } else {
-            return $this->create($args);    // uh-oh
-        }
-    }
-
-    /**
      * Get platform name
      *
      * @return string
