@@ -56,19 +56,16 @@ class DataStore extends EventAwareDataRepository
      * @param DataItem|object|int|array $data
      * @return DataItem
      * @todo 0.2.0: remove unmodified object pass-through
-     * @todo 0.2.0: remove the path for all hope is lost, let's just call get_object_vars
      * @todo 0.2.0: remove the path for scalar id pre-initialization
      */
     public function create($data)
     {
         if (is_object($data)) {
-            $referenceClassName = \get_class($this->itemFactory());
-            if (\is_a($data, $referenceClassName, true)) {
-                @trigger_error("Deprecated: do not call create AT ALL if you know you're working with a {$referenceClassName}. This will be an error in 0.2.0. Use the object you already have.", E_USER_DEPRECATED);
+            if ($data instanceof DataItem) {
                 return $data;
             } else {
-                @trigger_error("Deprecated: do not call create with a random unrecognized object type. This will be an error in 0.2.0. Bring your own attributes and call itemFromArray.", E_USER_DEPRECATED);
-                return $this->itemFromArray(get_object_vars($data));
+                $referenceClassName = \get_class($this->itemFromArray(array()));
+                throw new \InvalidArgumentException("Unsupported type " . \get_class($data) . ". Must use array or {$referenceClassName}.");
             }
         } elseif (is_numeric($data)) {
             @trigger_error("Deprecated: do not call create with a scalar to preinitialize the item id. This will be an error in 0.2.0.", E_USER_DEPRECATED);
