@@ -40,21 +40,4 @@ class FeatureTypeService extends DataStoreService
         }
         parent::__construct($container, $declarations);
     }
-
-    /**
-     * Search feature types
-     *
-     * @return FeatureType[]
-     * @deprecated
-     * @todo 0.2.0: remove this method
-     */
-    public function search()
-    {
-        foreach ($this->repositoryConfigs as $id => $declaration) {
-            if (empty($this->repositories[$id])) {
-                $this->repositories[$id] = $this->dataStoreFactory($declaration);
-            }
-        }
-        return $this->repositories;
-    }
 }
