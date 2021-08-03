@@ -44,6 +44,7 @@ class DataStoreFactory
         return array(
             'uniqueId' => 'id',
             'connection' => 'default',
+            'fields' => null,
         );
     }
 }

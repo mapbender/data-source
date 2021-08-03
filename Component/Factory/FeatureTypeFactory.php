@@ -19,4 +19,11 @@ class FeatureTypeFactory extends DataStoreFactory
         $connection = $registry->getDbalConnectionByName($config['connection']);
         return new FeatureType($connection, $this->tokenStorage, $this->eventProcessor, $config);
     }
+
+    protected function getConfigDefaults()
+    {
+        return parent::getConfigDefaults() + array(
+            'geomField' => 'geom',
+        );
+    }
 }

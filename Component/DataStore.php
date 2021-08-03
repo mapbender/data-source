@@ -20,26 +20,7 @@ class DataStore extends EventAwareDataRepository
     {
         $eventConfig = isset($args["events"]) ? $args["events"] : array();
         $filter = (!empty($args['filter'])) ? $args['filter'] : null;
-        parent::__construct($connection, $tokenStorage, $eventProcessor, $eventConfig, $args['table'], $args['uniqueId'], $filter);
-
-        // Rest
-        $this->fields = $this->initializeFields($args);
-    }
-
-    protected function initializeFields($args)
-    {
-        if (isset($args['fields'])) {
-            if (!is_array($args['fields'])) {
-                throw new \InvalidArgumentException("Unexpected type " . gettype($args['fields']) . " for 'fields'. Expected array.");
-            }
-            $fields = $args['fields'];
-        } else {
-            $fields = array();
-            foreach ($this->getTableMetaData()->getColumNames() as $columnName) {
-                $fields[] = \strtolower($columnName);
-            }
-        }
-        return $fields;
+        parent::__construct($connection, $tokenStorage, $eventProcessor, $eventConfig, $args['table'], $args['uniqueId'], $args['fields'], $filter);
     }
 
     /**

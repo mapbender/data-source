@@ -30,18 +30,16 @@ class FeatureType extends DataStore
     /**
      * @var string Geometry field name
      */
-    protected $geomField = 'geom';
+    protected $geomField;
 
     /**
      * @var int SRID to get geometry converted to
      */
-    protected $srid = null;
+    protected $srid;
 
     public function __construct(Connection $connection, TokenStorageInterface $tokenStorage, EventProcessor $eventProcessor, $args = array())
     {
-        if (array_key_exists('geomField', $args)) {
-            $this->geomField = $args['geomField'];
-        }
+        $this->geomField = $args['geomField'];
         parent::__construct($connection, $tokenStorage, $eventProcessor, $args);
         if ($this->geomField && false !== ($key = \array_search($this->geomField, $this->fields))) {
             unset($this->fields[$key]);

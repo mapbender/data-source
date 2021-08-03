@@ -37,7 +37,17 @@ class DataRepository
     /** @var string|null SQL expression */
     protected $sqlFilter;
 
-    public function __construct(Connection $connection, TokenStorageInterface $tokenStorage, $tableName, $idColumnName, $filter)
+    /**
+     * DataRepository constructor.
+     * @param Connection $connection
+     * @param TokenStorageInterface $tokenStorage
+     * @param string $tableName
+     * @param string $idColumnName
+     * @param string[]|null $fields
+     * @param string|null $filter
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function __construct(Connection $connection, TokenStorageInterface $tokenStorage, $tableName, $idColumnName, $fields, $filter)
     {
         $this->connection = $connection;
         $this->tokenStorage = $tokenStorage;
@@ -45,6 +55,7 @@ class DataRepository
         $this->uniqueIdFieldName = $idColumnName;
         $this->sqlFilter = $filter;
         $this->driver = $this->driverFactory($connection);
+        $this->fields = $fields !== null ? $fields : $this->detectFields();
     }
 
     /**
@@ -331,5 +342,17 @@ class DataRepository
         if ($setUserParam) {
             $queryBuilder->setParameter(':userName', $this->tokenStorage->getToken()->getUsername());
         }
+    }
+
+    /**
+     * @return string[]
+     */
+    protected function detectFields()
+    {
+        $fields = array();
+        foreach ($this->getTableMetaData()->getColumNames() as $columnName) {
+            $fields[] = \strtolower($columnName);
+        }
+        return $fields;
     }
 }

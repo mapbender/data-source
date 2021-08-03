@@ -31,10 +31,10 @@ class EventAwareDataRepository extends DataRepository
                                 TokenStorageInterface $tokenStorage,
                                 EventProcessor $eventProcessor,
                                 array $eventConfig,
-                                $tableName, $idColumnName,
+                                $tableName, $idColumnName, $fields,
                                 $filter)
     {
-        parent::__construct($connection, $tokenStorage, $tableName, $idColumnName, $filter);
+        parent::__construct($connection, $tokenStorage, $tableName, $idColumnName, $fields, $filter);
         $this->eventProcessor = $eventProcessor;
         $this->events = $eventConfig;
     }
