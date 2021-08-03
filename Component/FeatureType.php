@@ -24,14 +24,6 @@ use Mapbender\DataSourceBundle\Utils\WktUtility;
  */
 class FeatureType extends DataStore
 {
-
-    /**
-     * Default upload directory
-     * @deprecated class consts cannot be changed by child classes; use getUploadsDirectoryName method
-     * @todo 0.2.0: remove this const
-     */
-    const UPLOAD_DIR_NAME = "featureTypes";
-
     /**
      * @var string Geometry field name
      */
@@ -276,15 +268,6 @@ class FeatureType extends DataStore
         eval('$result = ' . $code . ';');
         /** @noinspection PhpExpressionAlwaysNullInspection */
         return $result;
-    }
-
-    /**
-     * @return string
-     * @since 0.1.20
-     */
-    public function getUploadsDirectoryName()
-    {
-        return 'featureTypes';
     }
 
     /**
