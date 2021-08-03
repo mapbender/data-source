@@ -83,4 +83,44 @@ class RepositoryRegistry
     {
         return $this->repositoryConfigs;
     }
+
+    /**
+     * Alias for dataStoreFactory
+     *
+     * @param mixed[] $config
+     * @return DataStore
+     * @since 0.1.15
+     * @deprecated use aliased method directly
+     * aliased @since 0.1.22
+     */
+    public function featureTypeFactory(array $config)
+    {
+        return $this->dataStoreFactory($config);
+    }
+
+    /**
+     * Alias for getDataStoreByName
+     *
+     * @param string $name
+     * @return DataStore
+     * @since 0.1.15
+     * @deprecated use aliased method directly
+     * aliased @since 0.1.22
+     */
+    public function getFeatureTypeByName($name)
+    {
+        return $this->getDataStoreByName($name);
+    }
+
+    /**
+     * Alias for getDataStoreDeclarations
+     *
+     * @return array
+     * @deprecated use aliased method directly
+     * aliased @since 0.1.22
+     */
+    public function getFeatureTypeDeclarations()
+    {
+        return $this->getDataStoreDeclarations();
+    }
 }
