@@ -14,6 +14,7 @@ use Mapbender\DataSourceBundle\Utils\WktUtility;
  * @link      https://github.com/mapbender/mapbender-digitizer
  *
  * @method Feature save(Feature|array $feature)
+ * @method Feature[] search(array $criteria)
  * @method Feature insertItem(Feature $item)
  * @method Feature updateItem(Feature $item)
  * @method Feature update($itemOrData)
@@ -138,19 +139,6 @@ class FeatureType extends DataStore
             && preg_match('#^MULTI#i', $tableType)
             && !preg_match('#^MULTI#i', $wktType)
         ;
-    }
-
-    /**
-     * Search feature by criteria
-     *
-     * @param array $criteria
-     * @return Feature[]
-     */
-    public function search(array $criteria = array())
-    {
-        $queryBuilder = $this->createQueryBuilder();
-        $this->configureSelect($queryBuilder, true, $criteria);
-        return $this->prepareResults($queryBuilder->execute()->fetchAll());
     }
 
     /**

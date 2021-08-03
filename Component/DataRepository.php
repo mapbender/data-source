@@ -7,7 +7,6 @@ namespace Mapbender\DataSourceBundle\Component;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Mapbender\DataSourceBundle\Component\Drivers\DoctrineBaseDriver;
-use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
 use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
 use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
@@ -94,6 +93,20 @@ class DataRepository
             return null;
         }
     }
+
+    /**
+     * Search feature by criteria
+     *
+     * @param array $criteria
+     * @return DataItem[]
+     */
+    public function search(array $criteria = array())
+    {
+        $queryBuilder = $this->createQueryBuilder();
+        $this->configureSelect($queryBuilder, true, $criteria);
+        return $this->prepareResults($queryBuilder->execute()->fetchAll());
+    }
+
 
     /**
      * Returns number of matched rows.

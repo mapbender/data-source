@@ -146,38 +146,6 @@ class DataStore extends EventAwareDataRepository
     }
 
     /**
-     * Search by criteria
-     *
-     * @param array $criteria
-     * @return DataItem[]
-     */
-    public function search(array $criteria = array())
-    {
-        if (!empty($this->events[self::EVENT_ON_BEFORE_SEARCH]) || !empty($this->events[self::EVENT_ON_AFTER_SEARCH])) {
-            $criteria['where'] = isset($criteria['where']) ? $criteria['where'] : '';
-            $eventData = $this->getCommonEventData() + array(
-                'criteria' => &$criteria
-            );
-        } else {
-            $eventData = null;
-        }
-        if (!empty($this->events[self::EVENT_ON_BEFORE_SEARCH])) {
-            $this->eventProcessor->runExpression($this->events[self::EVENT_ON_BEFORE_SEARCH], $eventData);
-        }
-        $queryBuilder = $this->createQueryBuilder();
-        $this->configureSelect($queryBuilder, true, $criteria);
-
-        $results = $this->prepareResults($queryBuilder->execute()->fetchAll());
-
-        if (!empty($this->events[self::EVENT_ON_AFTER_SEARCH])) {
-            $eventData['results'] = &$results;
-            $this->eventProcessor->runExpression($this->events[self::EVENT_ON_BEFORE_SEARCH], $eventData);
-        }
-
-        return $results;
-    }
-
-    /**
      * Get platform name
      *
      * @return string
