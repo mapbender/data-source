@@ -113,7 +113,6 @@ class DataRepository
      *
      * @param mixed[] $ids
      * @return array[]|DataItem[]
-     * @todo 0.2.0: remove parametric return type support (always return DataItem[])
      */
     public function getByIds($ids)
     {
@@ -123,12 +122,6 @@ class DataRepository
         $condition = $queryBuilder->expr()->in($this->uniqueIdFieldName, array_map(array($connection, 'quote'), $ids));
         $queryBuilder->where($condition);
         $results = $this->prepareResults($queryBuilder->execute()->fetchAll());
-        if (\func_num_args() > 1 && !\func_get_arg(1)) {
-            @trigger_error("Deprecated: array return support in getByIds is deprecated. Run ->getAttributes() on the returned items yourself.", E_USER_DEPRECATED);
-            foreach ($results as $k => $item) {
-                $results[$k] = $item->getAttributes();
-            }
-        }
         return $results;
     }
 
