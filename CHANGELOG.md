@@ -1,4 +1,4 @@
-## dev-release/0.1 @ d036837
+## 0.1.22
 * Fix DataStore vs FeatureType event handling differences
 * Fix Feature::getType
 * Fix geometry not available from Feature::getAttributes
@@ -19,6 +19,7 @@
 * Add standalone DataStore / FeatureType factory services (`mbds.default_datastore_factory`, `mbds.default_featuretype_factory`)
 * Resolve / mark misc internal deprecations
 * Misc restructuring for Symfony 4+ compatibility
+* Update documentation
 
 ## 0.1.21
 * PostgreSQL: fix mistyped update / insert column value when submitting an empty string to column of ~numeric type
