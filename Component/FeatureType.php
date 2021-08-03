@@ -345,36 +345,6 @@ class FeatureType extends DataStore
     }
 
     /**
-     * Get sequence name
-     *
-     * @return string sequence name
-     * @throws \Doctrine\DBAL\DBALException
-     * @todo 0.2.0: remove this method (DBA work)
-     * @deprecated
-     */
-    public function getTableSequenceName()
-    {
-        $connection = $this->getConnection();
-        $result     = $connection->fetchColumn("SELECT column_default from information_schema.columns where table_name='" . $this->getTableName() . "' and column_name='" . $this->getUniqueId() . "'");
-        $result     = explode("'", $result);
-        return $result[0];
-    }
-
-    /**
-     * Repair table sequence.
-     * Set sequence next ID to (highest ID + 1) in the table
-     *
-     * @return int last insert ID
-     * @throws \Doctrine\DBAL\DBALException
-     * @todo 0.2.0: remove this method (DBA work)
-     * @deprecated
-     */
-    public function repairTableSequence()
-    {
-        return $this->getConnection()->fetchColumn("SELECT setval('" . $this->getTableSequenceName() . "', (SELECT MAX(" . $this->getUniqueId() . ") FROM " . $this->getTableName() . "))");
-    }
-
-    /**
      * Generate unique file name for a field.
      *
      * @param null $fieldName Field
