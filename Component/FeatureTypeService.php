@@ -46,6 +46,7 @@ class FeatureTypeService extends DataStoreService
      * @return FeatureType
      * @since 0.1.15
      * @deprecated use aliased method directly
+     * aliased @since 0.1.22
      */
     public function getFeatureTypeByName($name)
     {
@@ -59,6 +60,7 @@ class FeatureTypeService extends DataStoreService
      * @return FeatureType
      * @since 0.1.15
      * @deprecated use aliased method directly
+     * aliased @since 0.1.22
      */
     public function featureTypeFactory(array $config)
     {
@@ -87,6 +89,7 @@ class FeatureTypeService extends DataStoreService
      *
      * @return array
      * @deprecated use aliased method directly
+     * aliased @since 0.1.22
      */
     public function getFeatureTypeDeclarations()
     {

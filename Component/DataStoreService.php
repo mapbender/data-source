@@ -7,8 +7,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * @author    Andriy Oblivantsev <eslider@gmail.com>
- *
- * @method DataStore getDataStoreByName(string $name)
  */
 class DataStoreService extends RepositoryRegistry
 {
