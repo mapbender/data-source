@@ -2,9 +2,6 @@
 namespace Mapbender\DataSourceBundle\Component;
 
 use Mapbender\CoreBundle\Component\UploadsManager;
-use Mapbender\DataSourceBundle\Component\Drivers\Oracle;
-use Mapbender\DataSourceBundle\Component\Drivers\PostgreSQL;
-use Mapbender\DataSourceBundle\Component\Drivers\SQLite;
 use Mapbender\DataSourceBundle\Entity\DataItem;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Filesystem\Filesystem;
@@ -16,10 +13,6 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  */
 class DataStore extends EventAwareDataRepository
 {
-    const ORACLE_PLATFORM        = 'oracle';
-    const POSTGRESQL_PLATFORM    = 'postgresql';
-    const SQLITE_PLATFORM        = 'sqlite';
-
     /** @var ContainerInterface */
     protected $container;
     /** @var RepositoryRegistry */
@@ -304,52 +297,6 @@ class DataStore extends EventAwareDataRepository
         }
 
         return $results;
-    }
-
-    /**
-     * @return bool
-     * @deprecated
-     */
-    public function isOracle()
-    {
-        return ($this->getDriver()) instanceof Oracle;
-    }
-
-
-    /**
-     * Is SQLite platform
-     *
-     * @return bool
-     * @deprecated
-     */
-    public function isSqlite()
-    {
-        return ($this->getDriver()) instanceof SQLite;
-    }
-
-    /**
-     * Is postgres platform
-     *
-     * @return bool
-     * @deprecated
-     */
-    public function isPostgres()
-    {
-        return ($this->getDriver()) instanceof PostgreSQL;
-    }
-
-    /**
-     * Get driver types
-     *
-     * @return array
-     */
-    public function getTypes()
-    {
-        return array(
-            self::POSTGRESQL_PLATFORM,
-            self::ORACLE_PLATFORM,
-            self::SQLITE_PLATFORM,
-        );
     }
 
     /**
