@@ -50,5 +50,5 @@ DataStore configuration supports the following values:
 NOTE: you should _not_ attempt placing spatial data into the "default" database containing
 your Doctrine entities. You _will_ encounter errors running Doctrine schema updates.
 
-NOTE: the `filter` setting supports a magic placeholder `:userName`, which is bound to the name of the user
-running the query.
+NOTE: Both the `filter` setting and the `where` search param may use a magic placeholder `:userName`, which is
+automatically bound to the name of the user running the query.
