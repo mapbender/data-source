@@ -1,4 +1,7 @@
-## dev-master @ 2cc61f4
+## 0.2.0
+
+Symfony 4+ conformance and pruning of legacy complexity.
+
 * Extend magic :userName filter param support also to "where" param passed into search / count
 * Removed Symfony 4-incompatible BaseElement class
 * Removed Symfony 4-incompatible global default services `data.source` and `featureTypes`. Access should be replaced with a self-defined service. Use RepositoryRegistry base class and inject the appropriate factory.
@@ -11,13 +14,24 @@
 * Removed ill-advised Pgrouting integration
 * Removed ill-advised legacy "tree" logic (getTree, getParent, getChildren etc)
 * Removed ill-advised "mapping" logic (perform a separate search on the target repository)
-* Removed support for events before / after search; configure a "filter" SQL expression
+* Removed support for events before / after search; configure a "filter" SQL expression or pass a "where"
 * Removed FeatureTypeService::search method
 * Removed public access to "driver" internals
 * Removed variadic DataStore / FeatureType "get" method (use getById)
 * Removed variadic DataStore / FeatureType "delete" method argument support
 * Removed support for any non-array, non-DataItem arguments to save, update, insert
 * Removed project support hack replacing malformed EWKT with empty point EWKT on storage; users must supply sane geometries
+* Removed support for automatic yaml file parsing when constructing FeatureTypeService
+
+NOTE: there are no longer any considerations for external calls to FeatureType / DataStore constructors. Use the appropriate
+factory service (`mbds.default_datastore_factory` or `mbds.default_featuretype_factory`) to instantiate
+DataStore / FeatureType manually.
+
+NOTE: Users requiring a registry of multiple DataStores / FeatureTypes, to replace removed
+`data.source` and `featureTypes` services, must define their own service. Use
+RepositoryRegistry and inject the appropriate factory plus DataStore / FeatureType configs.
+DataStoreService and FeatureTypeService classes are and will remain incompatible with
+Symfony 4.
 
 ## 0.1.22
 * Fix DataStore vs FeatureType event handling differences
