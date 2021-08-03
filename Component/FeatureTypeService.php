@@ -13,6 +13,8 @@ namespace Mapbender\DataSourceBundle\Component;
  * @method FeatureType dataStoreFactory(array $config)
  * @method FeatureType featureTypeFactory(array $config)
  * @property FeatureType[] $repositories
+ *
+ * @deprecated incompatible with Symfony 4 (full container injection); use RepositoryRegistry and inject `mbds.default_featuretype_factory`
  */
 class FeatureTypeService extends DataStoreService
 {

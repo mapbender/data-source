@@ -7,6 +7,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * @author    Andriy Oblivantsev <eslider@gmail.com>
+ * @deprecated incompatible with Symfony 4 (full container injection); use RepositoryRegistry and inject `mbds.default_datastore_factory`
  */
 class DataStoreService extends RepositoryRegistry
 {
