@@ -1,14 +1,20 @@
-## dev-master @ 704e2d0
+## dev-master @ 0cd0e4bb63908d930af051c9849f232dd8619f9d
 * Removed Symfony 4-incompatible BaseElement class
 * Removed Symfony 4-incompatible global default services `data.source` and `featureTypes`
 * Removed geojson briding and phayes/geophp dependency
 * Removed tolerance / preprocessing for SQL-illegal quotes around `:userName` parameter binding in `filter` setting
 * Removed undocumented Postgis only "source" + "distance" search parameter handling (use "intersect")
 * Removed legacy bridging logic for vis-ui file uploads (getFileUri etc)
-* Remove variadic return type support from getByIds (always returns DataItem[] / Feature[])
+* Removed variadic return type support from getByIds (always returns DataItem[] / Feature[])
+* Removed random object => DataItem promotion support
 * Removed ill-advised Pgrouting integration
 * Removed ill-advised legacy "tree" logic (getTree, getParent, getChildren etc)
 * Removed ill-advised "mapping" logic (perform a separate search on the target repository)
+* Removed FeatureTypeService::search method
+* Removed public access to "driver" internals
+* Removed variadic DataStore / FeatureType "get" method (use getById)
+* Removed variadic DataStore / FeatureType "delete" method argument support
+* Removed suppord for any non-array, non-DataItem arguments to save, update, insert
 
 ## 0.1.22
 * Fix DataStore vs FeatureType event handling differences
