@@ -17,7 +17,8 @@ Only a single geometry column per table is supported.
 ## Main repository methods
 Method `search` loads all rows from the table and promotes them into an array of DataItem / Feature objects.
 Accepts an array of controlling parameters. Allowed params are `maxResults`, `where` (string; additional
-SQL where clause) and `srid` (FeatureType only; explicit geometry output SRID).
+SQL where clause). FeatureType additionally supports params `srid` (explicit geometry output SRID) and `intersect`
+(string; (E)WKT geometry to spatially limit results).
 
 Method `count` Accepts the same parameters as search, but returns only the number of matched rows.
 
@@ -49,5 +50,5 @@ DataStore configuration supports the following values:
 NOTE: you should _not_ attempt placing spatial data into the "default" database containing
 your Doctrine entities. You _will_ encounter errors running Doctrine schema updates.
 
-NOTE: the `filter` setting supports a magic placeholder `:userName`, which is bound to the name of the user
-running the query.
+NOTE: Both the `filter` setting and the `where` search param may use a magic placeholder `:userName`, which is
+automatically bound to the name of the user running the query.

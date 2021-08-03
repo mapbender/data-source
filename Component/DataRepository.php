@@ -318,14 +318,18 @@ class DataRepository
 
     protected function addQueryFilters(QueryBuilder $queryBuilder, $includeDefaultFilter, $params)
     {
+        $setUserParam = false;
+        $userNamePattern = '#:userName([^_\w\d]|$)#';
         if ($includeDefaultFilter && !empty($this->sqlFilter)) {
-            if (preg_match('#:userName([^_\w\d]|$)#', $this->sqlFilter)) {
-                $queryBuilder->setParameter(':userName', $this->tokenStorage->getToken()->getUsername());
-            }
+            $setUserParam = !!preg_match($userNamePattern, $this->sqlFilter);
             $queryBuilder->andWhere($this->sqlFilter);
         }
         if (!empty($params['where'])) {
+            $setUserParam = $setUserParam || preg_match($userNamePattern, $params['where']);
             $queryBuilder->andWhere($params['where']);
+        }
+        if ($setUserParam) {
+            $queryBuilder->setParameter(':userName', $this->tokenStorage->getToken()->getUsername());
         }
     }
 }
