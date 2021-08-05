@@ -1,7 +1,6 @@
 <?php
 namespace Mapbender\DataSourceBundle\Component;
 
-use Doctrine\DBAL\Connection;
 use Mapbender\DataSourceBundle\Component\Factory\DataStoreFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -37,15 +36,5 @@ class DataStoreService extends RepositoryRegistry
     public function get($name)
     {
         return $this->getDataStoreByName($name);
-    }
-
-    /**
-     * @param string $name
-     * @return Connection
-     * @since 0.0.16
-     */
-    public function getDbalConnectionByName($name)
-    {
-        return $this->factory->getDbalConnectionByName($name);
     }
 }

@@ -105,4 +105,14 @@ class RepositoryRegistry
     {
         return $this->getDataStoreDeclarations();
     }
+
+    /**
+     * @param string $name
+     * @return Connection
+     * @since 0.0.16
+     */
+    public function getDbalConnectionByName($name)
+    {
+        return $this->factory->getDbalConnectionByName($name);
+    }
 }
