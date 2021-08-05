@@ -1,3 +1,6 @@
+## 0.1.24
+* Fix connection access error when using plain RepositoryRegistry (Sf4 conformant version of DataStoreService / FeatureTypeService)
+
 ## 0.1.23
 * Fix missing id on inserted item
 * Fix factory constructor signature incompatibility with 0.2.x
