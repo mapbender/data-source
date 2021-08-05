@@ -47,16 +47,16 @@ class DataStore extends EventAwareDataRepository
         }
         if ($runSave) {
             if (!$saveItem->getId()) {
-                $this->insertItem($saveItem);
+                $item = $this->insertItem($saveItem);
             } else {
-                $this->updateItem($saveItem);
+                $item = $this->updateItem($saveItem);
             }
         }
 
         if (isset($this->events[self::EVENT_ON_AFTER_SAVE])) {
             $this->eventProcessor->runExpression($this->events[self::EVENT_ON_AFTER_SAVE], $eventData);
         }
-        return $saveItem;
+        return $item;
     }
 
     /**
