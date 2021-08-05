@@ -1,3 +1,7 @@
+## 0.1.23
+* Fix missing id on inserted item
+* Fix factory constructor signature incompatibility with 0.2.x
+
 ## 0.1.22
 * Fix DataStore vs FeatureType event handling differences
 * Fix Feature::getType
