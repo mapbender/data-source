@@ -36,6 +36,9 @@ RepositoryRegistry and inject the appropriate factory plus DataStore / FeatureTy
 DataStoreService and FeatureTypeService classes are and will remain incompatible with
 Symfony 4.
 
+## 0.1.24
+* Fix connection access error when using plain RepositoryRegistry (Sf4 conformant version of DataStoreService / FeatureTypeService)
+
 ## 0.1.23
 * Fix missing id on inserted item
 * Fix registry constructor signature incompatibility with 0.2.x
