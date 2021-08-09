@@ -19,7 +19,7 @@ class RepositoryRegistry
     /** @var mixed[][] */
     protected $repositoryConfigs;
     /** @var DataStore[] */
-    protected $repositories;
+    protected $repositories = array();
 
     /**
      * @param DataStoreFactory $factory
