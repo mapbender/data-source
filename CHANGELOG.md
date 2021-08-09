@@ -1,3 +1,6 @@
+## 0.2.2
+* Fix error in first invocation of getDataStoreByName
+
 ## 0.2.1
 * Fix missing id on inserted item
 
