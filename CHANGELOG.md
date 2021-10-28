@@ -39,6 +39,9 @@ RepositoryRegistry and inject the appropriate factory plus DataStore / FeatureTy
 DataStoreService and FeatureTypeService classes are and will remain incompatible with
 Symfony 4.
 
+## 0.1.26
+* Fix geometries returned from insert reverting to table native CRS
+
 ## 0.1.25
 * Fix error in first invocation of getDataStoreByName
 
