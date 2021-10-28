@@ -1,3 +1,6 @@
+## 0.2.3
+* Fix geometries returned from insert reverting to table native CRS
+
 ## 0.2.2
 * Fix error in first invocation of getDataStoreByName
 
