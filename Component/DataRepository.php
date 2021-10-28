@@ -143,7 +143,11 @@ class DataRepository
         $values = $this->getTableMetaData()->prepareInsertData($values);
         $id = $this->getDriver()->insert($this->connection, $this->getTableName(), $values, $this->uniqueIdFieldName);
         // Reload (fully populate, renormalize geometry etc)
-        return $this->getById($id);
+        // Use reload to support FeatureType in maintaining srs in = srs out
+        /** @see FeatureType::reloadItem */
+        $tempItem = clone $item;
+        $tempItem->setId($id);
+        return $this->reloadItem($tempItem);
     }
 
     public function updateItem(DataItem $item)
