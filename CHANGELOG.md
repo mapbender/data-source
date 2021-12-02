@@ -1,3 +1,6 @@
+## 0.2.4
+* Fix incompatibility with current doctrine/doctrine-bundle
+
 ## 0.2.3
 * Fix geometries returned from insert reverting to table native CRS
 * Fix error in save method if saving was aborted by a custom event
