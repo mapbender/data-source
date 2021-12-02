@@ -1,3 +1,6 @@
+## 0.1.27
+* Fix incompatibility with current doctrine/doctrine-bundle
+
 ## 0.1.26
 * Fix geometries returned from insert reverting to table native CRS
 
