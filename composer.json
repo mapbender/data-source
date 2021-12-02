@@ -8,7 +8,8 @@
         {"name": "Andriy Oblivantsev",  "email": "andriy.oblivantsev@wheregroup.com"}
     ],
     "require": {
-        "php": ">=5.3.3"
+        "php": ">=5.3.3",
+        "doctrine/persistence": "^1.3.0 || ^2"
     },
     "require-dev": {
         "phpunit/phpunit": "^3.7",

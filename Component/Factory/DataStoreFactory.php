@@ -7,7 +7,7 @@ namespace Mapbender\DataSourceBundle\Component\Factory;
 use Doctrine\DBAL\Connection;
 use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Component\EventProcessor;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ConnectionRegistry;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
@@ -16,14 +16,14 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  */
 class DataStoreFactory
 {
-    /** @var RegistryInterface */
+    /** @var ConnectionRegistry */
     protected $connectionRegistry;
     /** @var TokenStorageInterface */
     protected $tokenStorage;
     /** @var EventProcessor */
     protected $eventProcessor;
 
-    public function __construct(RegistryInterface $connectionRegistry,
+    public function __construct(ConnectionRegistry $connectionRegistry,
                                 TokenStorageInterface $tokenStorage,
                                 EventProcessor $eventProcessor)
     {
