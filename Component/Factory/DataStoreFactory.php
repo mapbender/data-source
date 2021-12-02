@@ -5,6 +5,7 @@ namespace Mapbender\DataSourceBundle\Component\Factory;
 
 
 use Doctrine\DBAL\Connection;
+use Doctrine\Persistence\ConnectionRegistry;
 use Mapbender\CoreBundle\Component\UploadsManager;
 use Mapbender\DataSourceBundle\Component\DataStore;
 use Mapbender\DataSourceBundle\Component\EventProcessor;
@@ -12,7 +13,6 @@ use Mapbender\DataSourceBundle\Component\RepositoryRegistry;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ParameterBag\FrozenParameterBag;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
@@ -21,7 +21,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  */
 class DataStoreFactory
 {
-    /** @var RegistryInterface */
+    /** @var ConnectionRegistry */
     protected $connectionRegistry;
     /** @var TokenStorageInterface */
     protected $tokenStorage;
@@ -34,7 +34,7 @@ class DataStoreFactory
     /** @var UploadsManager */
     protected $uploadsManager;
 
-    public function __construct(RegistryInterface $connectionRegistry,
+    public function __construct(ConnectionRegistry $connectionRegistry,
                                 TokenStorageInterface $tokenStorage,
                                 RequestStack $requestStack,
                                 EventProcessor $eventProcessor,
