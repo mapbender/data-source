@@ -125,7 +125,7 @@ class Oracle extends DoctrineBaseDriver implements Geographic
 
             $notNull = $row['nullable'] === 'N';
             $hasDefault = !!$row['data_default'];
-            $isNumeric = !!preg_match('#int|float|real|decimal|numeric#i', $row['data_type']);
+            $isNumeric = !!preg_match('#int|float|double|real|decimal|numeric#i', $row['data_type']);
             $columns[$name] = new Column($notNull, $hasDefault, $isNumeric, null, $srid);
         }
         $tableMeta = new TableMeta($connection->getDatabasePlatform(), $columns);

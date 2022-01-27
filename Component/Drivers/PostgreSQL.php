@@ -155,7 +155,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic, Routable
             $name = trim($row['field'], '"');   // Undo quote_ident
             $notNull = !$row['isnotnull'];
             $hasDefault = !!$row['default'];
-            $isNumeric = !!preg_match('#int|float|real|decimal|numeric#i', $row['complete_type']);
+            $isNumeric = !!preg_match('#int|float|double|real|decimal|numeric#i', $row['complete_type']);
             if (!empty($gcInfos[$name])) {
                 $geomType = $gcInfos[$name][0];
                 $srid = $gcInfos[$name][1];
