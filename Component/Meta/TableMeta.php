@@ -42,7 +42,10 @@ class TableMeta
         foreach ($data as $columnName => $value) {
             if (\is_string($value) && !$value) {
                 $column = $this->getColumn($columnName);
-                if ($column->isNumeric()) {
+                // "0" is a well-formed number (work around PHP "0" == false equivalence)
+                // NOTE: Starting with PHP 8 is_numeric allows trailing whitespace. Avoid that behaviour.
+                // see https://www.php.net/manual/en/function.is-numeric.php
+                if ($column->isNumeric() && !\is_numeric(trim($value))) {
                     $data[$columnName] = $column->getSafeDefault();
                 }
             }
