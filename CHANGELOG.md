@@ -50,6 +50,9 @@ RepositoryRegistry and inject the appropriate factory plus DataStore / FeatureTy
 DataStoreService and FeatureTypeService classes are and will remain incompatible with
 Symfony 4.
 
+## 0.1.29
+* Re-add support for explicitly preconfiguring source table srid on FeatureType; only used if detection fails (e.g. views using geometry expressions)
+
 ## 0.1.28
 * Fix missing detection for native double precision columns when picking default for non-nullable numeric column (see [Mapbender #1396](https://github.com/mapbender/mapbender/issues/1396))
 * Fix explicitly entered "0" not saving to nullable numeric columns

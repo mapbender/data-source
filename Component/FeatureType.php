@@ -164,6 +164,11 @@ class FeatureType extends DataStore
     public function getSrid()
     {
         $this->srid = $this->srid ?: $this->getTableMetaData()->getColumn($this->geomField)->getSrid() ?: $this->configuredSrid;
+        if (!$this->srid) {
+            # Throw a decently helpful exception now instead of throwing a
+            # hard to parse one ("Invalid sridTo 0") later.
+            throw new \RuntimeException("SRID detection failure on {$this->tableName}.{$this->geomField}; must supply an 'srid' value in your featuretype configuration");
+        }
         return $this->srid;
     }
 

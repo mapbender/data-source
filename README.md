@@ -46,6 +46,7 @@ DataStore configuration supports the following values:
 | fields | list of strings | names of columns to load into DataItem / Feature objects | null (=auto-detect columns) |
 | filter | string | valid SQL where clause to build into all `search` invocations | null |
 | geomField (FeatureType only) | string | name of the geometry column | "geom" |
+| srid (FeatureType only) | integer or null | Source srid of `geomField`; used only if detection fails (certain views) | null |
 
 NOTE: you should _not_ attempt placing spatial data into the "default" database containing
 your Doctrine entities. You _will_ encounter errors running Doctrine schema updates.
