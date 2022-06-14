@@ -39,6 +39,9 @@ class FeatureType extends DataStore
      */
     protected $geomField = 'geom';
 
+    /** @var int|null fallback source srid used only if detection fails (e.g. materialized views) */
+    protected $configuredSrid;
+
     /**
      * @var int SRID to get geometry converted to
      */
@@ -65,6 +68,9 @@ class FeatureType extends DataStore
 
     protected function configure(array $args)
     {
+        if (!empty($args['srid'])) {
+            $this->configuredSrid = \intval($args['srid']) ?: null;
+        }
         if (array_key_exists('geomField', $args)) {
             $this->geomField = $args['geomField'];
         }
@@ -287,7 +293,7 @@ class FeatureType extends DataStore
      */
     public function getSrid()
     {
-        $this->srid = $this->srid ?: $this->getTableMetaData()->getColumn($this->geomField)->getSrid();
+        $this->srid = $this->srid ?: $this->getTableMetaData()->getColumn($this->geomField)->getSrid() ?: $this->configuredSrid;
         return $this->srid;
     }
 
