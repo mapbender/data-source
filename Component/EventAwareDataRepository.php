@@ -47,6 +47,10 @@ class EventAwareDataRepository extends DataRepository
      */
     public function updateItem(DataItem $item)
     {
+        /**
+         * user is needed in evaluated expressions
+         */
+        $user = $this->tokenStorage->getToken();
         if (isset($this->events[self::EVENT_ON_BEFORE_UPDATE]) || isset($this->events[self::EVENT_ON_AFTER_UPDATE])) {
             $eventData = $this->getSaveEventData($item);
         } else {
@@ -74,6 +78,10 @@ class EventAwareDataRepository extends DataRepository
      */
     public function insertItem(DataItem $item)
     {
+        /**
+         * user is needed in evaluated expressions
+         */
+        $user = $this->tokenStorage->getToken();
         if (isset($this->events[self::EVENT_ON_BEFORE_INSERT]) || isset($this->events[self::EVENT_ON_AFTER_INSERT])) {
             $eventData = $this->getSaveEventData($item);
         } else {

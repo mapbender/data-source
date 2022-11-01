@@ -31,6 +31,10 @@ class EventProcessor
 
     public function runExpression($expression, array $locals)
     {
+        /**
+         * user is needed in evaluated expressions
+         */
+        $user = $this->tokenStorage->getToken();
         $this->reset();
         // ~extract
         foreach ($this->addBuiltins($locals) as $key => &$value) {
