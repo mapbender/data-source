@@ -48,6 +48,8 @@ class TableMeta
                 if ($column->isNumeric() && !\is_numeric(trim($value))) {
                     $data[$columnName] = $column->getSafeDefault();
                 }
+            } elseif (\is_bool($value) && $this->getColumn($columnName)->isNumeric()) {
+                $data[$columnName] = $value ? 1 : 0;
             }
         }
         return $data;
