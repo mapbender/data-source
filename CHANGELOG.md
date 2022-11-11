@@ -1,3 +1,6 @@
+## 0.2.7
+* Fix errors saving boolean values into numeric column (convert to 0 or 1)
+
 ## 0.2.6
 * Re-add support for explicitly preconfiguring source table srid on FeatureType; only used if detection fails (e.g. views using geometry expressions)
 
