@@ -8,6 +8,7 @@ use Symfony\Component\DependencyInjection\Container;
 /**
  * @package Mapbender\DataSourceBundle\Tests
  * @author  Andriy Oblivantsev <eslider@gmail.com>
+ * @deprecated extend appropriate test base class directly (WebTestCase, KernelTestCase or plain PHPUnit TestCase)
  */
 abstract class SymfonyTest extends WebTestCase
 {

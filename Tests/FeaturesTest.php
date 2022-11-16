@@ -1,51 +1,35 @@
 <?php
 namespace Mapbender\DataSourceBundle\Tests;
 
+use Mapbender\DataSourceBundle\Component\Factory\FeatureTypeFactory;
 use Mapbender\DataSourceBundle\Component\FeatureType;
-use Mapbender\DataSourceBundle\Component\FeatureTypeService;
 use Mapbender\DataSourceBundle\Entity\Feature;
-use Symfony\Bundle\FrameworkBundle\Client;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\DependencyInjection\Container;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+
 
 /**
  * @author    Andriy Oblivantsev <eslider@gmail.com>
  * @copyright 2015 by WhereGroup GmbH & Co. KG
  */
-class FeaturesTest extends WebTestCase
+class FeaturesTest extends KernelTestCase
 {
-    protected static $fieldName;
-    /**
-     * @var Client
-     */
-    protected static $client;
-
     /**
      * @var FeatureType
      */
     protected static $featureType;
 
-    /**
-     * @var Container
-     */
-    protected static $container;
-    protected static $hasDefinitions;
-    protected static $definitions;
-
     public static function setUpBeforeClass()
     {
-        self::$client         = static::createClient();
-        self::$container      = self::$client->getContainer();
-        self::$hasDefinitions = self::$container->hasParameter('featureTypes');
-        self::$definitions    = self::$hasDefinitions ? self::$container->getParameter('featureTypes') : array();
-
-        if (!self::$hasDefinitions) {
-            self::markTestSkipped("No feature declaration found");
-            return;
+        $kernel = self::bootKernel();
+        $container = $kernel->getContainer();
+        if (!$container->hasParameter('featureTypes')) {
+            self::markTestSkipped("Missing featureTypes container param");
         }
-        $fts = new FeatureTypeService(self::$container, self::$definitions);
-
-        self::$featureType = $fts->getDataStoreByName(key(self::$definitions));
+        $definitions = $container->getParameter('featureTypes');
+        $ftConfig = \array_values($definitions)[0];
+        /** @var FeatureTypeFactory $ftFactory */
+        $ftFactory = $container->get('mbds.default_featuretype_factory');
+        self::$featureType = $ftFactory->fromConfig($ftConfig);
         self::$fieldName   = current(self::$featureType->getFields());
     }
 
@@ -63,16 +47,19 @@ class FeaturesTest extends WebTestCase
 
     public function testSaveArray()
     {
-        $featureData = array(self::$fieldName => "testSaveArray");
+        $idName = self::$featureType->getUniqueId();
+        $featureData = array($idName => "testSaveArray");
         $feature     = self::$featureType->save($featureData);
         $this->assertTrue($feature instanceof Feature);
     }
 
     public function testSaveObject()
     {
-        $featureData = array(self::$fieldName => "testSaveObject");
-        $feature     = new Feature($featureData);
-        $feature     = self::$featureType->save($feature);
+        $idName = self::$featureType->getUniqueId();
+        $featureData = array($idName => "testSaveObject");
+        $feature = self::$featureType->itemFromArray($featureData);
+        $this->assertTrue($feature instanceof Feature);
+        $feature = self::$featureType->save($feature);
         $this->assertTrue($feature instanceof Feature);
     }
 
@@ -87,8 +74,8 @@ class FeaturesTest extends WebTestCase
     public function testRemove()
     {
         $featureType = self::$featureType;
-        $this->assertGreaterThan(0, $featureType->remove(array(self::$fieldName => "testSaveArray")));
-        $this->assertGreaterThan(0, $featureType->remove(array(self::$fieldName => "testSaveObject")));
+        $this->assertGreaterThan(0, $featureType->remove("testSaveArray"));
+        $this->assertGreaterThan(0, $featureType->remove("testSaveObject"));
     }
 
     public function testUpdate()

@@ -2,16 +2,13 @@
 namespace Mapbender\DataSourceBundle\Tests;
 
 use Mapbender\DataSourceBundle\Entity\Feature;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @author  Andriy Oblivantsev <eslider@gmail.com>
  */
-class FeatureTypeTest extends SymfonyTest
+class FeatureTypeTest extends TestCase
 {
-    const REMOVE_TEST_TABLES = false;
-
-    protected $configuration = array();
-
     // The OGC and ISO specifications
     const WKT_POINT              = "POINT(0 0)";
     const WKT_LINESTRING         = "LINESTRING(0 0,1 1,1 2)";
