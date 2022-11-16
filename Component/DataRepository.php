@@ -45,7 +45,7 @@ class DataRepository
      * @param string $idColumnName
      * @param string[]|null $fields
      * @param string|null $filter
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws \Doctrine\DBAL\Exception
      */
     public function __construct(Connection $connection, TokenStorageInterface $tokenStorage, $tableName, $idColumnName, $fields, $filter)
     {
@@ -232,7 +232,7 @@ class DataRepository
     /**
      * @param Connection $connection
      * @return DoctrineBaseDriver
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws \Doctrine\DBAL\Exception
      * @throws \RuntimeException on incompatible platform
      */
     protected function driverFactory(Connection $connection)

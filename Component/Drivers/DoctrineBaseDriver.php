@@ -71,7 +71,7 @@ abstract class DoctrineBaseDriver
      * @param mixed[] $data
      * @param mixed[] $identifier
      * @return int rows affected
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws \Doctrine\DBAL\Exception
      */
     public function update(Connection $connection, $tableName, array $data, array $identifier)
     {

@@ -2,7 +2,6 @@
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DBALException;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Meta\Column;
 use Mapbender\DataSourceBundle\Component\Meta\TableMeta;
@@ -100,7 +99,7 @@ class Oracle extends DoctrineBaseDriver implements Geographic
             foreach ($connection->executeQuery($gmdSql) as $row) {
                 $srids[$row['COLUMN_NAME']] = $row['SRID'];
             }
-        } catch (DBALException $e) {
+        } catch (\Doctrine\DBAL\Exception $e) {
             // Ignore (no spatial support?)
         }
 

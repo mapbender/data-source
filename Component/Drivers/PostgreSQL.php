@@ -3,7 +3,6 @@
 namespace Mapbender\DataSourceBundle\Component\Drivers;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DBALException;
 use Mapbender\DataSourceBundle\Component\Drivers\Interfaces\Geographic;
 use Mapbender\DataSourceBundle\Component\Meta\Column;
 use Mapbender\DataSourceBundle\Component\Meta\TableMeta;
@@ -106,7 +105,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic
             foreach ($connection->executeQuery($gcSql, $gcParams) as $row) {
                 $gcInfos[$row['f_geometry_column']] = array($row['type'], $row['srid']);
             }
-        } catch (DBALException $e) {
+        } catch (\Doctrine\DBAL\Exception $e) {
             // Ignore (DataStore on PostgreSQL / no Postgis)
         }
 
