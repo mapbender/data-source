@@ -130,14 +130,14 @@ class DataRepository
     {
         $qb = $this->createQueryBuilder();
         $this->configureCount($qb, true, $criteria);
-        return intval($qb->execute()->fetchColumn(0));
+        return \intval($qb->execute()->fetchOne());
     }
 
     /**
      * Get by ID list
      *
      * @param mixed[] $ids
-     * @return array[]|DataItem[]
+     * @return DataItem[]
      */
     public function getByIds($ids)
     {

@@ -21,7 +21,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  * @method Feature updateItem(Feature $item)
  * @method Feature update($itemOrData)
  * @method Feature insert($itemOrData)
- * @method Feature[]|array[] getByIds(array $ids)
+ * @method Feature[] getByIds(array $ids)
  * @method Feature itemFactory()
  * @method Feature[] prepareResults(array $rows)
  */
