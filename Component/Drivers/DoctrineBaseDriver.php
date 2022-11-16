@@ -104,7 +104,7 @@ abstract class DoctrineBaseDriver
             . ' WHERE '
             . implode(' AND ', $conditions)
         ;
-        return $connection->executeUpdate($sql, $params);
+        return $connection->executeStatement($sql, $params);
     }
 
 

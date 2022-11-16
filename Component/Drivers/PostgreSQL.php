@@ -23,7 +23,7 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic
         $sql = $this->getInsertSql($tableName, $pData[0], $pData[1])
             . ' RETURNING ' . $connection->quoteIdentifier($identifier)
         ;
-        return $connection->fetchColumn($sql, $pData[2], 0);
+        return $connection->fetchOne($sql, $pData[2]);
     }
 
     protected function prepareParamValue($value)

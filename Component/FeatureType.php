@@ -24,6 +24,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  * @method Feature[] getByIds(array $ids)
  * @method Feature itemFactory()
  * @method Feature[] prepareResults(array $rows)
+ * @method Feature getByIdInternal($id, QueryBuilder $qb)
  */
 class FeatureType extends DataStore
 {
@@ -69,19 +70,8 @@ class FeatureType extends DataStore
         $qb = $this->createQueryBuilder();
         $this->configureSelect($qb, false, array(
             'srid' => $srid,
-            'maxResults' => 1,
         ));
-        $qb
-            ->setMaxResults(1)
-            ->where($this->getUniqueId() . " = :id")
-            ->setParameter('id', $id)
-        ;
-        $features = $this->prepareResults($qb->execute()->fetchAll());
-        if ($features) {
-            return $features[0];
-        } else {
-            return null;
-        }
+        return $this->getByIdInternal($id, $qb);
     }
 
     /**

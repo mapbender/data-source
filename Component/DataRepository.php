@@ -92,13 +92,20 @@ class DataRepository
     public function getById($id)
     {
         $qb = $this->createQueryBuilder();
-        $this->configureSelect($qb, false, array(
-            'maxResults' => 1,
-        ));
-        $qb->where($this->getUniqueId() . ' = :id');
-        $qb->setParameter(':id', $id);
-        $items = $this->prepareResults($qb->execute()->fetchAll());
-        if ($items) {
+        $this->configureSelect($qb, false, array());
+        return $this->getByIdInternal($id, $qb);
+    }
+
+    protected function getByIdInternal($id, QueryBuilder $qb)
+    {
+        $qb
+            ->setMaxResults(1)
+            ->where($this->getUniqueId() . " = :id")
+            ->setParameter('id', $id)
+        ;
+        $row = $qb->execute()->fetchAssociative();
+        if ($row) {
+            $items = $this->prepareResults(array($row));
             return $items[0];
         } else {
             return null;
@@ -115,9 +122,8 @@ class DataRepository
     {
         $queryBuilder = $this->createQueryBuilder();
         $this->configureSelect($queryBuilder, true, $criteria);
-        return $this->prepareResults($queryBuilder->execute()->fetchAll());
+        return $this->prepareResults($queryBuilder->execute()->fetchAllAssociative());
     }
-
 
     /**
      * Returns number of matched rows.
@@ -146,7 +152,7 @@ class DataRepository
         $connection   = $queryBuilder->getConnection();
         $condition = $queryBuilder->expr()->in($this->uniqueIdFieldName, array_map(array($connection, 'quote'), $ids));
         $queryBuilder->where($condition);
-        $results = $this->prepareResults($queryBuilder->execute()->fetchAll());
+        $results = $this->prepareResults($queryBuilder->execute()->fetchAllAssociative());
         return $results;
     }
 
