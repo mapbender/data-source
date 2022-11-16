@@ -1,3 +1,8 @@
+## 0.2.8
+* Fix user role formatting with custom user providers implementing Symfony >= 4.3 api properly
+* Resolve Symfony >= 4.3 deprecations injecting user role names into custom event scope
+* Resolve Doctrine DBAL >= 2.11 deprecations / DBAL 3.x errors
+
 ## 0.2.7
 * Fix errors saving boolean values into numeric column (convert to 0 or 1)
 
