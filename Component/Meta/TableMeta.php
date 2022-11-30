@@ -48,6 +48,9 @@ class TableMeta
                 if ($column->isNumeric() && !\is_numeric(trim($value))) {
                     $data[$columnName] = $column->getSafeDefault();
                 }
+            } else if ($this->getColumn($columnName)->isNumeric() && !!$value) {
+                $data[$columnName] = str_replace(',', '.', $value);
+
             }
         }
         return $data;
