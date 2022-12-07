@@ -48,7 +48,8 @@ class TableMeta
                 if ($column->isNumeric() && !\is_numeric(trim($value))) {
                     $data[$columnName] = $column->getSafeDefault();
                 }
-            } else if ($this->getColumn($columnName)->isNumeric() && !!$value) {
+            } else if ($this->getColumn($columnName)->isNumeric() && !$this->getColumn($columnName)->getGeometryType() && !!$value) {
+                $column = $this->getColumn($columnName);
                 $data[$columnName] = str_replace(',', '.', $value);
 
             }
