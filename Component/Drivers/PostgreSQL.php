@@ -113,7 +113,9 @@ class PostgreSQL extends DoctrineBaseDriver implements Geographic
         $columns = array();
         /** @see \Doctrine\DBAL\Platforms\PostgreSqlPlatform::getListTableColumnsSQL */
         /** @see \Doctrine\DBAL\Schema\PostgreSqlSchemaManager::_getPortableTableColumnDefinition */
-        foreach ($connection->executeQuery($sql) as $row) {
+        $result = $connection->executeQuery($sql);
+        $data = $result->fetchAllAssociative();
+        foreach ($data as $row) {
             $name = trim($row['field'], '"');   // Undo quote_ident
             $notNull = !$row['isnotnull'];
             $hasDefault = !!$row['default'];
