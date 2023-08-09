@@ -104,7 +104,7 @@ class DataItem implements \ArrayAccess
         $this->attributes[ $key ] = $value;
     }
 
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return \array_key_exists($offset, $this->attributes);
     }
@@ -114,12 +114,12 @@ class DataItem implements \ArrayAccess
         return $this->attributes[$offset];
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $this->setAttribute($offset, $value);
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         unset($this->attributes[$offset]);
     }

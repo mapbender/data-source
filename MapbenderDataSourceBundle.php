@@ -4,6 +4,7 @@ namespace Mapbender\DataSourceBundle;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -23,7 +24,7 @@ class MapbenderDataSourceBundle extends Bundle
         $container->addResource(new FileResource($xmlLoader->getLocator()->locate('services.xml')));
     }
 
-    public function getContainerExtension()
+    public function getContainerExtension(): ?ExtensionInterface
     {
         return null;
     }
