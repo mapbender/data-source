@@ -1,4 +1,10 @@
-# Mapbender data source module
+# Deprecated
+
+This repository is deprecated. Its functionality will be integrated into the [mapbender digitizer repository](https://github.com/mapbender/mapbender-digitizer) in version 2.0 and the code has already been ported to the [develop branch](https://github.com/mapbender/mapbender-digitizer/tree/develop/src/Mapbender/DataSourceBundle). Propose any changes there.
+
+---
+
+## Old description: Mapbender data source module
 
 Components abstracting raw doctrine tables into repositories.
 
