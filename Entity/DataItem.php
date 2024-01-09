@@ -1,74 +1,125 @@
 <?php
 namespace Mapbender\DataSourceBundle\Entity;
 
+/**
+ * @author    Andriy Oblivantsev <eslider@gmail.com>
+ */
 class DataItem implements \ArrayAccess
 {
-    protected array $attributes = [];
-    protected string $uniqueIdField;
+    /** @var mixed[] */
+    protected $attributes = array();
 
-    public function __construct(array $attributes = [], string $uniqueIdField = 'id')
+    /** @var string */
+    protected $uniqueIdField;
+
+    /**
+     * @param mixed[] $attributes array
+     * @param string $uniqueIdField ID field name
+     * @internal
+     */
+    public function __construct(array $attributes = array(), $uniqueIdField = 'id')
     {
         $this->uniqueIdField = $uniqueIdField;
-        $attributes[$this->uniqueIdField] = $attributes[$this->uniqueIdField] ?? null;
+        if (!array_key_exists($this->uniqueIdField, $attributes)) {
+            // ensure getId works
+            $attributes[$this->uniqueIdField] = null;
+        }
         $this->setAttributes($attributes);
     }
 
-    public function toArray(): array
+    /**
+     * @return array
+     */
+    public function toArray()
     {
         return $this->attributes;
     }
 
-    public function setId(mixed $id): void
+    /**
+     * @param mixed $id
+     */
+    public function setId($id)
     {
         $this->attributes[$this->uniqueIdField] = $id;
     }
 
-    public function hasId(): bool
+    /**
+     * Is id not null
+     *
+     * @return bool
+     * @deprecated use getId and coerce to boolean
+     */
+    public function hasId()
     {
-        return $this->getId() !== null;
+        return !is_null($this->getId());
     }
 
-    public function getId(): ?int
+    /**
+     * Get id
+     *
+     * @return integer
+     */
+    public function getId()
     {
         return $this->attributes[$this->uniqueIdField];
     }
 
-    public function getAttributes(): array
+    /**
+     * Get attributes
+     *
+     * @return mixed[]
+     */
+    public function getAttributes()
     {
         return $this->attributes;
     }
 
-    public function getAttribute(string $name): mixed
+    /**
+     * @param string $name
+     * @return mixed
+     */
+    public function getAttribute($name)
     {
-        return $this->attributes[$name] ?? null;
+        return $this->attributes[$name];
     }
 
-    public function setAttributes(array $attributes): void
+    /**
+     * ADD attributes
+     *
+     * @param mixed $attributes
+     */
+    public function setAttributes($attributes)
     {
         $this->attributes = array_merge($this->attributes, $attributes);
     }
 
-    public function setAttribute(string $key, mixed $value): void
+    /**
+     * Set attribute
+     *
+     * @param string $key
+     * @param mixed $value
+     */
+    public function setAttribute($key, $value)
     {
-        $this->attributes[$key] = $value;
+        $this->attributes[ $key ] = $value;
     }
 
-    public function offsetExists(mixed $offset): bool
+    public function offsetExists($offset)
     {
-        return array_key_exists($offset, $this->attributes);
+        return \array_key_exists($offset, $this->attributes);
     }
 
-    public function offsetGet(mixed $offset): mixed
+    public function offsetGet($offset)
     {
         return $this->attributes[$offset];
     }
 
-    public function offsetSet(mixed $offset, mixed $value): void
+    public function offsetSet($offset, $value)
     {
         $this->setAttribute($offset, $value);
     }
 
-    public function offsetUnset(mixed $offset): void
+    public function offsetUnset($offset)
     {
         unset($this->attributes[$offset]);
     }
